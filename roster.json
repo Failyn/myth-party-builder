@@ -1,0 +1,115 @@
+[
+ {
+  "id": "Fay",
+  "name": "Fay",
+  "player": "Aleks",
+  "main": true,
+  "order": 1
+ },
+ {
+  "id": "Eos",
+  "name": "Eos",
+  "player": "Aleks",
+  "main": false,
+  "order": 2
+ },
+ {
+  "id": "Alpha",
+  "name": "Alpha",
+  "player": "Aleks",
+  "main": false,
+  "order": 3
+ },
+ {
+  "id": "Beta",
+  "name": "Beta",
+  "player": "Aleks",
+  "main": false,
+  "order": 4
+ },
+ {
+  "id": "Clowi",
+  "name": "Clowi",
+  "player": "Clowi",
+  "main": true,
+  "order": 11
+ },
+ {
+  "id": "Alenee",
+  "name": "Alenee",
+  "player": "Clowi",
+  "main": false,
+  "order": 12
+ },
+ {
+  "id": "Veils",
+  "name": "Veils",
+  "player": "Clowi",
+  "main": false,
+  "order": 13
+ },
+ {
+  "id": "Xentis",
+  "name": "Xentis",
+  "player": "Clowi",
+  "main": false,
+  "order": 14
+ },
+ {
+  "id": "Ms",
+  "name": "Ms",
+  "player": "Ms",
+  "main": true,
+  "order": 21
+ },
+ {
+  "id": "Mi",
+  "name": "Mi",
+  "player": "Ms",
+  "main": false,
+  "order": 22
+ },
+ {
+  "id": "Mv",
+  "name": "Mv",
+  "player": "Ms",
+  "main": false,
+  "order": 23
+ },
+ {
+  "id": "Mx",
+  "name": "Mx",
+  "player": "Ms",
+  "main": false,
+  "order": 24
+ },
+ {
+  "id": "Nadro",
+  "name": "Nadro",
+  "player": "Nadro",
+  "main": true,
+  "order": 31
+ },
+ {
+  "id": "Chaeyeon",
+  "name": "Chaeyeon",
+  "player": "Nadro",
+  "main": false,
+  "order": 32
+ },
+ {
+  "id": "Yunkyoung",
+  "name": "Yunkyoung",
+  "player": "Nadro",
+  "main": false,
+  "order": 33
+ },
+ {
+  "id": "Hayoung",
+  "name": "Haуoung",
+  "player": "Nadro",
+  "main": false,
+  "order": 34,
+  "cid": "nOesda0HA_kaMIdoYp76s4r08Kwqsz6ztQZJmcjSxK8="
+ }
+]
