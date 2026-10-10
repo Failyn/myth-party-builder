@@ -474,7 +474,7 @@ function checkPass(p, quiet){
   return fetch(SB.url + "/rest/v1/rpc/pass_ok", {method: "POST", headers: Object.assign(hdr(), {"x-passcode": p}), body: "{}"})
     .then(function(r){ return r.json(); }).then(function(ok){
       if (ok === true){ pass = p; try { localStorage.setItem("myth-builder:pass", p); } catch (e) {} setLock(true); if (!quiet) notice("Editing unlocked on this device."); }
-      else { setLock(false); if (!quiet){ notice("That passcode is not right.", true); askPass(); } }
+      else { setLock(false); if (!quiet){ askPass(); notice("That passcode is not right. Check it and try again.", true); } }
     }, function(){ if (!quiet) notice("Could not check the passcode. Try again in a moment.", true); });
 }
 var subs = {coll: {}, doc: {}}, inflight = 0, lastWrite = 0, pollFails = 0;
