@@ -292,7 +292,7 @@ function renderParties(){
         + '<div class="stats"><div class="st il' + (isLow ? ' low' : '') + '"><i>IL</i><b>' + num(c.il) + '</b></div><div class="st cp"><i>CP</i><b>' + num(c.cp) + '</b></div></div>'
         + ('<div class="en">' + (e || xv ? '⚡ ' + (e ? e.value : 0) + (amt ? ' · ' + base + (base === 1 ? ' run' : ' runs') + (more > 0 ? '<sup class="xs" title="' + more + ' more with extra energy (' + xv + ')">+' + more + '</sup>' : '') : '') : '⚡ not set') + '</div>'
         + '<div class="ebar"><i style="width:' + (e ? Math.min(100, Math.round(e.value/e.cap*100)) : 0) + '%"></i></div>')
-        + (isLow ? '<div class="warn">below ' + num(d.il) + '</div>' : '') + '</button>';
+        + '</button>';
     }
     var foot = '<span>' + n + '/' + Math.min(5, owners.length || 5) + '</span>' + (n ? '<span>avg IL ' + num(Math.round(sum/n)) + '</span>' : '');
     if (low.length) foot += '<span class="w">Below the gate: ' + esc(low.join(", ")) + '</span>';
