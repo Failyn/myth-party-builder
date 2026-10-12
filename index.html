@@ -233,10 +233,10 @@ var TGROUPS = [
   {key:"arkanis", name:"Shattered Arkanis", slots:"Parchment, Mirror"}
 ];
 var TSTAGES = [
-  {stage:1, il:1600, kinah:100000, main:"Rare", chalice:"Common"},
-  {stage:2, il:1900, kinah:120000, main:"Epic", chalice:"Rare"},
-  {stage:3, il:2200, kinah:140000, main:"Unique", chalice:"Epic"},
-  {stage:4, il:2500, kinah:160000, main:"Unique", chalice:"Unique"}
+  {stage:1, il:1600, kinah:300000, main:"Rare", chalice:"Common"},
+  {stage:2, il:1900, kinah:360000, main:"Epic", chalice:"Rare"},
+  {stage:3, il:2200, kinah:420000, main:"Unique", chalice:"Epic"},
+  {stage:4, il:2500, kinah:480000, main:"Unique", chalice:"Unique"}
 ];
 TGROUPS.forEach(function(g){ TSTAGES.forEach(function(t){
   DUNGEONS.push({id:g.key + t.stage, group:g.key, art:g.key, name:g.name, stage:t.stage, il:t.il, min:2, kinah:t.kinah,
