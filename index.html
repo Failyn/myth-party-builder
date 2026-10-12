@@ -224,6 +224,7 @@ var HUE = {Cleric:46, Chanter:330, Templar:205, Assassin:265, Spiritmaster:150, 
 
 
 var XCAP = 2000, RUN = 80;
+var unlocked = false;
 var chars = [], energy = {}, extra = {}, parties = [{dungeon:"vakron", members:[], amount:80, runs:0, earned:0}], active = 0;
 var db = null, canWrite = true, loaded = {chars:false};
 
@@ -337,7 +338,7 @@ function renderEnergy(){
   if (!chars.length){ $("energy").innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters yet." : "Loading the roster…") + '</div>'; return; }
   var keep = {}, foc = document.activeElement && document.activeElement.id;
   Array.prototype.forEach.call(document.querySelectorAll(".einput"), function(i){ keep[i.id] = i.value; });
-  var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Extra (blue)</th><th>Full in</th><th>Entered</th><th>Set current energy</th><th>Cap</th></tr></thead><tbody>', last = null;
+  var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Full in</th><th>Entered</th>' + (unlocked ? '<th>Set current energy</th>' : '') + '<th>Extra (blue)</th></tr></thead><tbody>', last = null;
   chars.forEach(function(c){
     var e = nowEnergy(c.name, now), first = c.player !== last; last = c.player;
     var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '"> <span class="xcap">/ ' + XCAP + '</span></td>';
@@ -347,15 +348,15 @@ function renderEnergy(){
       + '<td><div class="ename">' + glyph(c.cls, true) + esc(c.name) + '</div></td>';
     if (e){
       var toFull = e.value >= e.cap ? 0 : msToNext(now) + (Math.ceil((e.cap - e.value)/STEP) - 1)*PERIOD;
-      html += '<td><div class="enow">' + e.value + ' <small>/ ' + e.cap + ' · ' + Math.floor(e.value/RUN) + (Math.floor(e.value/RUN) === 1 ? ' run' : ' runs') + (xr > 0 ? '<sup class="xs">+' + xr + '</sup>' : '') + '</small></div><div class="bar' + (e.value >= e.cap ? " full" : "") + '"><i style="width:' + Math.min(100, Math.round(e.value/e.cap*100)) + '%"></i></div></td>' + xcell
+      html += '<td><div class="enow">' + e.value + ' <small>/ ' + e.cap + ' · ' + Math.floor(e.value/RUN) + (Math.floor(e.value/RUN) === 1 ? ' run' : ' runs') + (xr > 0 ? '<sup class="xs">+' + xr + '</sup>' : '') + '</small></div><div class="bar' + (e.value >= e.cap ? " full" : "") + '"><i style="width:' + Math.min(100, Math.round(e.value/e.cap*100)) + '%"></i></div></td>'
         + '<td class="mono">' + (toFull ? dur(toFull) : "full") + '</td><td class="mono" style="color:var(--muted);font-size:.78rem">' + dur(Math.max(60000, now - (e.at || now))) + ' ago</td>';
     } else {
-      html += '<td><span class="unset">not entered</span></td>' + xcell + '<td class="mono">–</td><td class="mono">–</td>';
+      html += '<td><span class="unset">not entered</span></td><td class="mono">–</td><td class="mono">–</td>';
     }
-    html += '<td><div class="eacts"><input class="einput" id="' + esc(id) + '" type="number" min="0" max="2000" inputmode="numeric" placeholder="' + (e ? e.value : "0") + '" aria-label="Current energy for ' + esc(c.name) + '">'
+    if (unlocked) html += '<td><div class="eacts"><input class="einput" id="' + esc(id) + '" type="number" min="0" max="2000" inputmode="numeric" placeholder="' + (e ? e.value : "0") + '" aria-label="Current energy for ' + esc(c.name) + '">'
       + '<button type="button" class="ebtn" data-set="' + esc(c.name) + '">Set</button>'
-      + (e || extraOf(c.name) ? '<button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="80" title="One run with both cubes. Uses normal energy first, then extra.">−80</button><button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="40" title="One cube only" style="opacity:.6">−40</button>' : '') + '</div></td>'
-      + '<td><select class="esel" id="cap-' + esc(c.name) + '" data-cap="' + esc(c.name) + '" aria-label="Energy cap for ' + esc(c.name) + '"><option value="840"' + (cap === 840 ? " selected" : "") + '>840</option><option value="560"' + (cap === 560 ? " selected" : "") + '>560</option></select></td></tr>';
+      + (e || extraOf(c.name) ? '<button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="80" title="One run with both cubes. Uses normal energy first, then extra.">−80</button><button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="40" title="One cube only" style="opacity:.6">−40</button>' : '') + '</div></td>';
+    html += xcell + '</tr>';
   });
   html += '</tbody></table></div>';
   $("energy").innerHTML = html;
@@ -450,7 +451,7 @@ document.addEventListener("click", function(ev){
   if (d.set){
     var inp = $("e-" + d.set), v = inp ? parseFloat(inp.value) : NaN;
     if (isNaN(v)){ if (inp) inp.focus(); return; }
-    inp.value = ""; saveEnergy(d.set, v, +($("cap-" + d.set).value) || 840); return;
+    inp.value = ""; saveEnergy(d.set, v, (energy[eid(d.set)] && energy[eid(d.set)].cap) || 840); return;
   }
   if (d.spend){ spend(d.spend, +d.cost || RUN, Date.now()); renderEnergy(); renderParties(); return; }
 });
@@ -481,12 +482,13 @@ setInterval(function(){ renderClock(); if (!typing()){ renderEnergy(); renderPar
 (function(){ var css = ""; Object.keys(ART.bg).forEach(function(k){ css += ".art-" + k + "::before{background-image:url(" + ART.bg[k] + ")}"; }); var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st); })();
 
 
-var SB = {"url": "https://bnrruhfnfdyzlpsyugsj.supabase.co", "publishable_key": "sb_publishable__IHKIKO1P8xbwYDZpjJeuA_6khHbGTr"}, pass = "", unlocked = false;
+var SB = {"url": "https://bnrruhfnfdyzlpsyugsj.supabase.co", "publishable_key": "sb_publishable__IHKIKO1P8xbwYDZpjJeuA_6khHbGTr"}, pass = "";
 try { pass = localStorage.getItem("myth-builder:pass") || ""; } catch (e) {}
 function hdr(write){ var h = {apikey: SB.publishable_key, Authorization: "Bearer " + SB.publishable_key, "Content-Type": "application/json"}; if (write && pass) h["x-passcode"] = pass; return h; }
 function setLock(ok){
   unlocked = ok; var b = $("lockbtn");
   b.textContent = ok ? "Editing unlocked" : "Unlock editing"; b.classList.toggle("on", ok); $("lockform").hidden = true;
+  if (!typing()) renderEnergy();
 }
 function askPass(){ $("lockform").hidden = false; $("passin").focus(); notice("Enter the group passcode to make changes. Viewing needs no passcode."); }
 function checkPass(p, quiet){
