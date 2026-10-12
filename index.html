@@ -13,20 +13,20 @@
 /* layout: tabbed tool. Builder = dungeon rail | party boxes | roster cards. Energy = one row per character. */
 :root{
   --bg:#f2f4f7; --surface:#ffffff; --surface-2:#e9ecf1; --ink:#1b2130; --muted:#5b6472; --line:#d8dde4;
-  --accent:#0d7a89; --accent-2:#a8791f; --good:#187a4f; --bad:#b8382f;
+  --accent:#0d7a89; --accent-2:#a8791f; --good:#187a4f; --bad:#b8382f; --extra:#2a6fc4;
   --badge-s:55%; --badge-l:38%; --chip:#232a38;
   --display:"Zilla Slab",Georgia,serif; --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#10131a; --surface:#171b24; --surface-2:#1f2430; --ink:#e8ebf1; --muted:#8b93a3; --line:#2a3040;
-    --accent:#4fd1d9; --accent-2:#d9a94a; --good:#4caf7d; --bad:#e2685f;
+    --accent:#4fd1d9; --accent-2:#d9a94a; --good:#4caf7d; --bad:#e2685f; --extra:#6aa9ff;
     --badge-s:65%; --badge-l:62%; --chip:#262d3c; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#10131a; --surface:#171b24; --surface-2:#1f2430; --ink:#e8ebf1; --muted:#8b93a3; --line:#2a3040;
-  --accent:#4fd1d9; --accent-2:#d9a94a; --good:#4caf7d; --bad:#e2685f;
+  --accent:#4fd1d9; --accent-2:#d9a94a; --good:#4caf7d; --bad:#e2685f; --extra:#6aa9ff;
   --badge-s:65%; --badge-l:62%; --chip:#262d3c; color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -147,6 +147,9 @@ button{cursor:pointer}
 .bar i{display:block;height:100%;background:var(--accent)}
 .bar.full i{background:var(--accent-2)}
 .einput{width:76px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-family:var(--mono)}
+.xinput{width:78px;background:var(--surface-2);border:1px solid var(--extra);border-radius:6px;padding:5px 7px;font-family:var(--mono);color:var(--extra);font-weight:600}
+.xcap{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.xs{color:var(--extra);font-weight:700;font-size:.62rem;margin-left:1px;vertical-align:super;line-height:0}
 .esel{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:5px 4px;font-family:var(--mono);font-size:.78rem}
 .ebtn{background:var(--accent);color:var(--bg);border:none;border-radius:6px;padding:5px 11px;font-weight:600;font-size:.82rem}
 .ebtn.ghost{background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-family:var(--mono);font-weight:400}
@@ -197,7 +200,7 @@ button{cursor:pointer}
 
   <div id="panel-energy" hidden>
     <div class="clock" id="clock"></div>
-    <p class="clock" style="margin-top:-6px">Alts only. Mains are left out because their energy changes too often to keep current.</p>
+    <p class="clock" style="margin-top:-6px">Extra (blue) energy holds up to 2,000, does not refill by itself, and can be edited by anyone. Spending uses normal energy first, then extra.</p>
     <div id="energy"><div class="empty-state">Loading the roster…</div></div>
   </div>
 </div>
@@ -220,7 +223,8 @@ var KINAH = {700:200000, 1400:300000, 2100:400000};
 var HUE = {Cleric:46, Chanter:330, Templar:205, Assassin:265, Spiritmaster:150, Sorcerer:15, Gladiator:35, Ranger:95};
 
 
-var chars = [], energy = {}, parties = [{dungeon:"vakron", members:[], amount:80, runs:0, earned:0}], active = 0;
+var XCAP = 2000, RUN = 80;
+var chars = [], energy = {}, extra = {}, parties = [{dungeon:"vakron", members:[], amount:80, runs:0, earned:0}], active = 0;
 var db = null, canWrite = true, loaded = {chars:false};
 
 function $(id){ return document.getElementById(id); }
@@ -231,7 +235,8 @@ function glyph(cls, small){
   return '<span class="glyph' + (small ? " sm" : "") + '" title="' + esc(cls) + '">' + (src ? '<img alt="" src="' + src + '">' : '') + '</span>';
 }
 function kfmt(n){ n = Number(n) || 0; if (n >= 1e6) return (Math.round(n/1e4)/100) + "M"; if (n >= 1e3) return Math.round(n/1e3) + "k"; return String(n); }
-function typing(){ var a = document.activeElement; return !!(a && a.classList && (a.classList.contains("einput") || a.classList.contains("pin"))); }
+function typing(){ var a = document.activeElement; return !!(a && a.classList && (a.classList.contains("einput") || a.classList.contains("pin") || a.classList.contains("xinput"))); }
+function extraOf(n){ var x = extra[eid(n)], v = x && typeof x.value === "number" ? x.value : 0; return Math.max(0, Math.min(XCAP, Math.round(v))); }
 function playerOrder(){ var o = []; chars.forEach(function(c){ if (o.indexOf(c.player) < 0) o.push(c.player); }); return o; }
 function eid(n){ return String(n).replace(/[^A-Za-z0-9_-]/g, function(c){ return "~" + c.charCodeAt(0).toString(16); }); }
 function byName(n){ for (var i = 0; i < chars.length; i++) if (chars[i].name === n) return chars[i]; return null; }
@@ -262,7 +267,7 @@ function renderDungeons(){
   var cur = parties[active] ? parties[active].dungeon : null, html = "", tier = 0;
   DUNGEONS.forEach(function(d){
     if (d.tier !== tier){ tier = d.tier; html += '<div class="tier">Tier ' + tier + '</div>'; }
-    html += '<button type="button" class="dbtn' + (d.id === cur ? " sel" : "") + '" data-d="' + d.id + '"><div class="dn"><span>' + esc(d.name) + '</span><span class="dg">' + num(d.il) + '</span></div><div class="dd">' + esc(d.drops) + (d.min > 1 ? " · 2+ players" : "") + '</div><div class="dd">' + kfmt(KINAH[d.il]) + ' kinah per cube</div></button>';
+    html += '<button type="button" class="dbtn' + (d.id === cur ? " sel" : "") + '" data-d="' + d.id + '"><div class="dn"><span>' + esc(d.name) + '</span><span class="dg">' + num(d.il) + '</span></div><div class="dd">' + esc(d.drops) + (d.min > 1 ? " · 2+ players" : "") + '</div><div class="dd">' + kfmt(KINAH[d.il]*2) + ' kinah per run</div></button>';
   });
   $("dlist").innerHTML = html;
 }
@@ -279,14 +284,14 @@ function renderParties(){
       n++; sum += c.il || 0;
       if (seen[c.player]) dup.push(c.player); seen[c.player] = 1;
       var isLow = (c.il || 0) < d.il; if (isLow) low.push(c.name);
-      var e = nowEnergy(c.name, now), amt = p.amount || 80;
+      var e = nowEnergy(c.name, now), amt = p.amount || 80, xv = extraOf(c.name), tot = (e ? e.value : 0) + xv, base = amt ? Math.floor((e ? e.value : 0)/amt) : 0, more = amt ? Math.floor(tot/amt) - base : 0;
       slots += '<button type="button" class="slot filled" style="--hue:' + (HUE[c.cls] == null ? 220 : HUE[c.cls]) + '" data-rm="' + i + ':' + esc(c.name) + '" title="Click to remove">'
         + '<div class="sn">' + glyph(c.cls) + '<span>' + esc(c.name) + '</span></div>'
         + '<div class="sp">' + esc(c.cls) + '</div>'
         + '<div class="stats"><div class="st il' + (isLow ? ' low' : '') + '"><i>IL</i><b>' + num(c.il) + '</b></div><div class="st cp"><i>CP</i><b>' + num(c.cp) + '</b></div></div>'
-        + (c.main ? '' : '<div class="en">' + (e ? '⚡ ' + e.value + (amt ? ' · ' + Math.floor(e.value/amt) + (Math.floor(e.value/amt) === 1 ? ' run' : ' runs') : '') : '⚡ not set') + '</div>'
+        + ('<div class="en">' + (e || xv ? '⚡ ' + (e ? e.value : 0) + (amt ? ' · ' + base + (base === 1 ? ' run' : ' runs') + (more > 0 ? '<sup class="xs" title="' + more + ' more with extra energy (' + xv + ')">+' + more + '</sup>' : '') : '') : '⚡ not set') + '</div>'
         + '<div class="ebar"><i style="width:' + (e ? Math.min(100, Math.round(e.value/e.cap*100)) : 0) + '%"></i></div>')
-        + (isLow ? '<div class="warn">below ' + num(d.il) + '</div>' : '') + (!c.main && e && e.value < amt ? '<div class="warn">under ' + amt + ' energy</div>' : '') + '</button>';
+        + (isLow ? '<div class="warn">below ' + num(d.il) + '</div>' : '') + '</button>';
     }
     var foot = '<span>' + n + '/' + Math.min(5, owners.length || 5) + '</span>' + (n ? '<span>avg IL ' + num(Math.round(sum/n)) + '</span>' : '');
     if (low.length) foot += '<span class="w">Below the gate: ' + esc(low.join(", ")) + '</span>';
@@ -332,23 +337,24 @@ function renderEnergy(){
   if (!chars.length){ $("energy").innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters yet." : "Loading the roster…") + '</div>'; return; }
   var keep = {}, foc = document.activeElement && document.activeElement.id;
   Array.prototype.forEach.call(document.querySelectorAll(".einput"), function(i){ keep[i.id] = i.value; });
-  var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Full in</th><th>Entered</th><th>Set current energy</th><th>Cap</th></tr></thead><tbody>', last = null;
+  var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Extra (blue)</th><th>Full in</th><th>Entered</th><th>Set current energy</th><th>Cap</th></tr></thead><tbody>', last = null;
   chars.forEach(function(c){
-    if (c.main) return;
     var e = nowEnergy(c.name, now), first = c.player !== last; last = c.player;
+    var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '"> <span class="xcap">/ ' + XCAP + '</span></td>';
+    var xr = Math.floor(((e ? e.value : 0) + extraOf(c.name))/RUN) - Math.floor((e ? e.value : 0)/RUN);
     var id = "e-" + c.name, cap = e ? e.cap : ((energy[eid(c.name)] && energy[eid(c.name)].cap) || 840);
     html += '<tr' + (first ? ' class="pfirst"' : '') + '><td>' + (first ? esc(c.player) : '') + '</td>'
       + '<td><div class="ename">' + glyph(c.cls, true) + esc(c.name) + '</div></td>';
     if (e){
       var toFull = e.value >= e.cap ? 0 : msToNext(now) + (Math.ceil((e.cap - e.value)/STEP) - 1)*PERIOD;
-      html += '<td><div class="enow">' + e.value + ' <small>/ ' + e.cap + ' · ' + Math.floor(e.value/CUBE) + ' cubes</small></div><div class="bar' + (e.value >= e.cap ? " full" : "") + '"><i style="width:' + Math.min(100, Math.round(e.value/e.cap*100)) + '%"></i></div></td>'
+      html += '<td><div class="enow">' + e.value + ' <small>/ ' + e.cap + ' · ' + Math.floor(e.value/RUN) + (Math.floor(e.value/RUN) === 1 ? ' run' : ' runs') + (xr > 0 ? '<sup class="xs">+' + xr + '</sup>' : '') + '</small></div><div class="bar' + (e.value >= e.cap ? " full" : "") + '"><i style="width:' + Math.min(100, Math.round(e.value/e.cap*100)) + '%"></i></div></td>' + xcell
         + '<td class="mono">' + (toFull ? dur(toFull) : "full") + '</td><td class="mono" style="color:var(--muted);font-size:.78rem">' + dur(Math.max(60000, now - (e.at || now))) + ' ago</td>';
     } else {
-      html += '<td><span class="unset">not entered</span></td><td class="mono">–</td><td class="mono">–</td>';
+      html += '<td><span class="unset">not entered</span></td>' + xcell + '<td class="mono">–</td><td class="mono">–</td>';
     }
     html += '<td><div class="eacts"><input class="einput" id="' + esc(id) + '" type="number" min="0" max="2000" inputmode="numeric" placeholder="' + (e ? e.value : "0") + '" aria-label="Current energy for ' + esc(c.name) + '">'
       + '<button type="button" class="ebtn" data-set="' + esc(c.name) + '">Set</button>'
-      + (e ? '<button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" title="Opened one cube">−40</button>' : '') + '</div></td>'
+      + (e || extraOf(c.name) ? '<button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="80" title="One run with both cubes. Uses normal energy first, then extra.">−80</button><button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="40" title="One cube only" style="opacity:.6">−40</button>' : '') + '</div></td>'
       + '<td><select class="esel" id="cap-' + esc(c.name) + '" data-cap="' + esc(c.name) + '" aria-label="Energy cap for ' + esc(c.name) + '"><option value="840"' + (cap === 840 ? " selected" : "") + '>840</option><option value="560"' + (cap === 560 ? " selected" : "") + '>560</option></select></td></tr>';
   });
   html += '</tbody></table></div>';
@@ -379,19 +385,31 @@ function savePlan(){
     db.doc("plan/current").set(body).then(function(){ if (planDirty) loop(); else planBusy = false; }, function(e){ planBusy = false; failWrite(e); });
   })();
 }
+function saveExtra(name, value, quiet){
+  var v = Math.max(0, Math.min(XCAP, Math.round(Number(value) || 0)));
+  extra[eid(name)] = {value: v, at: Date.now()};
+  if (!quiet){ renderEnergy(); renderParties(); }
+  if (db) db.doc("extra/" + eid(name)).set(extra[eid(name)]).then(function(){}, function(){ notice("Extra energy for " + name + " could not be saved. Try again in a moment.", true); });
+}
+function spend(nm, amt, now){
+  var e = nowEnergy(nm, now), x = extraOf(nm);
+  if (!e && !x) return null;
+  var have = e ? e.value : 0, take = Math.min(have, amt), rem = amt - take, tx = Math.min(x, rem);
+  if (e && take > 0){ energy[eid(nm)] = {value: have - take, at: now, cap: e.cap}; if (db) db.doc("energy/" + eid(nm)).set(energy[eid(nm)]).then(function(){}, failWrite); }
+  if (tx > 0) saveExtra(nm, x - tx, true);
+  return {normal: take, extra: tx, short: rem - tx};
+}
 function runDone(i){
   var p = parties[i]; if (!p) return;
-  var amt = p.amount || 80, now = Date.now(), skipped = [], done = 0;
+  var amt = p.amount || 80, now = Date.now(), done = 0, fromExtra = 0;
   p.members.forEach(function(nm){
-    var cm = byName(nm); if (cm && cm.main) return;
-    var e = nowEnergy(nm, now);
-    if (!e){ skipped.push(nm); return; }
-    energy[eid(nm)] = {value: Math.max(0, e.value - amt), at: now, cap: e.cap}; done++;
-    if (db) db.doc("energy/" + eid(nm)).set(energy[eid(nm)]).then(function(){}, failWrite);
+    var r = spend(nm, amt, now);
+    if (!r) return;
+    done++; if (r.extra) fromExtra++;
   });
   p.runs = (p.runs || 0) + 1;
   p.earned = (p.earned || 0) + (KINAH[dungeon(p.dungeon).il] || 0)*(amt/CUBE);
-  notice(skipped.length ? "Run logged. No energy entered yet for " + skipped.join(", ") + ", so nothing was subtracted for them." : "Run logged" + (done ? ": −" + amt + " energy on " + done + " alt" + (done === 1 ? "" : "s") + "." : ". Mains are not energy-tracked, so nothing was subtracted."));
+  notice("Run logged" + (done ? ": −" + amt + " energy on " + done + " character" + (done === 1 ? "" : "s") + (fromExtra ? ", " + fromExtra + " using extra energy" : "") : "") + ".");
   renderEnergy(); savePlan();
 }
 function saveEnergy(name, value, cap){
@@ -434,16 +452,17 @@ document.addEventListener("click", function(ev){
     if (isNaN(v)){ if (inp) inp.focus(); return; }
     inp.value = ""; saveEnergy(d.set, v, +($("cap-" + d.set).value) || 840); return;
   }
-  if (d.spend){ var e = nowEnergy(d.spend, Date.now()); if (e) saveEnergy(d.spend, e.value - CUBE, e.cap); return; }
+  if (d.spend){ spend(d.spend, +d.cost || RUN, Date.now()); renderEnergy(); renderParties(); return; }
 });
 document.addEventListener("keydown", function(ev){
   if (ev.key === "Enter" && ev.target.id === "passin"){ $("passgo").click(); return; }
-  if (ev.key === "Enter" && ev.target.classList && ev.target.classList.contains("pin")){ ev.target.blur(); return; }
+  if (ev.key === "Enter" && ev.target.classList && (ev.target.classList.contains("pin") || ev.target.classList.contains("xinput"))){ ev.target.blur(); return; }
   if (ev.key === "Enter" && ev.target.classList && ev.target.classList.contains("einput")){ var b = ev.target.parentNode.querySelector("[data-set]"); if (b) b.click(); }
 });
 document.addEventListener("change", function(ev){
   var ds = ev.target.dataset || {};
   if (!unlocked && (ds.amt != null || ds.cap)){ askPass(); renderParties(); renderEnergy(); return; }
+  if (ds.x){ saveExtra(ds.x, parseFloat(ev.target.value) || 0); return; }
   if (ds.amt != null){ var pa = parties[+ds.amt]; if (pa){ pa.amount = Math.max(0, Math.min(2000, Math.round(parseFloat(ev.target.value) || 0))); savePlan(); } return; }
   var n = ds.cap; if (!n) return;
   var e = nowEnergy(n, Date.now()); if (e) saveEnergy(n, e.value, +ev.target.value);
@@ -512,6 +531,10 @@ function start(){
   });
   db.collection("energy").onSnapshot(function(s){
     var next = {}; s.docs.forEach(function(x){ next[x.id] = x.data(); }); energy = next;
+    if (!typing()){ renderEnergy(); renderParties(); }
+  });
+  db.collection("extra").onSnapshot(function(s){
+    var next = {}; s.docs.forEach(function(x){ next[x.id] = x.data(); }); extra = next;
     if (!typing()){ renderEnergy(); renderParties(); }
   });
   db.doc("plan/current").onSnapshot(function(s){
