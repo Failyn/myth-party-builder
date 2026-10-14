@@ -211,7 +211,7 @@ button{cursor:pointer}
 
   <div id="panel-energy" hidden>
     <div class="clock" id="clock"></div>
-    <p class="clock" style="margin-top:-6px">Extra (blue) energy holds up to 2,000, does not refill by itself, and can be edited by anyone. Spending uses normal energy first, then extra.</p>
+    <p class="clock" style="margin-top:-6px">Extra (blue) energy is the Odyle Energy you keep in your bag. It does not refill by itself and can be edited by anyone. Spending uses normal energy first, then extra.</p>
     <div id="energy"><div class="empty-state">Loading the roster…</div></div>
   </div>
 </div>
@@ -248,7 +248,7 @@ var CLSKEY = {Spiritmaster:"elementalist"};
 var HUE = {Cleric:46, Chanter:330, Templar:205, Assassin:265, Spiritmaster:150, Sorcerer:15, Gladiator:35, Ranger:95};
 
 
-var XCAP = 2000, RUN = 80;
+var XCAP = 100000, RUN = 80; /* no game cap on stored Odyle items; this only stops typos */
 var unlocked = false;
 var chars = [], energy = {}, extra = {}, parties = [{dungeon:"vakron", members:[], amount:80, runs:0, earned:0}], active = 0;
 var db = null, canWrite = true, loaded = {chars:false};
@@ -373,7 +373,7 @@ function renderEnergy(){
   var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Full in</th><th>Entered</th>' + (unlocked ? '<th>Set current energy</th>' : '') + '<th>Extra (blue)</th></tr></thead><tbody>', last = null;
   chars.forEach(function(c){
     var e = nowEnergy(c.name, now), first = c.player !== last; last = c.player;
-    var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '"> <span class="xcap">/ ' + XCAP + '</span>'
+    var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '">'
       + (unlocked ? ' <button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="160">+160</button><button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="800">+800</button>' : '') + '</td>';
     var xr = Math.floor(((e ? e.value : 0) + extraOf(c.name))/RUN) - Math.floor((e ? e.value : 0)/RUN);
     var id = "e-" + c.name, cap = e ? e.cap : ((energy[eid(c.name)] && energy[eid(c.name)].cap) || 840);
