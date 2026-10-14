@@ -28,6 +28,22 @@
   "order": 4
  },
  {
+  "id": "Luna",
+  "name": "Lunа",
+  "player": "Aleks",
+  "main": false,
+  "order": 5,
+  "cid": "nOesda0HA_kaMIdoYp76s1KrW53-LfcrFeHMKAAEShQ="
+ },
+ {
+  "id": "Ai",
+  "name": "Аi",
+  "player": "Aleks",
+  "main": false,
+  "order": 6,
+  "cid": "nOesda0HA_kaMIdoYp76sw0lHj4nLkzagDTnx7c2LrA="
+ },
+ {
   "id": "Clowi",
   "name": "Clowi",
   "player": "Clowi",
@@ -54,6 +70,14 @@
   "player": "Clowi",
   "main": false,
   "order": 14
+ },
+ {
+  "id": "Ellarie",
+  "name": "Ellarie",
+  "player": "Clowi",
+  "main": false,
+  "order": 15,
+  "cid": "nOesda0HA_kaMIdoYp76s2RO95b9ODi6awkdIRe2quU="
  },
  {
   "id": "Ms",
