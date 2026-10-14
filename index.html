@@ -125,23 +125,22 @@ button{cursor:pointer}
 .addparty:hover{color:var(--accent);border-color:var(--accent)}
 
 /* roster */
-.rlist{display:flex;flex-direction:column;gap:10px}
-.rhead,.row{display:grid;grid-template-columns:24px minmax(0,1fr) 48px 64px 24px;gap:8px;align-items:center}
-.rhead{padding:0 11px;font-family:var(--mono);font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.rhead span:nth-child(3),.rhead span:nth-child(4){text-align:right}
+.rlist{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:20px minmax(0,1fr) auto auto 14px;gap:9px;align-items:center}
 .pgroup{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
-.pname{display:flex;justify-content:space-between;align-items:baseline;padding:6px 11px;background:var(--surface-2);font-family:var(--display);font-weight:600;font-size:.95rem}
+.pname{display:flex;justify-content:space-between;align-items:baseline;padding:4px 10px;background:var(--surface-2);font-family:var(--display);font-weight:600;font-size:.95rem}
 .pname small{font-family:var(--mono);font-size:.62rem;color:var(--muted);font-weight:400}
-.row{width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line);padding:5px 11px;font-size:.88rem;color:var(--ink)}
+.row{width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line);padding:3px 10px;font-size:.8rem;line-height:1.35;color:var(--ink)}
 .pname + .row{border-top:none}
 .row:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
-.row .glyph{width:24px;height:24px}
-.row .glyph img{width:19px;height:19px}
+.row .glyph{width:20px;height:20px}
+.row .glyph img{width:16px;height:16px}
 .row .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.row .rn small{font-weight:400;color:var(--muted);font-size:.72rem;margin-left:6px}
-.row .ri,.row .rc{font-variant-numeric:tabular-nums;text-align:right;font-size:.82rem}
+.row .rn small{font-weight:400;color:var(--muted);font-size:.68rem;margin-left:5px}
+.row .ri,.row .rc{font-variant-numeric:tabular-nums;text-align:right;font-size:.78rem;min-width:3.2em}
+.row .rc{min-width:4.2em}
 .row .rc{color:var(--accent-2)}
-.row .rp{font-family:var(--mono);font-size:.62rem;color:var(--accent);text-align:right}
+.row .rp{font-size:.74rem;font-weight:700;color:var(--good);text-align:right}
 .row.used{opacity:.5}
 .row.low .ri{color:var(--bad)}
 .glyph{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--chip);flex-shrink:0}
@@ -355,14 +354,14 @@ function renderRoster(){
   if (!chars.length){ $("roster").innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters yet. Ask Claude to add the roster." : "Loading the roster…") + '</div>'; return; }
   var d = parties[active] ? dungeon(parties[active].dungeon) : DUNGEONS[0], groups = {}, order = [];
   chars.forEach(function(c){ if (!groups[c.player]){ groups[c.player] = []; order.push(c.player); } groups[c.player].push(c); });
-  var html = '<div class="rlist"><div class="rhead"><span></span><span>Character</span><span>IL</span><span>CP</span><span></span></div>';
+  var html = '<div class="rlist">';
   order.forEach(function(pl){
     html += '<div class="pgroup"><div class="pname">' + esc(pl) + '<small>' + groups[pl].length + (groups[pl].length === 1 ? ' character' : ' characters') + '</small></div>';
     groups[pl].forEach(function(c){
       var pi = partyOf(c.name), low = (c.il || 0) < d.il;
       html += '<button type="button" class="row' + (pi >= 0 ? " used" : "") + (low ? " low" : "") + '" data-c="' + esc(c.name) + '" title="' + esc(c.name) + ', ' + esc(c.cls) + (c.level < 45 ? ', level ' + c.level : '') + (pi >= 0 ? ', in party ' + (pi + 1) : '') + '">' + glyph(c.cls, true)
         + '<span class="rn">' + esc(c.name) + (c.provisional ? " ?" : "") + '<small>' + esc(c.cls) + (c.level < 45 ? " · Lv " + c.level : "") + '</small></span>'
-        + '<span class="ri">' + num(c.il) + '</span><span class="rc">' + num(c.cp) + '</span><span class="rp">' + (pi >= 0 ? 'P' + (pi + 1) : '') + '</span></button>';
+        + '<span class="ri">' + num(c.il) + '</span><span class="rc">' + num(c.cp) + '</span><span class="rp">' + (pi >= 0 ? (pi + 1) : '') + '</span></button>';
     });
     html += '</div>';
   });
