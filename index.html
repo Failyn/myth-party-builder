@@ -121,20 +121,6 @@ button{cursor:pointer}
 .party-f{margin-top:10px;font-size:.8rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
 .party-f .w{color:var(--bad)}
 .party-f .ok{color:var(--good)}
-#parties.cols .party{padding:10px 12px}
-.bars{display:flex;flex-direction:column;gap:4px}
-.sbar{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto 58px;gap:8px;align-items:center;width:100%;min-height:32px;text-align:left;background:color-mix(in srgb,var(--surface) 88%,transparent);border:1px solid var(--line);border-left:3px solid hsl(var(--hue,220) var(--badge-s) var(--badge-l));border-radius:6px;padding:4px 8px;font-size:.8rem;color:var(--ink)}
-button.sbar:hover{border-color:var(--accent)}
-.sbar.empty{border-style:dashed;border-left-width:1px;background:color-mix(in srgb,var(--surface-2) 72%,transparent);color:var(--muted)}
-.sbar.off{display:flex;justify-content:center;opacity:.35;border-style:dotted;border-left-width:1px;font-family:var(--mono);font-size:.68rem;color:var(--muted)}
-.sbar .glyph{width:22px;height:22px}
-.sbar .glyph img{width:17px;height:17px}
-.sbar .bn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.sbar .bn small{font-weight:400;color:var(--muted);font-size:.66rem;margin-left:5px}
-.sbar .bi,.sbar .bc{font-variant-numeric:tabular-nums;text-align:right;font-size:.78rem}
-.sbar .bi.low{color:var(--bad)}
-.sbar .bc{color:var(--accent-2)}
-.sbar .be{font-size:.66rem;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .addparty{border:1px dashed var(--line);background:none;border-radius:10px;padding:12px;color:var(--muted);font-family:var(--mono);font-size:.78rem}
 .addparty:hover{color:var(--accent);border-color:var(--accent)}
 
@@ -267,7 +253,6 @@ var CLSKEY = {Spiritmaster:"elementalist"};
 var HUE = {Cleric:46, Chanter:330, Templar:205, Assassin:265, Spiritmaster:150, Sorcerer:15, Gladiator:35, Ranger:95};
 
 
-var COLS = location.hash === "#columns";
 var XCAP = 100000, RUN = 80; /* no game cap on stored Odyle items; this only stops typos */
 var unlocked = false;
 var chars = [], energy = {}, extra = {}, parties = [{dungeon:"vakron", members:[], amount:80, runs:0, earned:0}], active = 0;
@@ -332,17 +317,6 @@ function renderParties(){
     p.members.forEach(function(nm){ var cc = byName(nm), k = cc ? owners.indexOf(cc.player) : -1; if (k >= 0 && k < 5 && !bySlot[k]) bySlot[k] = nm; else extra.push(nm); });
     for (var s = 0; s < 5; s++){
       var name = bySlot[s] || (owners[s] ? null : extra.shift()), c = name ? byName(name) : null;
-      if (COLS){
-        if (!name){ slots += owners[s] ? '<div class="sbar empty"><span></span><span class="bn">' + esc(owners[s]) + '<small>empty</small></span></div>' : '<div class="sbar off">not in use</div>'; continue; }
-        if (!c){ slots += '<button type="button" class="sbar" data-rm="' + i + ':' + esc(name) + '"><span></span><span class="bn">' + esc(name) + '<small>not in roster</small></span></button>'; continue; }
-        n++; sum += c.il || 0; if ((c.il || 0) < d.il) low.push(c.name);
-        var ce = nowEnergy(c.name, now), ca = p.amount || 80, cx = extraOf(c.name), cb = ca ? Math.floor((ce ? ce.value : 0)/ca) : 0, cm = ca ? Math.floor(((ce ? ce.value : 0) + cx)/ca) - cb : 0;
-        slots += '<button type="button" class="sbar" style="--hue:' + (HUE[c.cls] == null ? 220 : HUE[c.cls]) + '" data-rm="' + i + ':' + esc(c.name) + '" title="Click to remove">' + glyph(c.cls, true)
-          + '<span class="bn">' + esc(c.name) + '<small>' + esc(c.cls) + '</small></span>'
-          + '<span class="bi' + ((c.il || 0) < d.il ? ' low' : '') + '">' + num(c.il) + '</span><span class="bc">' + num(c.cp) + '</span>'
-          + '<span class="be">' + (ce || cx ? '⚡' + (ce ? ce.value : 0) + ' · ' + cb + (cm > 0 ? '<sup class="xs">+' + cm + '</sup>' : '') : '') + '</span></button>';
-        continue;
-      }
       if (!name){ slots += owners[s] ? '<div class="slot empty"><span class="own">' + esc(owners[s]) + '</span><span>empty</span></div>' : '<div class="slot empty off">not in use</div>'; continue; }
       if (!c){ slots += '<button type="button" class="slot filled" data-rm="' + i + ':' + esc(name) + '"><div class="sn"><span>' + esc(name) + '</span></div><div class="warn">not in roster</div></button>'; continue; }
       n++; sum += c.il || 0;
@@ -370,13 +344,11 @@ function renderParties(){
     html += '<div class="party art-' + (d.art || d.id) + (i === active ? " active" : "") + '" data-p="' + i + '">'
       + '<div class="party-h" data-sel="' + i + '"><h3>Party ' + (i + 1) + '</h3><span class="pd">' + esc(d.name) + (d.stage ? ' · Stage ' + d.stage : '') + ' · ' + num(d.il) + '+ · ' + esc(d.drops) + '</span>'
       + '<span class="pact"><button type="button" class="chipbtn" data-clear="' + i + '">clear</button><button type="button" class="chipbtn" data-del="' + i + '">remove</button></span></div>'
-      + '<div class="' + (COLS ? 'bars' : 'slots') + '">' + slots + '</div><div class="party-f">' + foot + '</div>' + kin + run + '</div>';
+      + '<div class="slots">' + slots + '</div><div class="party-f">' + foot + '</div>' + kin + run + '</div>';
   });
   html += '<button type="button" class="addparty" id="addparty">+ add a party</button>';
   $("parties").innerHTML = html;
-  $("parties").classList.toggle("cols", COLS);
 }
-window.addEventListener("hashchange", function(){ COLS = location.hash === "#columns"; renderParties(); });
 function renderRoster(){
   if (!chars.length){ $("roster").innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters yet. Ask Claude to add the roster." : "Loading the roster…") + '</div>'; return; }
   var d = parties[active] ? dungeon(parties[active].dungeon) : DUNGEONS[0], groups = {}, order = [];
