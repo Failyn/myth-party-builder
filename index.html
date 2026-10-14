@@ -158,6 +158,7 @@ button{cursor:pointer}
 .einput{width:76px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-family:var(--mono)}
 .xinput{width:78px;background:var(--surface-2);border:1px solid var(--extra);border-radius:6px;padding:5px 7px;font-family:var(--mono);color:var(--extra);font-weight:600}
 .xcap{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.ebtn.ghost.xadd{color:var(--extra);border-color:color-mix(in srgb,var(--extra) 45%,var(--line));margin-left:4px}
 .xs{color:var(--extra);font-weight:700;font-size:.62rem;margin-left:1px;vertical-align:super;line-height:0}
 .esel{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:5px 4px;font-family:var(--mono);font-size:.78rem}
 .ebtn{background:var(--accent);color:var(--bg);border:none;border-radius:6px;padding:5px 11px;font-weight:600;font-size:.82rem}
@@ -372,7 +373,8 @@ function renderEnergy(){
   var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Full in</th><th>Entered</th>' + (unlocked ? '<th>Set current energy</th>' : '') + '<th>Extra (blue)</th></tr></thead><tbody>', last = null;
   chars.forEach(function(c){
     var e = nowEnergy(c.name, now), first = c.player !== last; last = c.player;
-    var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '"> <span class="xcap">/ ' + XCAP + '</span></td>';
+    var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '"> <span class="xcap">/ ' + XCAP + '</span>'
+      + (unlocked ? ' <button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="160">+160</button><button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="800">+800</button>' : '') + '</td>';
     var xr = Math.floor(((e ? e.value : 0) + extraOf(c.name))/RUN) - Math.floor((e ? e.value : 0)/RUN);
     var id = "e-" + c.name, cap = e ? e.cap : ((energy[eid(c.name)] && energy[eid(c.name)].cap) || 840);
     html += '<tr' + (first ? ' class="pfirst"' : '') + '><td>' + (first ? esc(c.player) : '') + '</td>'
@@ -484,6 +486,7 @@ document.addEventListener("click", function(ev){
     if (isNaN(v)){ if (inp) inp.focus(); return; }
     inp.value = ""; saveEnergy(d.set, v, (energy[eid(d.set)] && energy[eid(d.set)].cap) || 840); return;
   }
+  if (d.xadd){ saveExtra(d.xadd, extraOf(d.xadd) + (+d.n || 0)); return; }
   if (d.spend){ spend(d.spend, +d.cost || RUN, Date.now()); renderEnergy(); renderParties(); return; }
 });
 document.addEventListener("keydown", function(ev){
