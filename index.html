@@ -112,9 +112,12 @@ button{cursor:pointer}
 .slot .stats{margin-top:7px;display:flex;flex-direction:column;gap:2px;align-self:stretch}
 .slot .st{display:flex;justify-content:center;align-items:baseline;gap:6px}
 .slot .st i{font-style:normal;font-size:.6rem;font-weight:600;letter-spacing:.06em;color:var(--muted);width:1.4em;text-align:right}
+@container (max-width:130px){.slot .rw{display:none}}
+@container (max-width:100px){.slot.filled .en{font-size:.56rem;letter-spacing:-.04em}.slot .st i{display:none}.slot .st b{min-width:0!important}}
 .slot .st b{font-family:var(--body);font-variant-numeric:tabular-nums lining-nums;font-weight:600;color:var(--ink);min-width:3.4em;text-align:left}
-.slot .st.il b{font-size:1.08rem}
-.slot .st.cp b{font-size:.9rem;font-weight:500;color:var(--accent-2)}
+.slot{container-type:inline-size}
+.slot .st.il b{font-size:clamp(.82rem,13cqi,1.08rem)}
+.slot .st.cp b{font-size:clamp(.68rem,10.5cqi,.9rem);font-weight:500;color:var(--accent-2)}
 .slot .st.low b{color:var(--bad)}
 .slot .en{font-size:.66rem;color:var(--muted);margin-top:auto;padding-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:stretch;font-variant-numeric:tabular-nums}
 .slot .ebar{height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden;align-self:stretch;margin-top:3px}
@@ -128,21 +131,21 @@ button{cursor:pointer}
 
 /* roster */
 .rlist{display:flex;flex-direction:column;gap:8px}
-.row{display:grid;grid-template-columns:20px minmax(0,1fr) auto auto 14px;gap:9px;align-items:center}
+.row{display:grid;grid-template-columns:18px minmax(0,1fr) 6.8ch 9.6ch 9ch 1.5ch;gap:6px;align-items:center}
 .pgroup{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
 .pname{display:flex;justify-content:space-between;align-items:baseline;padding:4px 10px;background:var(--surface-2);font-family:var(--display);font-weight:600;font-size:.95rem}
 .pname small{font-family:var(--mono);font-size:.62rem;color:var(--muted);font-weight:400}
-.row{width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line);padding:3px 10px;font-size:.8rem;line-height:1.35;color:var(--ink)}
+.row{width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line);padding:3px 9px;font-size:.74rem;line-height:1.35;color:var(--ink)}
 .pname + .row{border-top:none}
 .row:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
-.row .glyph{width:20px;height:20px}
-.row .glyph img{width:16px;height:16px}
+.row .glyph{width:18px;height:18px}
+.row .glyph img{width:14px;height:14px}
 .row .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
-.row .rn small{font-weight:400;color:var(--muted);font-size:.68rem;margin-left:5px}
-.row .ri,.row .rc{font-variant-numeric:tabular-nums;text-align:right;font-size:.78rem;min-width:3.2em}
-.row .rc{min-width:4.2em}
+.row .rn small{font-weight:400;color:var(--muted);font-size:.64rem;margin-left:4px}
+.row .ri,.row .rc,.row .re{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .re{font-size:.68rem;color:var(--muted)}
 .row .rc{color:var(--accent-2)}
-.row .rp{font-size:.74rem;font-weight:700;color:var(--good);text-align:right}
+.row .rp{font-size:.72rem;font-weight:700;color:var(--good);text-align:right}
 .row.used{opacity:.5}
 .glyph{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--chip);flex-shrink:0}
 .glyph img{width:30px;height:30px;display:block}
@@ -329,7 +332,7 @@ function renderParties(){
         + '<div class="sn">' + glyph(c.cls) + '<span>' + esc(c.name) + '</span></div>'
         + '<div class="sp">' + esc(c.cls) + '</div>'
         + '<div class="stats"><div class="st il' + (isLow ? ' low' : '') + '"><i>IL</i><b>' + num(c.il) + '</b></div><div class="st cp"><i>CP</i><b>' + num(c.cp) + '</b></div></div>'
-        + ('<div class="en">' + (e || xv ? '⚡ ' + (e ? e.value : 0) + (amt ? ' · ' + base + (base === 1 ? ' run' : ' runs') + (more > 0 ? '<sup class="xs" title="' + more + ' more with extra energy (' + xv + ')">+' + more + '</sup>' : '') : '') : '⚡ not set') + '</div>'
+        + ('<div class="en">' + (e || xv ? '⚡ ' + (e ? e.value : 0) + (amt ? ' · ' + base + '<span class="rw">' + (base === 1 ? ' run' : ' runs') + '</span>' + (more > 0 ? '<sup class="xs" title="' + more + ' more with extra energy (' + xv + ')">+' + more + '</sup>' : '') : '') : '⚡ not set') + '</div>'
         + '<div class="ebar"><i style="width:' + (e ? Math.min(100, Math.round(e.value/e.cap*100)) : 0) + '%"></i></div>')
         + '</button>';
     }
@@ -350,6 +353,12 @@ function renderParties(){
   });
   html += '<button type="button" class="addparty" id="addparty">+ add a party</button>';
   $("parties").innerHTML = html;
+  renderRoster();
+}
+function rEnergy(n){
+  var e = nowEnergy(n, Date.now()), x = extraOf(n); if (!e && !x) return "";
+  var v = e ? e.value : 0, base = Math.floor(v/RUN), more = Math.floor((v + x)/RUN) - base;
+  return "⚡" + v + (more > 0 ? '<sup class="xs">+' + more + '</sup>' : "");
 }
 function renderRoster(){
   if (!chars.length){ $("roster").innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters yet. Ask Claude to add the roster." : "Loading the roster…") + '</div>'; return; }
@@ -362,13 +371,13 @@ function renderRoster(){
       var pi = partyOf(c.name), low = (c.il || 0) < d.il;
       html += '<button type="button" class="row' + (pi >= 0 ? " used" : "") + (low ? " low" : "") + '" data-c="' + esc(c.name) + '" title="' + esc(c.name) + ', ' + esc(c.cls) + (c.level < 45 ? ', level ' + c.level : '') + (pi >= 0 ? ', in party ' + (pi + 1) : '') + '">' + glyph(c.cls, true)
         + '<span class="rn">' + esc(c.name) + (c.provisional ? " ?" : "") + '<small>' + esc(c.cls) + (c.level < 45 ? " · Lv " + c.level : "") + '</small></span>'
-        + '<span class="ri">' + num(c.il) + '</span><span class="rc">' + num(c.cp) + '</span><span class="rp">' + (pi >= 0 ? (pi + 1) : '') + '</span></button>';
+        + '<span class="ri">' + num(c.il) + '</span><span class="rc">' + num(c.cp) + '</span><span class="re">' + rEnergy(c.name) + '</span><span class="rp">' + (pi >= 0 ? (pi + 1) : '') + '</span></button>';
     });
     html += '</div>';
   });
   $("roster").innerHTML = html + '</div>';
 }
-function renderBuilder(){ if (active >= parties.length) active = Math.max(0, parties.length - 1); renderDungeons(); renderParties(); renderRoster(); }
+function renderBuilder(){ if (active >= parties.length) active = Math.max(0, parties.length - 1); renderDungeons(); renderParties(); }
 
 /* ---- energy tab ---- */
 function renderEnergy(){
