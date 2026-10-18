@@ -41,7 +41,8 @@
   "player": "Aleks",
   "main": false,
   "order": 6,
-  "cid": "nOesda0HA_kaMIdoYp76sw0lHj4nLkzagDTnx7c2LrA="
+  "cid": "nOesda0HA_kaMIdoYp76sw0lHj4nLkzagDTnx7c2LrA=",
+  "hidden": true
  },
  {
   "id": "Clowi",

@@ -84,6 +84,7 @@ def read_previous(url, key):
 def main():
     dry = "--dry-run" in sys.argv
     roster = json.load(open(os.path.join(HERE, "..", "roster.json"), encoding="utf-8"))
+    roster = [e for e in roster if not e.get("hidden")]  # "hidden": true parks a character without losing its entry
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     url, key = os.environ.get("SUPABASE_URL", "").rstrip("/"), os.environ.get("SUPABASE_SERVICE_KEY", "")
     previous = read_previous(url, key) if url and key else {}
