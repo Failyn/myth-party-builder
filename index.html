@@ -237,7 +237,10 @@ var DUNGEONS = [
   {id:"urugugu", name:"Urugugu Canyon", il:1400, min:2, tier:2, kinah:300000, drops:"Weapons, accessories (70)"},
   {id:"vakron", name:"Vakron Sky Island", il:1400, min:2, tier:2, kinah:300000, drops:"Vakron armor (70)"},
   {id:"fire", name:"Fire Temple", il:2100, min:1, tier:3, kinah:400000, drops:"Weapons, accessories (86)"},
-  {id:"horn", name:"Ferocious Horn Den", il:2100, min:1, tier:3, kinah:400000, drops:"Nuakum armor (86)"}
+  {id:"horn", name:"Ferocious Horn Den", il:2100, min:1, tier:3, kinah:400000, drops:"Nuakum armor (86)"},
+  /* Hard mode, 21 Oct 2026 patch. Kinah is an estimate: only the final boss (160k, was 70k) is known. */
+  {id:"kraoH", name:"Krao Cave (Hard)", il:2600, min:1, tier:4, hard:true, art:"krao", kinah:460000, kinahEst:true, drops:"Rupture weapons, Berk accessories, Ariel Fragments"},
+  {id:"draupnirH", name:"Draupnir (Hard)", il:2600, min:1, tier:4, hard:true, art:"draupnir", kinah:460000, kinahEst:true, drops:"Bakarma armor, Ariel Fragments"}
 ];
 /* Transcendence: two dungeons, four stages each. Card grade is the best that stage can drop. */
 var TGROUPS = [
@@ -302,9 +305,11 @@ function dur(ms){ var m = Math.ceil(ms/60000), h = Math.floor(m/60); m = m % 60;
 /* ---- builder ---- */
 function renderDungeons(){
   var cur = parties[active] ? parties[active].dungeon : null, html = '<div class="tier">Conquest</div>', sel = cur ? dungeon(cur) : null;
+  var hardShown = false;
   DUNGEONS.forEach(function(d){
     if (d.group) return;
-    html += '<button type="button" class="dbtn' + (d.id === cur ? " sel" : "") + '" data-d="' + d.id + '"><div class="dn"><span>' + esc(d.name) + '</span><span class="dg">' + num(d.il) + '</span></div><div class="dd">' + esc(d.drops) + (d.min > 1 ? " · 2+ players" : "") + '</div><div class="dd">' + kfmt(d.kinah*2) + ' kinah per run</div></button>';
+    if (d.hard && !hardShown){ hardShown = true; html += '<div class="tier">Conquest Hard · 4 min boss timer · 3 revives each</div>'; }
+    html += '<button type="button" class="dbtn' + (d.id === cur ? " sel" : "") + '" data-d="' + d.id + '"><div class="dn"><span>' + esc(d.name) + '</span><span class="dg">' + num(d.il) + '</span></div><div class="dd">' + esc(d.drops) + (d.min > 1 ? " · 2+ players" : "") + '</div><div class="dd">' + (d.kinahEst ? '~' : '') + kfmt(d.kinah*2) + ' kinah per run' + (d.kinahEst ? ' (estimate)' : '') + '</div></button>';
   });
   html += '<div class="tier">Transcendence · Arcana cards · 2+ players</div>';
   TGROUPS.forEach(function(g){
@@ -342,7 +347,7 @@ function renderParties(){
     if (n && n < d.min) foot += '<span class="w">Needs ' + d.min + '+ players</span>';
     if (n >= d.min && !low.length) foot += '<span class="ok">Ready</span>';
     var amt2 = p.amount || 80, cubes = amt2/CUBE, per = d.kinah || 0, each = per*cubes;
-    var kin = '<div class="kin">' + (per ? '<span>Kinah per run: <b>' + kfmt(each) + '</b> each (' + cubes + ' cubes × ' + kfmt(per) + ')</span>' : '<span>Kinah per cube not set for ' + esc(d.name) + '</span>')
+    var kin = '<div class="kin">' + (per ? '<span>Kinah per run: <b>' + (d.kinahEst ? '~' : '') + kfmt(each) + '</b> each (' + cubes + ' cubes × ' + (d.kinahEst ? '~' : '') + kfmt(per) + (d.kinahEst ? ', estimate' : '') + ')</span>' : '<span>Kinah per cube not set for ' + esc(d.name) + '</span>')
       + '<span>Runs done: <b>' + (p.runs || 0) + '</b> · kinah earned: <b>' + kfmt(p.earned || 0) + '</b> each</span></div>';
     var run = '<div class="runrow"><label for="amt-' + i + '">Energy per run</label><input class="pin" id="amt-' + i + '" data-amt="' + i + '" type="number" min="0" step="40" value="' + amt2 + '">'
       + '<button type="button" class="runbtn" data-run="' + i + '"' + (n ? '' : ' disabled') + '>Run done: −' + amt2 + ' each</button>'
