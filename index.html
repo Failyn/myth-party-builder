@@ -219,6 +219,7 @@ button{cursor:pointer}
 .ptl{font-size:.74rem;color:var(--muted);margin-top:3px;padding-top:4px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;display:flex;gap:6px}
 .ptl.over{color:var(--bad)}
 .pstep{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.pin.prun{width:64px;text-align:center}
 .empty-state{border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted)}
 
 @media (max-width:1020px){
@@ -543,7 +544,7 @@ document.addEventListener("click", function(ev){
   if (t.id === "wkreset"){ weekc = {key: weekKey(Date.now()), conquest: 0, trans: 0}; saveWeek(); renderPlanner(); return; }
   if (d.pr && pSel){
     var its2 = itemsOf(pSel), k2 = +d.pi, free = Math.floor(totalEnergy(pSel)/RUN) - plannedRuns(pSel);
-    if (d.pr === "add"){ its2.push({d: (parties[active] && parties[active].dungeon) || "krao", runs: Math.max(0, free)}); }
+    if (d.pr === "add"){ its2.push({d: (parties[active] && parties[active].dungeon) || "krao", runs: 0}); }
     else if (its2[k2]){
       if (d.pr === "rest") its2[k2].runs += Math.max(0, free);
       else if (d.pr === "del") its2.splice(k2, 1);
@@ -582,6 +583,7 @@ document.addEventListener("keydown", function(ev){
   if (ev.key === "Enter" && ev.target.classList && ev.target.classList.contains("einput")){ var b = ev.target.parentNode.querySelector("[data-set]"); if (b) b.click(); }
 });
 document.addEventListener("change", function(ev){
+  if (ev.target.classList && ev.target.classList.contains("prun") && pSel){ var its4 = itemsOf(pSel), k4 = +ev.target.dataset.pi; if (its4[k4]){ its4[k4].runs = Math.max(0, Math.min(999, Math.round(parseFloat(ev.target.value) || 0))); storeItems(pSel, its4); saveEplan(); renderPlanner(); } return; }
   if (ev.target.classList && ev.target.classList.contains("psel") && pSel){ var its3 = itemsOf(pSel), k3 = +ev.target.dataset.pi; if (its3[k3]){ its3[k3].d = ev.target.value; storeItems(pSel, its3); saveEplan(); renderPlanner(); } return; }
   var ds = ev.target.dataset || {};
   if (!unlocked && (ds.amt != null || ds.cap)){ askPass(); renderParties(); renderEnergy(); return; }
@@ -674,11 +676,11 @@ function renderPlanner(){
     eits.forEach(function(it, k){
       var opts = ""; DUNGEONS.forEach(function(d){ opts += '<option value="' + d.id + '"' + (d.id === it.d ? " selected" : "") + '>' + esc(dlabel(d)) + ' (' + num(d.il) + ')</option>'; });
       html += '<div class="perow"><select class="esel psel" data-pi="' + k + '" aria-label="Dungeon">' + opts + '</select>'
-        + '<span class="pstep"><button type="button" class="chipbtn" data-pr="-1" data-pi="' + k + '">−</button><span>' + it.runs + ' runs</span><button type="button" class="chipbtn" data-pr="1" data-pi="' + k + '">+</button></span>'
+        + '<span class="pstep"><button type="button" class="chipbtn" data-pr="-1" data-pi="' + k + '">−</button><input class="pin prun" type="number" min="0" max="999" inputmode="numeric" data-pi="' + k + '" value="' + it.runs + '" aria-label="Runs"><span>runs</span><button type="button" class="chipbtn" data-pr="1" data-pi="' + k + '">+</button></span>'
         + '<button type="button" class="chipbtn" data-pr="rest" data-pi="' + k + '"' + (efree > 0 ? '' : ' disabled') + '>+ rest (' + Math.max(0, efree) + ')</button>'
         + '<button type="button" class="chipbtn" data-pr="del" data-pi="' + k + '">remove</button></div>';
     });
-    html += '<div class="perow"><button type="button" class="chipbtn" data-pr="add" data-pi="-1">+ add dungeon' + (efree > 0 ? ' (' + efree + ' runs)' : '') + '</button></div></div>';
+    html += '<div class="perow"><button type="button" class="chipbtn" data-pr="add" data-pi="-1">+ add dungeon</button></div></div>';
   }
   el.innerHTML = html;
 }
