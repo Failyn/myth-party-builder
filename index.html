@@ -181,6 +181,36 @@ button{cursor:pointer}
 .unset{color:var(--muted);font-family:var(--mono);font-size:.8rem}
 .clock{font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:12px}
 .clock b{color:var(--ink)}
+.pover{display:grid;gap:12px;margin-bottom:16px}
+.meter{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px 22px}
+.mh{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-size:.88rem}
+.mh b{font-family:var(--display);font-size:1rem}
+.mh span{color:var(--muted)}
+.mpct{font-weight:600}
+.mpct.p0{color:var(--good)} .mpct.p1{color:var(--accent-2)} .mpct.p2,.mpct.p3,.mpct.p4{color:var(--bad)}
+.mctl{margin-left:auto;display:flex;gap:6px}
+.mbar{position:relative;height:16px;border-radius:6px;background:var(--surface-2);overflow:visible}
+.mbar .band{position:absolute;top:0;bottom:0;opacity:.18}
+.mbar .b0{background:var(--good);border-radius:6px 0 0 6px} .mbar .b1{background:var(--accent-2)} .mbar .b2{background:#d98a4a} .mbar .b3{background:var(--bad)} .mbar .b4{background:#7a2b2b;border-radius:0 6px 6px 0}
+.mbar .fill{position:absolute;top:3px;bottom:3px;left:0;background:var(--accent);border-radius:4px}
+.mbar .fill.plan{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent) 70%,transparent) 0 4px,transparent 4px 8px);border-radius:0 4px 4px 0}
+.mbar .tick{position:absolute;top:18px;transform:translateX(-50%);font-family:var(--mono);font-size:.6rem;color:var(--muted)}
+.mbar .tick::before{content:"";position:absolute;left:50%;top:-20px;height:16px;border-left:1px solid var(--line)}
+.ptot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.9rem}
+.ptot b{font-variant-numeric:tabular-nums;color:var(--accent-2)}
+.pnote{color:var(--muted);font-size:.74rem;margin-left:auto}
+.ptiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.ptile{text-align:left;background:var(--surface);border:1px solid var(--line);border-top:3px solid hsl(var(--hue) var(--badge-s) var(--badge-l));border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px;color:var(--ink);min-width:0}
+.ptile:hover,.ptile.sel{border-color:var(--accent)}
+.pth{display:flex;align-items:center;gap:7px;min-width:0}
+.ptn{font-family:var(--display);font-weight:600;font-size:1rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pti{font-variant-numeric:tabular-nums;font-size:.78rem;color:var(--muted)}
+.pte{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.ptp{font-size:.82rem}
+.ptp.none{color:var(--muted)}
+.ptk{font-size:.74rem;color:var(--accent-2);font-variant-numeric:tabular-nums}
+.pedit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;font-size:.88rem}
+.pstep{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .empty-state{border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted)}
 
 @media (max-width:1020px){
@@ -200,6 +230,7 @@ button{cursor:pointer}
   <div class="tabs">
     <button class="tabbtn active" type="button" data-tab="builder">Builder</button>
     <button class="tabbtn" type="button" data-tab="energy">Energy</button>
+    <button class="tabbtn" type="button" data-tab="planner">Planner</button>
   </div>
   <div class="lock"><button type="button" class="chipbtn" id="lockbtn">Unlock editing</button><span id="lockform" hidden><input class="pin wide" id="passin" type="password" autocomplete="off" placeholder="Passcode" aria-label="Group passcode"><button type="button" class="chipbtn" id="passgo">OK</button></span></div>
   <div class="stamp" id="stamp"></div>
@@ -221,6 +252,8 @@ button{cursor:pointer}
       </div>
     </div>
   </div>
+
+  <div id="panel-planner" hidden><div id="planner"><div class="empty-state">Loading the roster…</div></div></div>
 
   <div id="panel-energy" hidden>
     <div class="clock" id="clock"></div>
@@ -277,7 +310,7 @@ function glyph(cls, small){
   return '<span class="glyph' + (small ? " sm" : "") + '" title="' + esc(cls) + '">' + (src ? '<img alt="" src="' + src + '">' : '') + '</span>';
 }
 function kfmt(n){ n = Number(n) || 0; if (n >= 1e6) return (Math.round(n/1e4)/100) + "M"; if (n >= 1e3) return Math.round(n/1e3) + "k"; return String(n); }
-function typing(){ var a = document.activeElement; return !!(a && a.classList && (a.classList.contains("einput") || a.classList.contains("pin") || a.classList.contains("xinput"))); }
+function typing(){ var a = document.activeElement; return !!(a && (a.tagName === "SELECT" || a.classList && (a.classList.contains("einput") || a.classList.contains("pin") || a.classList.contains("xinput")))); }
 function extraOf(n){ var x = extra[eid(n)], v = x && typeof x.value === "number" ? x.value : 0; return Math.max(0, Math.min(XCAP, Math.round(v))); }
 function playerOrder(){ var o = []; chars.forEach(function(c){ if (o.indexOf(c.player) < 0) o.push(c.player); }); return o; }
 function eid(n){ return String(n).replace(/[^A-Za-z0-9_-]/g, function(c){ return "~" + c.charCodeAt(0).toString(16); }); }
@@ -417,6 +450,7 @@ function renderEnergy(){
   });
   html += '</tbody></table></div>';
   $("energy").innerHTML = html;
+  renderPlanner();
   Object.keys(keep).forEach(function(k){ var el = $(k); if (el) el.value = keep[k]; });
   if (foc && $(foc)) $(foc).focus();
 }
@@ -460,15 +494,23 @@ function spend(nm, amt, now){
 function runDone(i){
   var p = parties[i]; if (!p) return;
   var amt = p.amount || 80, now = Date.now(), done = 0, fromExtra = 0;
+  var pd = dungeon(p.dungeon), weekTouched = false, planTouched = false;
   p.members.forEach(function(nm){
+    var cm = byName(nm);
+    if (cm && cm.player === PLANNER_PLAYER){
+      bumpWeek(catOf(pd), 1); weekTouched = true;
+      var pl = planOf(nm); if (pl && pl.runs > 0 && pl.d === p.dungeon){ if (pl.runs > 1) eplan[nm] = {d: pl.d, runs: pl.runs - 1}; else delete eplan[nm]; planTouched = true; }
+    }
     var r = spend(nm, amt, now);
     if (!r) return;
     done++; if (r.extra) fromExtra++;
   });
+  if (weekTouched) saveWeek();
+  if (planTouched) saveEplan();
   p.runs = (p.runs || 0) + 1;
   p.earned = (p.earned || 0) + (dungeon(p.dungeon).kinah || 0)*(amt/CUBE);
   notice("Run logged" + (done ? ": −" + amt + " energy on " + done + " character" + (done === 1 ? "" : "s") + (fromExtra ? ", " + fromExtra + " using extra energy" : "") : "") + ".");
-  renderEnergy(); savePlan();
+  renderEnergy(); renderPlanner(); savePlan();
 }
 function saveEnergy(name, value, cap){
   value = Math.max(0, Math.min(2000, Math.round(value)));
@@ -487,6 +529,12 @@ document.addEventListener("click", function(ev){
   if (t.id === "lockbtn"){ if (unlocked){ notice("Editing is unlocked on this device."); } else askPass(); return; }
   if (t.id === "passgo"){ var pv = $("passin").value.trim(); if (pv) checkPass(pv); return; }
   if (!unlocked && (d.d || t.id === "addparty" || d.run != null || d.clear != null || d.del != null || d.rm || d.c || d.set || d.spend)){ askPass(); return; }
+  if (d.pt){ if (!unlocked){ askPass(); return; } pSel = pSel === d.pt ? null : d.pt; renderPlanner(); return; }
+  if (d.wk){ bumpWeek(d.wk, +d.dv); saveWeek(); renderPlanner(); return; }
+  if (t.id === "wkreset"){ weekc = {key: weekKey(Date.now()), conquest: 0, trans: 0}; saveWeek(); renderPlanner(); return; }
+  if (d.pr && pSel){ var sp0 = planOf(pSel) || {d: ($("psel") && $("psel").value) || "krao", runs: 0}, nr = sp0.runs;
+    if (d.pr === "max") nr = Math.floor(totalEnergy(pSel)/RUN); else if (d.pr === "clear") nr = 0; else nr = Math.max(0, nr + (+d.pr));
+    setPlan(pSel, ($("psel") && $("psel").value) || sp0.d, nr); return; }
   if (d.d){ if (parties[active]){ parties[active].dungeon = d.d; savePlan(); } return; }
   if (t.id === "addparty"){ parties.push({dungeon: parties[active] ? parties[active].dungeon : "vakron", members:[], amount:80, runs:0, earned:0}); active = parties.length - 1; savePlan(); return; }
   if (d.run != null){ runDone(+d.run); return; }
@@ -519,6 +567,7 @@ document.addEventListener("keydown", function(ev){
   if (ev.key === "Enter" && ev.target.classList && ev.target.classList.contains("einput")){ var b = ev.target.parentNode.querySelector("[data-set]"); if (b) b.click(); }
 });
 document.addEventListener("change", function(ev){
+  if (ev.target.id === "psel" && pSel){ var cp = planOf(pSel); setPlan(pSel, ev.target.value, cp ? cp.runs : 1); return; }
   var ds = ev.target.dataset || {};
   if (!unlocked && (ds.amt != null || ds.cap)){ askPass(); renderParties(); renderEnergy(); return; }
   if (ds.x){ saveExtra(ds.x, parseFloat(ev.target.value) || 0); return; }
@@ -527,12 +576,92 @@ document.addEventListener("change", function(ev){
   var e = nowEnergy(n, Date.now()); if (e) saveEnergy(n, e.value, +ev.target.value);
   else energy[eid(n)] = {cap:+ev.target.value};
 });
+/* ---- energy planner: Aleks's characters, weekly kinah bands ---- */
+var PLANNER_PLAYER = "Aleks";
+var BANDS = {
+  conquest: {label: "Conquest", ups: [83, 104, 125, 146], max: 160},
+  trans: {label: "Transcendence", ups: [55, 69, 83, 97], max: 110}
+};
+var PCTS = [1, .8, .6, .4, .2];
+var weekc = {key: "", conquest: 0, trans: 0}, eplan = {}, pSel = null;
+function weekKey(now){
+  var w = new Date(wall(now)), back = (w.getUTCDay() - 3 + 7) % 7;
+  if (back === 0 && w.getUTCHours() < 6) back = 7;
+  var d = new Date(Date.UTC(w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate() - back));
+  return d.toISOString().slice(0, 10);
+}
+function used(cat){ return weekc.key === weekKey(Date.now()) ? (weekc[cat] || 0) : 0; }
+function pctAt(cat, n){ var u = BANDS[cat].ups; for (var i = 0; i < u.length; i++) if (n <= u[i]) return PCTS[i]; return PCTS[4]; }
+function catOf(d){ return d.group ? "trans" : "conquest"; }
+function myChars(){ return chars.filter(function(c){ return c.player === PLANNER_PLAYER; }); }
+function totalEnergy(n){ var e = nowEnergy(n, Date.now()); return (e ? e.value : 0) + extraOf(n); }
+function planOf(n){ var p = eplan[n]; return p && p.d ? {d: String(p.d), runs: Math.max(0, Math.round(+p.runs || 0))} : null; }
+function projection(){
+  var at = {conquest: used("conquest"), trans: used("trans")}, out = {conquest: 0, trans: 0, kinah: 0, per: {}};
+  myChars().forEach(function(c){
+    var pl = planOf(c.name); if (!pl || !pl.runs) return;
+    var d = dungeon(pl.d), cat = catOf(d), k = 0;
+    for (var r = 0; r < pl.runs; r++){ at[cat]++; k += d.kinah*(RUN/CUBE)*pctAt(cat, at[cat]); }
+    out[cat] += pl.runs; out.kinah += k; out.per[c.name] = k;
+  });
+  return out;
+}
+function saveWeek(){ weekc.key = weekKey(Date.now()); if (db) db.doc("plan/week").set({key: weekc.key, conquest: weekc.conquest, trans: weekc.trans}).then(function(){}, failWrite); }
+function saveEplan(){ if (db) db.doc("plan/eplan").set({plans: eplan}).then(function(){}, failWrite); }
+function bumpWeek(cat, delta){
+  if (weekc.key !== weekKey(Date.now())){ weekc = {key: weekKey(Date.now()), conquest: 0, trans: 0}; }
+  weekc[cat] = Math.max(0, (weekc[cat] || 0) + delta);
+}
+function dlabel(d){ return d.name + (d.mode === "Hard" ? " · Hard" : "") + (d.stage ? " · S" + d.stage : ""); }
+function meter(cat, planned){
+  var b = BANDS[cat], u = used(cat), max = b.max, x = function(v){ return Math.min(100, v/max*100).toFixed(2); };
+  var bands = "", prev = 0;
+  b.ups.concat([max]).forEach(function(up, i){ bands += '<i class="band b' + i + '" style="left:' + x(prev) + '%;width:' + (x(up) - x(prev)).toFixed(2) + '%"></i>'; prev = up; });
+  var ticks = b.ups.map(function(up, i){ return '<span class="tick" style="left:' + x(up) + '%">' + up + '</span>'; }).join("");
+  var band = function(n){ for (var i = 0; i < b.ups.length; i++) if (n <= b.ups[i]) return i; return 4; };
+  var nowB = band(u + 1), endB = band(u + planned), left = Math.max(0, b.ups[nowB] != null ? b.ups[nowB] - u : 0);
+  var status = '<span class="mpct p' + nowB + '">Now ' + Math.round(PCTS[nowB]*100) + '% kinah' + (nowB < 4 ? ' · ' + left + ' left in this band' : '') + '</span>'
+    + (planned && endB !== nowB ? '<span class="mpct p' + endB + '">plan ends at ' + Math.round(PCTS[endB]*100) + '%</span>' : '');
+  return '<div class="meter"><div class="mh"><b>' + b.label + '</b><span>' + u + ' used' + (planned ? ' · ' + planned + ' planned' : '') + '</span>' + status
+    + (unlocked ? '<span class="mctl"><button type="button" class="chipbtn" data-wk="' + cat + '" data-dv="-1">−1</button><button type="button" class="chipbtn" data-wk="' + cat + '" data-dv="1">+1</button></span>' : '') + '</div>'
+    + '<div class="mbar">' + bands + '<i class="fill" style="width:' + x(u) + '%"></i><i class="fill plan" style="left:' + x(u) + '%;width:' + (x(u + planned) - x(u)).toFixed(2) + '%"></i>' + ticks + '</div></div>';
+}
+function renderPlanner(){
+  var el = $("planner"); if (!el) return;
+  var mine = myChars();
+  if (!mine.length){ el.innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters for " + esc(PLANNER_PLAYER) + "." : "Loading the roster…") + '</div>'; return; }
+  var pr = projection();
+  var html = '<div class="pover">' + meter("conquest", pr.conquest) + meter("trans", pr.trans)
+    + '<div class="ptot">Planned kinah this week <b>' + kfmt(pr.kinah) + '</b>' + (unlocked ? '<button type="button" class="chipbtn" id="wkreset">reset week</button>' : '') + '<span class="pnote">Resets Wednesday 06:00 · Run done adds your characters\' runs automatically</span></div></div>';
+  html += '<div class="ptiles">';
+  mine.forEach(function(c){
+    var tot = totalEnergy(c.name), x = extraOf(c.name), avail = Math.floor(tot/RUN), pl = planOf(c.name), d = pl ? dungeon(pl.d) : null;
+    html += '<button type="button" class="ptile' + (pSel === c.name ? " sel" : "") + '" data-pt="' + esc(c.name) + '" style="--hue:' + (HUE[c.cls] == null ? 220 : HUE[c.cls]) + '">'
+      + '<div class="pth">' + glyph(c.cls, true) + '<span class="ptn">' + esc(c.name) + '</span><span class="pti">' + num(c.il) + '</span></div>'
+      + '<div class="pte">⚡' + (tot - x) + (x ? ' <span class="xv">+' + x + '</span>' : '') + ' · ' + avail + (avail === 1 ? ' run' : ' runs') + '</div>'
+      + (pl && pl.runs ? '<div class="ptp"><b>' + esc(dlabel(d)) + '</b> ×' + pl.runs + '</div><div class="ptk">' + kfmt(pr.per[c.name] || 0) + ' kinah' + (pl.runs > avail ? ' · needs ' + (pl.runs*RUN - tot) + ' more energy' : '') + '</div>' : '<div class="ptp none">No plan</div>')
+      + '</button>';
+  });
+  html += '</div>';
+  if (unlocked && pSel && byName(pSel)){
+    var sp = planOf(pSel) || {d: (parties[active] && parties[active].dungeon) || "krao", runs: 0}, opts = "";
+    DUNGEONS.forEach(function(d){ opts += '<option value="' + d.id + '"' + (d.id === sp.d ? " selected" : "") + '>' + esc(dlabel(d)) + ' (' + num(d.il) + ')</option>'; });
+    html += '<div class="pedit"><b>' + esc(pSel) + '</b><select class="esel psel" id="psel">' + opts + '</select>'
+      + '<span class="pstep"><button type="button" class="chipbtn" data-pr="-1">−</button><span>' + sp.runs + ' runs</span><button type="button" class="chipbtn" data-pr="1">+</button></span>'
+      + '<button type="button" class="chipbtn" data-pr="max">use all energy (' + Math.floor(totalEnergy(pSel)/RUN) + ')</button><button type="button" class="chipbtn" data-pr="clear">clear</button></div>';
+  }
+  el.innerHTML = html;
+}
+function setPlan(name, d, runs){
+  if (!runs){ delete eplan[name]; } else eplan[name] = {d: d, runs: runs};
+  saveEplan(); renderPlanner();
+}
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
-  $("panel-builder").hidden = name !== "builder"; $("panel-energy").hidden = name !== "energy";
+  ["builder", "energy", "planner"].forEach(function(n){ $("panel-" + n).hidden = n !== name; });
   try { localStorage.setItem("myth-builder:tab", name); } catch (e) {}
 }
-try { if (localStorage.getItem("myth-builder:tab") === "energy") setTab("energy"); } catch (e) {}
+try { var t0 = localStorage.getItem("myth-builder:tab"); if (t0 === "energy" || t0 === "planner") setTab(t0); } catch (e) {}
 
 /* ---- boot ---- */
 renderBuilder(); renderEnergy(); renderClock();
@@ -596,6 +725,16 @@ function start(){
   db.collection("extra").onSnapshot(function(s){
     var next = {}; s.docs.forEach(function(x){ next[x.id] = x.data(); }); extra = next;
     if (!typing()){ renderEnergy(); renderParties(); }
+  });
+  db.doc("plan/week").onSnapshot(function(s){
+    var w = s.exists ? s.data() : null;
+    if (w) weekc = {key: String(w.key || ""), conquest: +w.conquest || 0, trans: +w.trans || 0};
+    if (!typing()) renderPlanner();
+  });
+  db.doc("plan/eplan").onSnapshot(function(s){
+    var e = s.exists ? s.data() : null;
+    eplan = e && e.plans && typeof e.plans === "object" ? e.plans : {};
+    if (!typing()) renderPlanner();
   });
   db.doc("plan/current").onSnapshot(function(s){
     var b = s.exists ? s.data() : null;
