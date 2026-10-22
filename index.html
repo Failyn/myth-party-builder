@@ -199,17 +199,25 @@ button{cursor:pointer}
 .ptot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.9rem}
 .ptot b{font-variant-numeric:tabular-nums;color:var(--accent-2)}
 .pnote{color:var(--muted);font-size:.74rem;margin-left:auto}
-.ptiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.ptiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .ptile{text-align:left;background:var(--surface);border:1px solid var(--line);border-top:3px solid hsl(var(--hue) var(--badge-s) var(--badge-l));border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px;color:var(--ink);min-width:0}
 .ptile:hover,.ptile.sel{border-color:var(--accent)}
 .pth{display:flex;align-items:center;gap:7px;min-width:0}
 .ptn{font-family:var(--display);font-weight:600;font-size:1rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pti{font-variant-numeric:tabular-nums;font-size:.78rem;color:var(--muted)}
 .pte{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.ptp{font-size:.82rem}
+.ptp{font-size:.8rem;display:flex;gap:6px;align-items:baseline;min-width:0}
+.ptd{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ptp.none{color:var(--muted)}
-.ptk{font-size:.74rem;color:var(--accent-2);font-variant-numeric:tabular-nums}
-.pedit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;font-size:.88rem}
+.ptk{font-size:.72rem;color:var(--accent-2);font-variant-numeric:tabular-nums;margin-left:auto;white-space:nowrap}
+.pedit{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;font-size:.88rem}
+.peh{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.peh span{color:var(--muted)}
+.peh b.neg{color:var(--bad)}
+.perow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chipbtn:disabled{opacity:.4;cursor:default}
+.ptl{font-size:.74rem;color:var(--muted);margin-top:3px;padding-top:4px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;display:flex;gap:6px}
+.ptl.over{color:var(--bad)}
 .pstep{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .empty-state{border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted)}
 
@@ -499,7 +507,8 @@ function runDone(i){
     var cm = byName(nm);
     if (cm && cm.player === PLANNER_PLAYER){
       bumpWeek(catOf(pd), 1); weekTouched = true;
-      var pl = planOf(nm); if (pl && pl.runs > 0 && pl.d === p.dungeon){ if (pl.runs > 1) eplan[nm] = {d: pl.d, runs: pl.runs - 1}; else delete eplan[nm]; planTouched = true; }
+      var its = itemsOf(nm), hit = -1; its.forEach(function(it, k){ if (hit < 0 && it.d === p.dungeon && it.runs > 0) hit = k; });
+      if (hit >= 0){ its[hit].runs--; storeItems(nm, its); planTouched = true; }
     }
     var r = spend(nm, amt, now);
     if (!r) return;
@@ -532,9 +541,15 @@ document.addEventListener("click", function(ev){
   if (d.pt){ if (!unlocked){ askPass(); return; } pSel = pSel === d.pt ? null : d.pt; renderPlanner(); return; }
   if (d.wk){ bumpWeek(d.wk, +d.dv); saveWeek(); renderPlanner(); return; }
   if (t.id === "wkreset"){ weekc = {key: weekKey(Date.now()), conquest: 0, trans: 0}; saveWeek(); renderPlanner(); return; }
-  if (d.pr && pSel){ var sp0 = planOf(pSel) || {d: ($("psel") && $("psel").value) || "krao", runs: 0}, nr = sp0.runs;
-    if (d.pr === "max") nr = Math.floor(totalEnergy(pSel)/RUN); else if (d.pr === "clear") nr = 0; else nr = Math.max(0, nr + (+d.pr));
-    setPlan(pSel, ($("psel") && $("psel").value) || sp0.d, nr); return; }
+  if (d.pr && pSel){
+    var its2 = itemsOf(pSel), k2 = +d.pi, free = Math.floor(totalEnergy(pSel)/RUN) - plannedRuns(pSel);
+    if (d.pr === "add"){ its2.push({d: (parties[active] && parties[active].dungeon) || "krao", runs: Math.max(0, free)}); }
+    else if (its2[k2]){
+      if (d.pr === "rest") its2[k2].runs += Math.max(0, free);
+      else if (d.pr === "del") its2.splice(k2, 1);
+      else its2[k2].runs = Math.max(0, its2[k2].runs + (+d.pr));
+    }
+    storeItems(pSel, its2); saveEplan(); renderPlanner(); return; }
   if (d.d){ if (parties[active]){ parties[active].dungeon = d.d; savePlan(); } return; }
   if (t.id === "addparty"){ parties.push({dungeon: parties[active] ? parties[active].dungeon : "vakron", members:[], amount:80, runs:0, earned:0}); active = parties.length - 1; savePlan(); return; }
   if (d.run != null){ runDone(+d.run); return; }
@@ -567,7 +582,7 @@ document.addEventListener("keydown", function(ev){
   if (ev.key === "Enter" && ev.target.classList && ev.target.classList.contains("einput")){ var b = ev.target.parentNode.querySelector("[data-set]"); if (b) b.click(); }
 });
 document.addEventListener("change", function(ev){
-  if (ev.target.id === "psel" && pSel){ var cp = planOf(pSel); setPlan(pSel, ev.target.value, cp ? cp.runs : 1); return; }
+  if (ev.target.classList && ev.target.classList.contains("psel") && pSel){ var its3 = itemsOf(pSel), k3 = +ev.target.dataset.pi; if (its3[k3]){ its3[k3].d = ev.target.value; storeItems(pSel, its3); saveEplan(); renderPlanner(); } return; }
   var ds = ev.target.dataset || {};
   if (!unlocked && (ds.amt != null || ds.cap)){ askPass(); renderParties(); renderEnergy(); return; }
   if (ds.x){ saveExtra(ds.x, parseFloat(ev.target.value) || 0); return; }
@@ -595,14 +610,22 @@ function pctAt(cat, n){ var u = BANDS[cat].ups; for (var i = 0; i < u.length; i+
 function catOf(d){ return d.group ? "trans" : "conquest"; }
 function myChars(){ return chars.filter(function(c){ return c.player === PLANNER_PLAYER; }); }
 function totalEnergy(n){ var e = nowEnergy(n, Date.now()); return (e ? e.value : 0) + extraOf(n); }
-function planOf(n){ var p = eplan[n]; return p && p.d ? {d: String(p.d), runs: Math.max(0, Math.round(+p.runs || 0))} : null; }
+function itemsOf(n){
+  var p = eplan[n], raw = !p ? [] : Array.isArray(p.items) ? p.items : (p.d ? [p] : []);
+  return raw.filter(function(it){ return it && it.d; }).map(function(it){ return {d: String(it.d), runs: Math.max(0, Math.round(+it.runs || 0))}; });
+}
+function storeItems(n, its){ its = its.filter(function(it){ return it && it.d; }); if (its.length) eplan[n] = {items: its}; else delete eplan[n]; }
+function plannedRuns(n){ return itemsOf(n).reduce(function(a, it){ return a + it.runs; }, 0); }
 function projection(){
   var at = {conquest: used("conquest"), trans: used("trans")}, out = {conquest: 0, trans: 0, kinah: 0, per: {}};
   myChars().forEach(function(c){
-    var pl = planOf(c.name); if (!pl || !pl.runs) return;
-    var d = dungeon(pl.d), cat = catOf(d), k = 0;
-    for (var r = 0; r < pl.runs; r++){ at[cat]++; k += d.kinah*(RUN/CUBE)*pctAt(cat, at[cat]); }
-    out[cat] += pl.runs; out.kinah += k; out.per[c.name] = k;
+    var tk = 0;
+    itemsOf(c.name).forEach(function(it, idx){
+      var d = dungeon(it.d), cat = catOf(d), k = 0;
+      for (var r = 0; r < it.runs; r++){ at[cat]++; k += d.kinah*(RUN/CUBE)*pctAt(cat, at[cat]); }
+      out[cat] += it.runs; out.per[c.name + "#" + idx] = k; tk += k;
+    });
+    out.kinah += tk; out.per[c.name] = tk;
   });
   return out;
 }
@@ -635,26 +658,29 @@ function renderPlanner(){
     + '<div class="ptot">Planned kinah this week <b>' + kfmt(pr.kinah) + '</b>' + (unlocked ? '<button type="button" class="chipbtn" id="wkreset">reset week</button>' : '') + '<span class="pnote">Resets Wednesday 06:00 · Run done adds your characters\' runs automatically</span></div></div>';
   html += '<div class="ptiles">';
   mine.forEach(function(c){
-    var tot = totalEnergy(c.name), x = extraOf(c.name), avail = Math.floor(tot/RUN), pl = planOf(c.name), d = pl ? dungeon(pl.d) : null;
+    var tot = totalEnergy(c.name), x = extraOf(c.name), avail = Math.floor(tot/RUN), its = itemsOf(c.name), pr0 = plannedRuns(c.name), left = avail - pr0;
     html += '<button type="button" class="ptile' + (pSel === c.name ? " sel" : "") + '" data-pt="' + esc(c.name) + '" style="--hue:' + (HUE[c.cls] == null ? 220 : HUE[c.cls]) + '">'
       + '<div class="pth">' + glyph(c.cls, true) + '<span class="ptn">' + esc(c.name) + '</span><span class="pti">' + num(c.il) + '</span></div>'
-      + '<div class="pte">⚡' + (tot - x) + (x ? ' <span class="xv">+' + x + '</span>' : '') + ' · ' + avail + (avail === 1 ? ' run' : ' runs') + '</div>'
-      + (pl && pl.runs ? '<div class="ptp"><b>' + esc(dlabel(d)) + '</b> ×' + pl.runs + '</div><div class="ptk">' + kfmt(pr.per[c.name] || 0) + ' kinah' + (pl.runs > avail ? ' · needs ' + (pl.runs*RUN - tot) + ' more energy' : '') + '</div>' : '<div class="ptp none">No plan</div>')
-      + '</button>';
+      + '<div class="pte">⚡' + (tot - x) + (x ? ' <span class="xv">+' + x + '</span>' : '') + ' · ' + avail + (avail === 1 ? ' run' : ' runs') + '</div>';
+    var shown = 0;
+    its.forEach(function(it, idx){ if (!it.runs) return; shown++; html += '<div class="ptp"><span class="ptd"><b>' + esc(dlabel(dungeon(it.d))) + '</b> ×' + it.runs + '</span><span class="ptk">' + kfmt(pr.per[c.name + "#" + idx] || 0) + '</span></div>'; });
+    html += shown ? '<div class="ptl' + (left < 0 ? ' over' : '') + '">' + '<span>' + (left >= 0 ? left + ' unplanned' : (-left) + ' short on energy') + '</span><span class="ptk">' + kfmt(pr.per[c.name] || 0) + '</span></div>' : '<div class="ptp none">No plan</div>';
+    html += '</button>';
   });
   html += '</div>';
   if (unlocked && pSel && byName(pSel)){
-    var sp = planOf(pSel) || {d: (parties[active] && parties[active].dungeon) || "krao", runs: 0}, opts = "";
-    DUNGEONS.forEach(function(d){ opts += '<option value="' + d.id + '"' + (d.id === sp.d ? " selected" : "") + '>' + esc(dlabel(d)) + ' (' + num(d.il) + ')</option>'; });
-    html += '<div class="pedit"><b>' + esc(pSel) + '</b><select class="esel psel" id="psel">' + opts + '</select>'
-      + '<span class="pstep"><button type="button" class="chipbtn" data-pr="-1">−</button><span>' + sp.runs + ' runs</span><button type="button" class="chipbtn" data-pr="1">+</button></span>'
-      + '<button type="button" class="chipbtn" data-pr="max">use all energy (' + Math.floor(totalEnergy(pSel)/RUN) + ')</button><button type="button" class="chipbtn" data-pr="clear">clear</button></div>';
+    var eits = itemsOf(pSel), eav = Math.floor(totalEnergy(pSel)/RUN), efree = eav - plannedRuns(pSel);
+    html += '<div class="pedit"><div class="peh"><b>' + esc(pSel) + '</b><span>' + eav + ' runs of energy · <b class="' + (efree < 0 ? 'neg' : '') + '">' + efree + ' unplanned</b></span></div>';
+    eits.forEach(function(it, k){
+      var opts = ""; DUNGEONS.forEach(function(d){ opts += '<option value="' + d.id + '"' + (d.id === it.d ? " selected" : "") + '>' + esc(dlabel(d)) + ' (' + num(d.il) + ')</option>'; });
+      html += '<div class="perow"><select class="esel psel" data-pi="' + k + '" aria-label="Dungeon">' + opts + '</select>'
+        + '<span class="pstep"><button type="button" class="chipbtn" data-pr="-1" data-pi="' + k + '">−</button><span>' + it.runs + ' runs</span><button type="button" class="chipbtn" data-pr="1" data-pi="' + k + '">+</button></span>'
+        + '<button type="button" class="chipbtn" data-pr="rest" data-pi="' + k + '"' + (efree > 0 ? '' : ' disabled') + '>+ rest (' + Math.max(0, efree) + ')</button>'
+        + '<button type="button" class="chipbtn" data-pr="del" data-pi="' + k + '">remove</button></div>';
+    });
+    html += '<div class="perow"><button type="button" class="chipbtn" data-pr="add" data-pi="-1">+ add dungeon' + (efree > 0 ? ' (' + efree + ' runs)' : '') + '</button></div></div>';
   }
   el.innerHTML = html;
-}
-function setPlan(name, d, runs){
-  if (!runs){ delete eplan[name]; } else eplan[name] = {d: d, runs: runs};
-  saveEplan(); renderPlanner();
 }
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
