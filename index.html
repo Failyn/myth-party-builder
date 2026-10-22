@@ -182,20 +182,30 @@ button{cursor:pointer}
 .clock{font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:12px}
 .clock b{color:var(--ink)}
 .pover{display:grid;gap:12px;margin-bottom:16px}
-.meter{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px 22px}
+.meter{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px 10px}
 .mh{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-size:.88rem}
 .mh b{font-family:var(--display);font-size:1rem}
 .mh span{color:var(--muted)}
 .mpct{font-weight:600}
 .mpct.p0{color:var(--good)} .mpct.p1{color:var(--accent-2)} .mpct.p2,.mpct.p3,.mpct.p4{color:var(--bad)}
 .mctl{margin-left:auto;display:flex;gap:6px}
-.mbar{position:relative;height:16px;border-radius:6px;background:var(--surface-2);overflow:visible}
-.mbar .band{position:absolute;top:0;bottom:0;opacity:.18}
-.mbar .b0{background:var(--good);border-radius:6px 0 0 6px} .mbar .b1{background:var(--accent-2)} .mbar .b2{background:#d98a4a} .mbar .b3{background:var(--bad)} .mbar .b4{background:#7a2b2b;border-radius:0 6px 6px 0}
-.mbar .fill{position:absolute;top:3px;bottom:3px;left:0;background:var(--accent);border-radius:4px}
-.mbar .fill.plan{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent) 70%,transparent) 0 4px,transparent 4px 8px);border-radius:0 4px 4px 0}
-.mbar .tick{position:absolute;top:18px;transform:translateX(-50%);font-family:var(--mono);font-size:.6rem;color:var(--muted)}
-.mbar .tick::before{content:"";position:absolute;left:50%;top:-20px;height:16px;border-left:1px solid var(--line)}
+.mused{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.pin.wused{width:58px;text-align:center}
+.mbar{position:relative;height:24px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.mbar .band{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--bg)}
+.mbar .band em{font-style:normal;font-size:.66rem;font-weight:700;letter-spacing:.02em;opacity:.85;position:relative;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.mbar .b0{background:color-mix(in srgb,var(--good) 24%,transparent);color:var(--good)} .mbar .b1{background:color-mix(in srgb,var(--accent-2) 26%,transparent);color:var(--accent-2)}
+.mbar .b2{background:color-mix(in srgb,#e0884a 26%,transparent);color:#e8a06a} .mbar .b3{background:color-mix(in srgb,var(--bad) 26%,transparent);color:var(--bad)} .mbar .b4{background:color-mix(in srgb,#a03a3a 30%,transparent);color:#d06a6a}
+.mbar .fill{position:absolute;top:0;bottom:0;left:0;background:color-mix(in srgb,var(--accent) 55%,transparent);z-index:1}
+.mbar .fill.plan{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent) 45%,transparent) 0 5px,transparent 5px 10px)}
+.mbar .mark{position:absolute;top:-2px;bottom:-2px;width:2px;margin-left:-1px;background:var(--ink);z-index:3}
+.mlegend{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.mlegend .lg{font-size:.72rem;font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:12px;border:1px solid var(--line);color:var(--muted)}
+.mlegend .lg b{font-weight:700}
+.mlegend .lg.b0 b{color:var(--good)} .mlegend .lg.b1 b{color:var(--accent-2)} .mlegend .lg.b2 b{color:#e8a06a} .mlegend .lg.b3 b{color:var(--bad)} .mlegend .lg.b4 b{color:#d06a6a}
+.mlegend .lg.now{border-color:var(--ink);color:var(--ink)}
+.pdone{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:4.5em}
+.ptp.fin .ptd{opacity:.5;text-decoration:line-through}
 .ptot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.9rem}
 .ptot b{font-variant-numeric:tabular-nums;color:var(--accent-2)}
 .pnote{color:var(--muted);font-size:.74rem;margin-left:auto}
@@ -508,8 +518,8 @@ function runDone(i){
     var cm = byName(nm);
     if (cm && cm.player === PLANNER_PLAYER){
       bumpWeek(catOf(pd), 1); weekTouched = true;
-      var its = itemsOf(nm), hit = -1; its.forEach(function(it, k){ if (hit < 0 && it.d === p.dungeon && it.runs > 0) hit = k; });
-      if (hit >= 0){ its[hit].runs--; storeItems(nm, its); planTouched = true; }
+      var its = itemsOf(nm), hit = -1; its.forEach(function(it, k){ if (hit < 0 && it.d === p.dungeon && it.done < it.runs) hit = k; });
+      if (hit >= 0){ its[hit].done++; storeItems(nm, its); planTouched = true; }
     }
     var r = spend(nm, amt, now);
     if (!r) return;
@@ -543,12 +553,13 @@ document.addEventListener("click", function(ev){
   if (d.wk){ bumpWeek(d.wk, +d.dv); saveWeek(); renderPlanner(); return; }
   if (t.id === "wkreset"){ weekc = {key: weekKey(Date.now()), conquest: 0, trans: 0}; saveWeek(); renderPlanner(); return; }
   if (d.pr && pSel){
-    var its2 = itemsOf(pSel), k2 = +d.pi, free = Math.floor(totalEnergy(pSel)/RUN) - plannedRuns(pSel);
-    if (d.pr === "add"){ its2.push({d: (parties[active] && parties[active].dungeon) || "krao", runs: 0}); }
+    if (d.pr === "reload"){ reloadPlan(pSel); saveEplan(); renderPlanner(); notice("Plan for " + pSel + " now starts from its current energy."); return; }
+    var its2 = itemsOf(pSel), k2 = +d.pi, free = unplanned(pSel);
+    if (d.pr === "add"){ its2.push({d: (parties[active] && parties[active].dungeon) || "krao", runs: 0, done: 0}); }
     else if (its2[k2]){
       if (d.pr === "rest") its2[k2].runs += Math.max(0, free);
       else if (d.pr === "del") its2.splice(k2, 1);
-      else its2[k2].runs = Math.max(0, its2[k2].runs + (+d.pr));
+      else its2[k2].runs = Math.max(its2[k2].done, its2[k2].runs + (+d.pr));
     }
     storeItems(pSel, its2); saveEplan(); renderPlanner(); return; }
   if (d.d){ if (parties[active]){ parties[active].dungeon = d.d; savePlan(); } return; }
@@ -583,7 +594,8 @@ document.addEventListener("keydown", function(ev){
   if (ev.key === "Enter" && ev.target.classList && ev.target.classList.contains("einput")){ var b = ev.target.parentNode.querySelector("[data-set]"); if (b) b.click(); }
 });
 document.addEventListener("change", function(ev){
-  if (ev.target.classList && ev.target.classList.contains("prun") && pSel){ var its4 = itemsOf(pSel), k4 = +ev.target.dataset.pi; if (its4[k4]){ its4[k4].runs = Math.max(0, Math.min(999, Math.round(parseFloat(ev.target.value) || 0))); storeItems(pSel, its4); saveEplan(); renderPlanner(); } return; }
+  if (ev.target.classList && ev.target.classList.contains("wused")){ var wc = ev.target.dataset.wkin; if (weekc.key !== weekKey(Date.now())) weekc = {key: weekKey(Date.now()), conquest: 0, trans: 0}; weekc[wc] = Math.max(0, Math.min(999, Math.round(parseFloat(ev.target.value) || 0))); saveWeek(); renderPlanner(); return; }
+  if (ev.target.classList && ev.target.classList.contains("prun") && pSel){ var its4 = itemsOf(pSel), k4 = +ev.target.dataset.pi; if (its4[k4]){ its4[k4].runs = Math.max(its4[k4].done, Math.min(999, Math.round(parseFloat(ev.target.value) || 0))); storeItems(pSel, its4); saveEplan(); renderPlanner(); } return; }
   if (ev.target.classList && ev.target.classList.contains("psel") && pSel){ var its3 = itemsOf(pSel), k3 = +ev.target.dataset.pi; if (its3[k3]){ its3[k3].d = ev.target.value; storeItems(pSel, its3); saveEplan(); renderPlanner(); } return; }
   var ds = ev.target.dataset || {};
   if (!unlocked && (ds.amt != null || ds.cap)){ askPass(); renderParties(); renderEnergy(); return; }
@@ -612,20 +624,35 @@ function pctAt(cat, n){ var u = BANDS[cat].ups; for (var i = 0; i < u.length; i+
 function catOf(d){ return d.group ? "trans" : "conquest"; }
 function myChars(){ return chars.filter(function(c){ return c.player === PLANNER_PLAYER; }); }
 function totalEnergy(n){ var e = nowEnergy(n, Date.now()); return (e ? e.value : 0) + extraOf(n); }
+/* A plan is {snap: {runs, at}, items: [{d, runs, done}]}: runs is the planned total, done counts Run done clicks,
+   and snap is the energy (in runs) the plan was made from, so spending energy never pushes it negative. */
 function itemsOf(n){
   var p = eplan[n], raw = !p ? [] : Array.isArray(p.items) ? p.items : (p.d ? [p] : []);
-  return raw.filter(function(it){ return it && it.d; }).map(function(it){ return {d: String(it.d), runs: Math.max(0, Math.round(+it.runs || 0))}; });
+  return raw.filter(function(it){ return it && it.d; }).map(function(it){ var r = Math.max(0, Math.round(+it.runs || 0)); return {d: String(it.d), runs: r, done: Math.min(r, Math.max(0, Math.round(+it.done || 0)))}; });
 }
-function storeItems(n, its){ its = its.filter(function(it){ return it && it.d; }); if (its.length) eplan[n] = {items: its}; else delete eplan[n]; }
+function availRuns(n){ return Math.floor(totalEnergy(n)/RUN); }
+function snapOf(n){ var p = eplan[n]; return p && p.snap && typeof p.snap.runs === "number" ? p.snap : null; }
+function storeItems(n, its, snap){
+  its = its.filter(function(it){ return it && it.d; });
+  if (!its.length){ delete eplan[n]; return; }
+  eplan[n] = {items: its, snap: snap || snapOf(n) || {runs: availRuns(n) + its.reduce(function(a, it){ return a + it.done; }, 0), at: Date.now()}};
+}
 function plannedRuns(n){ return itemsOf(n).reduce(function(a, it){ return a + it.runs; }, 0); }
+function remainingRuns(n){ return itemsOf(n).reduce(function(a, it){ return a + it.runs - it.done; }, 0); }
+function unplanned(n){ var sn = snapOf(n); return (sn ? sn.runs : availRuns(n)) - plannedRuns(n); }
+function reloadPlan(n){
+  var its = itemsOf(n).map(function(it){ return {d: it.d, runs: it.runs - it.done, done: 0}; }).filter(function(it){ return it.runs > 0; });
+  storeItems(n, its.length ? its : [{d: (parties[active] && parties[active].dungeon) || "krao", runs: 0, done: 0}], {runs: availRuns(n), at: Date.now()});
+}
+function hm(t){ try { var w = new Date(wall(t)); return ("0" + w.getUTCHours()).slice(-2) + ":" + ("0" + w.getUTCMinutes()).slice(-2) + (Date.now() - t > 86400000 ? " " + w.getUTCDate() + "/" + (w.getUTCMonth() + 1) : ""); } catch (e) { return ""; } }
 function projection(){
   var at = {conquest: used("conquest"), trans: used("trans")}, out = {conquest: 0, trans: 0, kinah: 0, per: {}};
   myChars().forEach(function(c){
     var tk = 0;
     itemsOf(c.name).forEach(function(it, idx){
-      var d = dungeon(it.d), cat = catOf(d), k = 0;
-      for (var r = 0; r < it.runs; r++){ at[cat]++; k += d.kinah*(RUN/CUBE)*pctAt(cat, at[cat]); }
-      out[cat] += it.runs; out.per[c.name + "#" + idx] = k; tk += k;
+      var d = dungeon(it.d), cat = catOf(d), k = 0, left = it.runs - it.done;
+      for (var r = 0; r < left; r++){ at[cat]++; k += d.kinah*(RUN/CUBE)*pctAt(cat, at[cat]); }
+      out[cat] += left; out.per[c.name + "#" + idx] = k; tk += k;
     });
     out.kinah += tk; out.per[c.name] = tk;
   });
@@ -638,18 +665,26 @@ function bumpWeek(cat, delta){
   weekc[cat] = Math.max(0, (weekc[cat] || 0) + delta);
 }
 function dlabel(d){ return d.name + (d.mode === "Hard" ? " · Hard" : "") + (d.stage ? " · S" + d.stage : ""); }
+function bandOf(cat, n){ var u = BANDS[cat].ups; for (var i = 0; i < u.length; i++) if (n <= u[i]) return i; return 4; }
 function meter(cat, planned){
-  var b = BANDS[cat], u = used(cat), max = b.max, x = function(v){ return Math.min(100, v/max*100).toFixed(2); };
-  var bands = "", prev = 0;
-  b.ups.concat([max]).forEach(function(up, i){ bands += '<i class="band b' + i + '" style="left:' + x(prev) + '%;width:' + (x(up) - x(prev)).toFixed(2) + '%"></i>'; prev = up; });
-  var ticks = b.ups.map(function(up, i){ return '<span class="tick" style="left:' + x(up) + '%">' + up + '</span>'; }).join("");
-  var band = function(n){ for (var i = 0; i < b.ups.length; i++) if (n <= b.ups[i]) return i; return 4; };
-  var nowB = band(u + 1), endB = band(u + planned), left = Math.max(0, b.ups[nowB] != null ? b.ups[nowB] - u : 0);
-  var status = '<span class="mpct p' + nowB + '">Now ' + Math.round(PCTS[nowB]*100) + '% kinah' + (nowB < 4 ? ' · ' + left + ' left in this band' : '') + '</span>'
+  var b = BANDS[cat], u = used(cat), max = b.max, x = function(v){ return Math.min(100, v/max*100); };
+  var lows = [0].concat(b.ups.map(function(v){ return v + 1; })), highs = b.ups.concat([null]);
+  var nowB = bandOf(cat, u + 1), endB = bandOf(cat, u + planned);
+  var segs = "", legend = "";
+  for (var i = 0; i < 5; i++){
+    var a = i ? b.ups[i - 1] : 0, z = i < 4 ? b.ups[i] : max, pct = Math.round(PCTS[i]*100);
+    segs += '<i class="band b' + i + (i === nowB ? ' now' : '') + '" style="left:' + x(a).toFixed(2) + '%;width:' + (x(z) - x(a)).toFixed(2) + '%"><em>' + pct + '%</em></i>';
+    legend += '<span class="lg b' + i + (i === nowB ? ' now' : '') + '"><b>' + pct + '%</b> ' + lows[i] + (highs[i] != null ? '–' + highs[i] : '+') + '</span>';
+  }
+  var left = nowB < 4 ? b.ups[nowB] - u : 0;
+  var status = '<span class="mpct p' + nowB + '">Now ' + Math.round(PCTS[nowB]*100) + '%' + (nowB < 4 ? ' · ' + left + ' until ' + Math.round(PCTS[nowB + 1]*100) + '%' : '') + '</span>'
     + (planned && endB !== nowB ? '<span class="mpct p' + endB + '">plan ends at ' + Math.round(PCTS[endB]*100) + '%</span>' : '');
-  return '<div class="meter"><div class="mh"><b>' + b.label + '</b><span>' + u + ' used' + (planned ? ' · ' + planned + ' planned' : '') + '</span>' + status
-    + (unlocked ? '<span class="mctl"><button type="button" class="chipbtn" data-wk="' + cat + '" data-dv="-1">−1</button><button type="button" class="chipbtn" data-wk="' + cat + '" data-dv="1">+1</button></span>' : '') + '</div>'
-    + '<div class="mbar">' + bands + '<i class="fill" style="width:' + x(u) + '%"></i><i class="fill plan" style="left:' + x(u) + '%;width:' + (x(u + planned) - x(u)).toFixed(2) + '%"></i>' + ticks + '</div></div>';
+  var usedCtl = unlocked
+    ? '<label class="mused">Runs done <button type="button" class="chipbtn" data-wk="' + cat + '" data-dv="-1">−</button><input class="pin wused" type="number" min="0" max="999" inputmode="numeric" data-wkin="' + cat + '" value="' + u + '" aria-label="' + b.label + ' runs done this week"><button type="button" class="chipbtn" data-wk="' + cat + '" data-dv="1">+</button></label>'
+    : '<span>' + u + ' runs done</span>';
+  return '<div class="meter"><div class="mh"><b>' + b.label + '</b>' + usedCtl + (planned ? '<span>+ ' + planned + ' planned</span>' : '') + status + '</div>'
+    + '<div class="mbar">' + segs + '<i class="fill" style="width:' + x(u).toFixed(2) + '%"></i><i class="fill plan" style="left:' + x(u).toFixed(2) + '%;width:' + (x(u + planned) - x(u)).toFixed(2) + '%"></i><i class="mark" style="left:' + x(u).toFixed(2) + '%"></i></div>'
+    + '<div class="mlegend">' + legend + '</div></div>';
 }
 function renderPlanner(){
   var el = $("planner"); if (!el) return;
@@ -657,26 +692,29 @@ function renderPlanner(){
   if (!mine.length){ el.innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters for " + esc(PLANNER_PLAYER) + "." : "Loading the roster…") + '</div>'; return; }
   var pr = projection();
   var html = '<div class="pover">' + meter("conquest", pr.conquest) + meter("trans", pr.trans)
-    + '<div class="ptot">Planned kinah this week <b>' + kfmt(pr.kinah) + '</b>' + (unlocked ? '<button type="button" class="chipbtn" id="wkreset">reset week</button>' : '') + '<span class="pnote">Resets Wednesday 06:00 · Run done adds your characters\' runs automatically</span></div></div>';
+    + '<div class="ptot">Planned kinah still to earn <b>' + kfmt(pr.kinah) + '</b>' + (unlocked ? '<button type="button" class="chipbtn" id="wkreset">reset week</button>' : '') + '<span class="pnote">Resets Wednesday 06:00 · Run done counts your characters\' runs</span></div></div>';
   html += '<div class="ptiles">';
   mine.forEach(function(c){
-    var tot = totalEnergy(c.name), x = extraOf(c.name), avail = Math.floor(tot/RUN), its = itemsOf(c.name), pr0 = plannedRuns(c.name), left = avail - pr0;
+    var tot = totalEnergy(c.name), x = extraOf(c.name), avail = Math.floor(tot/RUN), its = itemsOf(c.name), sn = snapOf(c.name), free = unplanned(c.name);
     html += '<button type="button" class="ptile' + (pSel === c.name ? " sel" : "") + '" data-pt="' + esc(c.name) + '" style="--hue:' + (HUE[c.cls] == null ? 220 : HUE[c.cls]) + '">'
       + '<div class="pth">' + glyph(c.cls, true) + '<span class="ptn">' + esc(c.name) + '</span><span class="pti">' + num(c.il) + '</span></div>'
-      + '<div class="pte">⚡' + (tot - x) + (x ? ' <span class="xv">+' + x + '</span>' : '') + ' · ' + avail + (avail === 1 ? ' run' : ' runs') + '</div>';
+      + '<div class="pte">⚡' + (tot - x) + (x ? ' <span class="xv">+' + x + '</span>' : '') + ' · ' + avail + (avail === 1 ? ' run' : ' runs') + ' now</div>';
     var shown = 0;
-    its.forEach(function(it, idx){ if (!it.runs) return; shown++; html += '<div class="ptp"><span class="ptd"><b>' + esc(dlabel(dungeon(it.d))) + '</b> ×' + it.runs + '</span><span class="ptk">' + kfmt(pr.per[c.name + "#" + idx] || 0) + '</span></div>'; });
-    html += shown ? '<div class="ptl' + (left < 0 ? ' over' : '') + '">' + '<span>' + (left >= 0 ? left + ' unplanned' : (-left) + ' short on energy') + '</span><span class="ptk">' + kfmt(pr.per[c.name] || 0) + '</span></div>' : '<div class="ptp none">No plan</div>';
+    its.forEach(function(it, idx){ if (!it.runs) return; shown++; html += '<div class="ptp' + (it.done >= it.runs ? ' fin' : '') + '"><span class="ptd"><b>' + esc(dlabel(dungeon(it.d))) + '</b> ' + it.done + '/' + it.runs + '</span><span class="ptk">' + kfmt(pr.per[c.name + "#" + idx] || 0) + '</span></div>'; });
+    html += shown ? '<div class="ptl' + (free < 0 ? ' over' : '') + '"><span>' + (free >= 0 ? free + ' unplanned' : (-free) + ' over plan') + (sn ? ' · from ' + hm(sn.at) : '') + '</span><span class="ptk">' + kfmt(pr.per[c.name] || 0) + '</span></div>' : '<div class="ptp none">No plan</div>';
     html += '</button>';
   });
   html += '</div>';
   if (unlocked && pSel && byName(pSel)){
-    var eits = itemsOf(pSel), eav = Math.floor(totalEnergy(pSel)/RUN), efree = eav - plannedRuns(pSel);
-    html += '<div class="pedit"><div class="peh"><b>' + esc(pSel) + '</b><span>' + eav + ' runs of energy · <b class="' + (efree < 0 ? 'neg' : '') + '">' + efree + ' unplanned</b></span></div>';
+    var eits = itemsOf(pSel), esn = snapOf(pSel), ebase = esn ? esn.runs : availRuns(pSel), efree = unplanned(pSel), enow = availRuns(pSel), eleft = remainingRuns(pSel);
+    html += '<div class="pedit"><div class="peh"><b>' + esc(pSel) + '</b><span>Plan made from <b>' + ebase + ' runs</b> of energy' + (esn ? ' at ' + hm(esn.at) : ' (now)') + ' · <b class="' + (efree < 0 ? 'neg' : '') + '">' + efree + ' unplanned</b></span>'
+      + '<span>Now ' + enow + ' runs of energy for ' + eleft + ' planned runs left</span>'
+      + '<button type="button" class="chipbtn" data-pr="reload" data-pi="-1" title="Start the plan again from current energy, keeping the runs not done yet">↻ reload from current energy</button></div>';
     eits.forEach(function(it, k){
       var opts = ""; DUNGEONS.forEach(function(d){ opts += '<option value="' + d.id + '"' + (d.id === it.d ? " selected" : "") + '>' + esc(dlabel(d)) + ' (' + num(d.il) + ')</option>'; });
       html += '<div class="perow"><select class="esel psel" data-pi="' + k + '" aria-label="Dungeon">' + opts + '</select>'
         + '<span class="pstep"><button type="button" class="chipbtn" data-pr="-1" data-pi="' + k + '">−</button><input class="pin prun" type="number" min="0" max="999" inputmode="numeric" data-pi="' + k + '" value="' + it.runs + '" aria-label="Runs"><span>runs</span><button type="button" class="chipbtn" data-pr="1" data-pi="' + k + '">+</button></span>'
+        + '<span class="pdone">' + it.done + ' done</span>'
         + '<button type="button" class="chipbtn" data-pr="rest" data-pi="' + k + '"' + (efree > 0 ? '' : ' disabled') + '>+ rest (' + Math.max(0, efree) + ')</button>'
         + '<button type="button" class="chipbtn" data-pr="del" data-pi="' + k + '">remove</button></div>';
     });
