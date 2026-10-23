@@ -41,8 +41,7 @@
   "player": "Aleks",
   "main": false,
   "order": 6,
-  "cid": "nOesda0HA_kaMIdoYp76sw0lHj4nLkzagDTnx7c2LrA=",
-  "hidden": true
+  "cid": "nOesda0HA_kaMIdoYp76sw0lHj4nLkzagDTnx7c2LrA="
  },
  {
   "id": "Clowi",
@@ -79,6 +78,14 @@
   "main": false,
   "order": 15,
   "cid": "nOesda0HA_kaMIdoYp76s2RO95b9ODi6awkdIRe2quU="
+ },
+ {
+  "id": "Tinesi",
+  "name": "Tinesi",
+  "player": "Clowi",
+  "main": false,
+  "order": 16,
+  "cid": "nOesda0HA_kaMIdoYp76s5Sko_z_HWWcX8azZcj6EEQ="
  },
  {
   "id": "Ms",
