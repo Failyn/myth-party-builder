@@ -346,14 +346,28 @@ function wall(ts){
   var p = {}; fmt.formatToParts(new Date(ts)).forEach(function(x){ p[x.type] = x.value; });
   return Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour) % 24, +p.minute, +p.second);
 }
-function ticks(a, b){ return Math.max(0, Math.floor(wall(b)/PERIOD) - Math.floor(wall(a)/PERIOD)); }
+/* Regen moved one hour later on 26 Oct 2026: +15 at 00/03/06/... until 22:00 that evening, then at 01/04/07/...
+   The 22:00 tick at the switch is skipped because 21:00 already paid it. */
+var NEW_OFF = 3600e3, CUTOVER = Date.UTC(2026, 9, 26, 21, 0, 0);
+function slot(t, off){ return Math.floor((wall(t) - off)/PERIOD); }
+function ticks(a, b){
+  if (b <= a) return 0;
+  if (a >= CUTOVER) return Math.max(0, slot(b, NEW_OFF) - slot(a, NEW_OFF));
+  var n = Math.max(0, slot(Math.min(b, CUTOVER), 0) - slot(a, 0));
+  if (b > CUTOVER) n += Math.max(0, slot(b, NEW_OFF) - slot(CUTOVER, NEW_OFF));
+  return n;
+}
+function nextTick(now){
+  if (now < CUTOVER){ var o = now + (PERIOD - (wall(now) % PERIOD)); if (o <= CUTOVER) return o; return CUTOVER + (PERIOD - ((wall(CUTOVER) - NEW_OFF) % PERIOD)); }
+  return now + (PERIOD - ((wall(now) - NEW_OFF) % PERIOD));
+}
 function nowEnergy(name, now){
   var e = energy[eid(name)]; if (!e || typeof e.value !== "number") return null;
   var cap = e.cap || 840, v = e.value;
   if (v < cap) v = Math.min(cap, v + STEP*ticks(e.at || now, now));
   return {value:v, cap:cap, at:e.at};
 }
-function msToNext(now){ var w = wall(now); return PERIOD - (w % PERIOD); }
+function msToNext(now){ return nextTick(now) - now; }
 function dur(ms){ var m = Math.ceil(ms/60000), h = Math.floor(m/60); m = m % 60; return h >= 24 ? Math.floor(h/24) + "d " + (h % 24) + "h" : (h ? h + "h " : "") + m + "m"; }
 
 /* ---- builder ---- */
@@ -476,8 +490,8 @@ function renderEnergy(){
 function renderClock(){
   var now = Date.now(), w = new Date(wall(now));
   var hh = ("0" + w.getUTCHours()).slice(-2) + ":" + ("0" + w.getUTCMinutes()).slice(-2);
-  var nh = (Math.floor(w.getUTCHours()/3)*3 + 3) % 24;
-  $("clock").innerHTML = 'Server clock (Amsterdam) <b>' + hh + '</b> · next +15 at <b>' + ("0" + nh).slice(-2) + ':00</b>, in <b>' + dur(msToNext(now)) + '</b> · +15 at 00, 03, 06, 09, 12, 15, 18, 21';
+  var nh = new Date(wall(nextTick(now))).getUTCHours();
+  $("clock").innerHTML = 'Server clock (Amsterdam) <b>' + hh + '</b> · next +15 at <b>' + ("0" + nh).slice(-2) + ':00</b>, in <b>' + dur(msToNext(now)) + '</b> · +15 at 01, 04, 07, 10, 13, 16, 19, 22';
 }
 
 /* ---- writes ---- */
