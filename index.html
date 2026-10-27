@@ -641,9 +641,9 @@ var BANDS = {
 };
 var PCTS = [1, .8, .6, .4, .2];
 var weekc = {key: "", conquest: 0, trans: 0}, eplan = {}, pSel = null;
+/* Weekly reset is Wednesday 07:00 UTC (08:00 CET / 09:00 CEST), checked in game 27 Oct 2026. */
 function weekKey(now){
-  var w = new Date(wall(now)), back = (w.getUTCDay() - 3 + 7) % 7;
-  if (back === 0 && w.getUTCHours() < 6) back = 7;
+  var w = new Date(now - 7*3600e3), back = (w.getUTCDay() - 3 + 7) % 7;
   var d = new Date(Date.UTC(w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate() - back));
   return d.toISOString().slice(0, 10);
 }
@@ -720,7 +720,7 @@ function renderPlanner(){
   if (!mine.length){ el.innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters for " + esc(PLANNER_PLAYER) + "." : "Loading the roster…") + '</div>'; return; }
   var pr = projection();
   var html = '<div class="pover">' + meter("conquest", pr.conquest) + meter("trans", pr.trans)
-    + '<div class="ptot">Planned kinah still to earn <b>' + kfmt(pr.kinah) + '</b>' + (unlocked ? '<button type="button" class="chipbtn" id="wkreset">reset week</button>' : '') + '<span class="pnote">Resets Wednesday 06:00 · Run done counts your characters\' runs</span></div></div>';
+    + '<div class="ptot">Planned kinah still to earn <b>' + kfmt(pr.kinah) + '</b>' + (unlocked ? '<button type="button" class="chipbtn" id="wkreset">reset week</button>' : '') + '<span class="pnote">Resets Wednesday \' + hm(Date.parse(weekKey(Date.now()) + "T07:00:00Z") + 7*86400e3) + \' · Run done counts your characters\' runs</span></div></div>';
   html += '<div class="ptiles">';
   mine.forEach(function(c){
     var tot = totalEnergy(c.name), x = extraOf(c.name), avail = Math.floor(tot/RUN), its = itemsOf(c.name), sn = snapOf(c.name), free = unplanned(c.name);
