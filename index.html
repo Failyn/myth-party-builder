@@ -350,14 +350,27 @@ function wall(ts){
    The 22:00 tick at the switch is skipped because 21:00 already paid it. */
 var NEW_OFF = 3600e3, CUTOVER = Date.UTC(2026, 9, 26, 21, 0, 0);
 function slot(t, off){ return Math.floor((wall(t) - off)/PERIOD); }
-function ticks(a, b){
+function ticksV1(a, b){
   if (b <= a) return 0;
   if (a >= CUTOVER) return Math.max(0, slot(b, NEW_OFF) - slot(a, NEW_OFF));
   var n = Math.max(0, slot(Math.min(b, CUTOVER), 0) - slot(a, 0));
   if (b > CUTOVER) n += Math.max(0, slot(b, NEW_OFF) - slot(CUTOVER, NEW_OFF));
   return n;
 }
-function nextTick(now){
+/* From 27 Oct 2026 10:41 the game's own schedule is used: +15 at fixed UTC times 22, 01, 04, 07, 10, 13, 16, 19
+   (Amsterdam 23/02/05/08/11/14/17/20 in winter, 00/03/06/... in summer). At the switch everyone got one +15,
+   because the game had already paid a top-up the page had missed. */
+var UTC_SWITCH = Date.UTC(2026, 9, 27, 9, 41, 0), UTC_OFF = 3600e3;
+function uslot(t){ return Math.floor((t - UTC_OFF)/PERIOD); }
+function ticks(a, b){
+  if (b <= a) return 0;
+  if (a >= UTC_SWITCH) return Math.max(0, uslot(b) - uslot(a));
+  var n = ticksV1(a, Math.min(b, UTC_SWITCH));
+  if (b >= UTC_SWITCH) n += 1 + Math.max(0, uslot(b) - uslot(UTC_SWITCH));
+  return n;
+}
+function nextTick(now){ return now + (PERIOD - ((now - UTC_OFF) % PERIOD)); }
+function nextTickV1(now){
   if (now < CUTOVER){ var o = now + (PERIOD - (wall(now) % PERIOD)); if (o <= CUTOVER) return o; return CUTOVER + (PERIOD - ((wall(CUTOVER) - NEW_OFF) % PERIOD)); }
   return now + (PERIOD - ((wall(now) - NEW_OFF) % PERIOD));
 }
@@ -491,7 +504,8 @@ function renderClock(){
   var now = Date.now(), w = new Date(wall(now));
   var hh = ("0" + w.getUTCHours()).slice(-2) + ":" + ("0" + w.getUTCMinutes()).slice(-2);
   var nh = new Date(wall(nextTick(now))).getUTCHours();
-  $("clock").innerHTML = 'Server clock (Amsterdam) <b>' + hh + '</b> · next +15 at <b>' + ("0" + nh).slice(-2) + ':00</b>, in <b>' + dur(msToNext(now)) + '</b> · +15 at 01, 04, 07, 10, 13, 16, 19, 22';
+  var hrs = []; for (var k = 0; k < 8; k++) hrs.push(new Date(wall(nextTick(now) + k*PERIOD)).getUTCHours()); hrs.sort(function(a, b){ return a - b; });
+  $("clock").innerHTML = 'Server clock (Amsterdam) <b>' + hh + '</b> · next +15 at <b>' + ("0" + nh).slice(-2) + ':00</b>, in <b>' + dur(msToNext(now)) + '</b> · +15 at ' + hrs.map(function(h){ return ("0" + h).slice(-2); }).join(", ");
 }
 
 /* ---- writes ---- */
