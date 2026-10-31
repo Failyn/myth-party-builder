@@ -64,7 +64,8 @@ def fetch(entry, prev):
         samples += 1
     doc = {"name": profile["characterName"], "player": entry["player"], "cls": profile["className"],
            "level": profile["characterLevel"], "il": il, "cp": profile["combatPower"] or (prev or {}).get("cp", 0),
-           "main": bool(entry.get("main")), "order": entry["order"], "cid": cid}
+           "main": bool(entry.get("main")), "order": entry["order"], "cid": cid,
+           "img": profile.get("profileImage") or (prev or {}).get("img", "")}
     if il < old_il * SMALL_DROP:
         # count only runs where the site keeps giving the same lower number; glitches vary
         same = il > 0 and il == int((prev or {}).get("ilSeen") or -1)
