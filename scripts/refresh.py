@@ -74,8 +74,25 @@ def fetch(entry, prev):
     return doc, samples
 
 
-def read_previous(url, key):
-    req = urllib.request.Request(url + "/rest/v1/docs?coll=eq.chars&select=id,data",
+def track_cp(doc, prev, hist, now_min):
+    """Keep the highest combat power seen. A new high only counts once the next
+    run backs it up (the site once showed one character at double CP for an hour).
+    Each new high is added to the character's history. Returns True if history grew."""
+    prev = prev or {}
+    cp, last = int(doc["cp"] or 0), int(prev.get("cpLast") or 0)
+    best = int(prev.get("cpMax") or 0)
+    confirmed = min(cp, last) if last else cp
+    doc["cpLast"] = cp
+    if confirmed > best:
+        doc["cpMax"] = confirmed
+        hist.append([now_min, confirmed])
+        return True
+    doc["cpMax"] = best or cp
+    return False
+
+
+def read_previous(url, key, coll="chars"):
+    req = urllib.request.Request(url + "/rest/v1/docs?coll=eq.%s&select=id,data" % coll,
                                  headers={"apikey": key, "Authorization": "Bearer " + key})
     with urllib.request.urlopen(req, timeout=30) as r:
         return {row["id"]: row["data"] for row in json.loads(r.read().decode("utf-8"))}
@@ -88,6 +105,17 @@ def main():
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     url, key = os.environ.get("SUPABASE_URL", "").rstrip("/"), os.environ.get("SUPABASE_SERVICE_KEY", "")
     previous = read_previous(url, key) if url and key else {}
+    stored = read_previous(url, key, "cphist") if url and key else {}
+    history = {k: v.get("pts", []) for k, v in stored.items()}
+    seed_path = os.path.join(HERE, "..", "cp_seed.json")
+    seed = json.load(open(seed_path)) if os.path.exists(seed_path) else {}
+    for cid_, sv in seed.items():  # one-off: history rebuilt from old run logs, used only where none is stored yet
+        if cid_ not in history:
+            history[cid_] = sv["pts"]
+            old = previous.setdefault(cid_, {})
+            old.setdefault("cpMax", sv["cpMax"]); old.setdefault("cpLast", sv["cpLast"])
+    now_min = int(time.time() // 60)
+    grown = set(k for k in seed if k not in stored)  # seeded histories still need writing
     restore_path = os.path.join(HERE, "..", "restore_il.json")
     if os.path.exists(restore_path):  # one-off: known-good item levels to recover from bad data
         for cid_, value in json.load(open(restore_path)).items():
@@ -99,9 +127,11 @@ def main():
         try:
             doc, samples = fetch(e, previous.get(e["id"]))
             doc["readAtIso"] = now
+            if track_cp(doc, previous.get(e["id"]), history.setdefault(e["id"], []), now_min):
+                grown.add(e["id"])
             rows.append({"coll": "chars", "id": e["id"], "data": doc, "updated_at": now})
             note = (" (held; site said %s, run %s of %s)" % (doc["ilSeen"], doc["ilHeld"], ACCEPT_AFTER)) if doc.get("ilHeld") else ""
-            print("ok   %-10s Lv%-2s %-12s IL %-5s CP %-7s asked %sx%s" % (e["id"], doc["level"], doc["cls"], doc["il"], doc["cp"], samples, note))
+            print("ok   %-10s Lv%-2s %-12s IL %-5s CP %-7s max %-7s asked %sx%s" % (e["id"], doc["level"], doc["cls"], doc["il"], doc["cp"], doc["cpMax"], samples, note))
         except Exception as ex:  # keep the previous numbers for this character
             failed.append(e["id"])
             print("FAIL %-10s %s" % (e["id"], ex))
@@ -110,6 +140,10 @@ def main():
         print("dry run: %d fetched, %d failed, nothing written" % (len(rows), len(failed)))
         return 0 if rows else 1
     head = {"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"}
+    names = {k: v.get("name") for k, v in previous.items()}
+    names.update({r["id"]: r["data"]["name"] for r in rows})
+    rows += [{"coll": "cphist", "id": k, "data": {"name": names.get(k) or k, "pts": history[k]}, "updated_at": now}
+             for k in sorted(grown) if k in history]
     if rows:
         req = urllib.request.Request(url + "/rest/v1/docs", data=json.dumps(rows).encode("utf-8"), method="POST",
                                      headers=dict(head, Prefer="resolution=merge-duplicates,return=minimal"))
@@ -118,7 +152,7 @@ def main():
     keep = ",".join('"%s"' % e["id"] for e in roster)
     req = urllib.request.Request(url + "/rest/v1/docs?coll=eq.chars&id=not.in.(%s)" % urllib.parse.quote(keep), method="DELETE", headers=head)
     urllib.request.urlopen(req, timeout=30).read()
-    print("wrote %d characters, %d failed" % (len(rows), len(failed)))
+    print("wrote %d characters and %d CP histories, %d failed" % (len(rows) - len(grown), len(grown), len(failed)))
     return 0 if rows else 1
 
 
