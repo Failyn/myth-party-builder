@@ -236,19 +236,19 @@ button{cursor:pointer}
 .prow{width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line);padding:4px 9px;font-size:.76rem;color:var(--ink)}
 .pname + .prow{border-top:none}
 .prow:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
-.prow.sel{background:color-mix(in srgb,var(--accent-2) 14%,transparent);box-shadow:inset 3px 0 0 var(--accent-2)}
+.prow.sel{background:color-mix(in srgb,var(--m) 14%,transparent);box-shadow:inset 3px 0 0 var(--m)}
 .prow .glyph{width:18px;height:18px}.prow .glyph img{width:14px;height:14px}
 .prow .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .prow .rn small{font-weight:400;color:var(--muted);font-size:.64rem;margin-left:4px}
 .prow .pc,.prow .pg{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.prow .pc{color:var(--accent-2)}
+.prow .pc{color:var(--m)}
 .prow .pg{color:var(--muted);font-size:.7rem}
 .prow svg{display:block}
 .phead{padding:0 10px 4px;white-space:nowrap;font-family:var(--mono);font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .phead span{text-align:right}
 .pchart{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;position:sticky;top:70px}
 .phero{position:relative;min-height:168px;padding:18px 20px 16px;overflow:hidden;
-  background:radial-gradient(120% 140% at 100% 0%,color-mix(in srgb,var(--accent-2) 16%,transparent),transparent 60%),var(--surface-2);border-bottom:1px solid var(--line)}
+  background:radial-gradient(120% 140% at 100% 0%,color-mix(in srgb,var(--m) 16%,transparent),transparent 60%),var(--surface-2);border-bottom:1px solid var(--line)}
 .phero .porfb{position:absolute;right:4%;top:50%;transform:translateY(-50%);width:150px;height:150px;opacity:.13}
 .phero .por{position:absolute;right:0;top:0;height:100%;width:min(46%,260px);object-fit:cover;object-position:center 18%;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 55%);mask-image:linear-gradient(90deg,transparent,#000 55%);opacity:.95}
@@ -256,7 +256,7 @@ button{cursor:pointer}
 .phero .who{display:flex;gap:10px;align-items:center}
 .phero h2{font-size:1.5rem;line-height:1.1}
 .phero .cls{color:var(--muted);font-size:.78rem}
-.phero .big{font-family:var(--mono);font-size:2.1rem;line-height:1.1;color:var(--accent-2);font-variant-numeric:tabular-nums;margin:12px 0 0;text-shadow:0 0 24px color-mix(in srgb,var(--accent-2) 35%,transparent)}
+.phero .big{font-family:var(--mono);font-size:2.1rem;line-height:1.1;color:var(--m);font-variant-numeric:tabular-nums;margin:12px 0 0;text-shadow:0 0 24px color-mix(in srgb,var(--m) 35%,transparent)}
 .phero .lbl{font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .phero .now{color:var(--muted);font-size:.74rem;margin-top:2px}
 .pstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line)}
@@ -268,7 +268,7 @@ button{cursor:pointer}
 .psec{padding:14px 16px 6px}
 .psec h3{font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .prange{display:flex;gap:6px;margin-left:auto}
-.prange .on{color:var(--accent-2);border-color:var(--accent-2)}
+.prange .on{color:var(--m);border-color:var(--m)}
 .pfoot{color:var(--muted);font-size:.72rem;padding:4px 16px 14px}
 .cwrap{position:relative}
 .cwrap svg{width:100%;height:auto;display:block;touch-action:pan-y}
@@ -278,21 +278,36 @@ button{cursor:pointer}
 .cwrap .wk{fill:var(--ink);opacity:.035}
 .cwrap .reset{stroke:var(--muted);stroke-width:1;opacity:.35}
 .cwrap .wkl{fill:var(--muted);font-family:var(--mono);font-size:9px;opacity:.8}
-.cwrap .line{fill:none;stroke:var(--accent-2);stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round}
+.cwrap .line{fill:none;stroke:var(--m);stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round}
 .cwrap .xh{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
-.cwrap .dot{fill:var(--accent-2);stroke:var(--surface);stroke-width:2}
-.cwrap .halo{fill:var(--accent-2);opacity:.22}
-.cwrap .endl{fill:var(--accent-2);font-family:var(--mono);font-size:11px;font-weight:600}
-.cwrap .bar{fill:var(--accent-2)}
+.cwrap .dot{fill:var(--m);stroke:var(--surface);stroke-width:2}
+.cwrap .halo{fill:var(--m);opacity:.22}
+.cwrap .endl{fill:var(--m);font-family:var(--mono);font-size:11px;font-weight:600}
+.cwrap .bar{fill:var(--m)}
 .cwrap .bar.part{fill:url(#hatch)}
 .cwrap .bhit{fill:transparent}
 .cwrap .bhit:hover + .bar,.cwrap .bar.hl{filter:brightness(1.18)}
 .cwrap .bval{fill:var(--ink);font-family:var(--mono);font-size:10.5px;font-weight:600}
+.cwrap .line2{fill:none;stroke:var(--o);stroke-width:1.5;stroke-dasharray:5 4;opacity:.6;stroke-linejoin:round}
+.cwrap .endl2{fill:var(--o);font-family:var(--mono);font-size:10px;opacity:.75}
+.mseg{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px;margin:0 0 12px}
+.mseg button{border:none;background:none;border-radius:999px;padding:5px 14px;font-size:.8rem;font-weight:600;color:var(--muted)}
+.mseg button.on.cp{background:color-mix(in srgb,var(--accent-2) 20%,transparent);color:var(--accent-2)}
+.mseg button.on.il{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent)}
+.mseg button:not(.on):hover{color:var(--ink)}
+.phero .alt{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.78rem;color:var(--muted)}
+.phero .alt b{font-family:var(--mono);color:var(--o);font-weight:600}
+.phero .alt .sw,.psec .key i{display:inline-block;width:14px;height:0;border-top:2px solid var(--m)}
+.phero .alt .sw,.psec .key i.ko{border-top:2px dashed var(--o)}
+.psec h3{flex-wrap:wrap;row-gap:6px}
+.psec .key{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:.72rem;color:var(--ink)}
+.psec .key.faint{color:var(--muted);margin-left:6px}
+.tip .t2{color:var(--muted);font-family:var(--mono);font-size:.7rem}
 .tip{position:absolute;pointer-events:none;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:.74rem;white-space:nowrap;transform:translate(-50%,-100%);margin-top:-10px;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:2}
 .tip b{font-family:var(--mono);color:var(--ink)}
 .tip small{display:block;color:var(--muted)}
 @media (max-width:1020px){ .prog{grid-template-columns:minmax(0,1fr)} .pchart{position:static} }
-@media (max-width:620px){ .pstats{grid-template-columns:repeat(2,minmax(0,1fr))} .pstats div:nth-child(3){border-left:none} .pstats div:nth-child(n+3){border-top:1px solid var(--line)} .phero .hin{max-width:70%} .prow .rn small{display:none} .phero .big{font-size:1.7rem} }
+@media (max-width:620px){ .pstats{grid-template-columns:repeat(2,minmax(0,1fr))} .pstats div:nth-child(3){border-left:none} .pstats div:nth-child(n+3){border-top:1px solid var(--line)} .phero .hin{max-width:70%} .prow .rn small{display:none} .psec h3 small{display:none} .phero .big{font-size:1.7rem} }
 .empty-state{border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted)}
 
 @media (max-width:1020px){
@@ -645,6 +660,7 @@ document.addEventListener("click", function(ev){
   if (t.id === "passgo"){ var pv = $("passin").value.trim(); if (pv) checkPass(pv); return; }
   if (!unlocked && (d.d || t.id === "addparty" || d.run != null || d.clear != null || d.del != null || d.rm || d.c || d.set || d.spend)){ askPass(); return; }
   if (d.pc){ progSel = d.pc; renderProgress(); var pc = document.querySelector(".pchart"); if (pc && pc.getBoundingClientRect().top > innerHeight) pc.scrollIntoView({behavior: "smooth", block: "start"}); return; }
+  if (d.pm){ progM = d.pm; try { localStorage.setItem("myth-builder:metric", progM); } catch (e) {} renderProgress(); return; }
   if (d.prange != null){ progRange = +d.prange; renderProgress(); return; }
   if (d.pt){ if (!unlocked){ askPass(); return; } pSel = pSel === d.pt ? null : d.pt; renderPlanner(); return; }
   if (d.wk){ bumpWeek(d.wk, +d.dv); saveWeek(); renderPlanner(); return; }
@@ -819,25 +835,32 @@ function renderPlanner(){
   }
   el.innerHTML = html;
 }
-/* ---- progress tab: highest combat power seen, how it grew, and gain per game week (Wednesday reset to reset) ---- */
-var hist = null, histAt = 0, histBusy = false, progSel = null, progRange = 30, fetchHist = null, chartState = {};
+/* ---- progress tab: highest combat power / item level seen, how it grew, and gain per game week (Wednesday reset to reset) ---- */
+var hist = null, histAt = 0, histBusy = false, progSel = null, progRange = 30, fetchHist = null, chartState = {}, progM = "cp";
+try { if (localStorage.getItem("myth-builder:metric") === "il") progM = "il"; } catch (e) {}
 var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var METRIC = {cp: {name: "Combat power", short: "CP", col: "var(--accent-2)"}, il: {name: "Item level", short: "IL", col: "var(--accent)"}};
+function other(m){ return m === "cp" ? "il" : "cp"; }
 function loadHist(){
   if (histBusy || (hist && Date.now() - histAt < 5*60000) || !fetchHist){ renderProgress(); return; }
   histBusy = true;
   fetchHist(function(rows){
     histBusy = false; histAt = Date.now(); var h = {};
-    (rows || []).forEach(function(r){ if (r && r.data && r.data.name && Array.isArray(r.data.pts)) h[r.data.name] = r.data.pts; });
+    (rows || []).forEach(function(r){ var d = r && r.data; if (d && d.name && Array.isArray(d.pts)) h[d.name] = {cp: d.pts, il: Array.isArray(d.il) ? d.il : []}; });
     hist = h; renderProgress();
-  }, function(){ histBusy = false; renderProgress(); notice("Could not load the combat power history. Try the tab again in a moment.", true); });
+  }, function(){ histBusy = false; renderProgress(); notice("Could not load the progress history. Try the tab again in a moment.", true); });
 }
 function nowMin(){ return Math.floor(Date.now()/60000); }
-function ptsOf(c){ var p = ((hist && hist[c.name]) || []).slice(), m = cpOf(c); if (m && (!p.length || p[p.length - 1][1] < m)) p.push([nowMin(), m]); return p; }
+function ilOf(c){ return Math.max(+c.ilMax || 0, +c.il || 0); }
+function valOf(c, m){ return m === "il" ? ilOf(c) : cpOf(c); }
+function fmtV(v, m){ return num(v); }
+function axisV(v, m){ return m === "il" ? num(v) : kshort(v); }
+function ptsOf(c, m){ var h = hist && hist[c.name], p = ((h && h[m]) || []).slice(), v = valOf(c, m); if (v && (!p.length || p[p.length - 1][1] < v)) p.push([nowMin(), v]); return p; }
 function cpAt(p, t){ var v = p.length ? p[0][1] : 0; for (var i = 0; i < p.length && p[i][0] <= t; i++) v = p[i][1]; return v; }
 function resetMin(t){ return Date.parse(weekKey(t*60000) + "T07:00:00Z")/60000; }   /* start of the game week holding t */
 /* gain per game week, oldest first: {a, b, gain, partial, first} */
-function weeksOf(c){
-  var p = ptsOf(c), out = []; if (!p.length) return out;
+function weeksOf(c, m){
+  var p = ptsOf(c, m), out = []; if (!p.length) return out;
   var t1 = nowMin();
   for (var a = resetMin(p[0][0]); a <= t1; a += 7*1440){
     var b = a + 7*1440, s = a < p[0][0] ? p[0][1] : cpAt(p, a), e = cpAt(p, Math.min(b, t1));
@@ -845,7 +868,7 @@ function weeksOf(c){
   }
   return out;
 }
-function thisWeek(c){ var w = weeksOf(c); return w.length ? w[w.length - 1].gain : 0; }
+function thisWeek(c, m){ var w = weeksOf(c, m); return w.length ? w[w.length - 1].gain : 0; }
 function dstr(t, withTime){ var w = new Date(wall(t*60000)); return w.getUTCDate() + " " + MON[w.getUTCMonth()] + (withTime ? " " + ("0" + w.getUTCHours()).slice(-2) + ":" + ("0" + w.getUTCMinutes()).slice(-2) : ""); }
 function kshort(v){ return v >= 1e5 ? Math.round(v/1e3) + "k" : v >= 1e3 ? (Math.round(v/100)/10) + "k" : String(v); }
 function stepPath(p, x, y, t0, t1){
@@ -853,62 +876,67 @@ function stepPath(p, x, y, t0, t1){
   p.forEach(function(q){ if (q[0] <= t0 || q[0] > t1) return; d += "H" + x(q[0]).toFixed(1) + "V" + y(q[1]).toFixed(1); });
   return d + "H" + x(t1).toFixed(1);
 }
-function spark(c){
-  var p = ptsOf(c), t1 = nowMin(), t0 = t1 - 14*1440, w = 84, h = 22;
+function spark(c, m){
+  var p = ptsOf(c, m), t1 = nowMin(), t0 = t1 - 14*1440, w = 84, h = 22;
   if (!p.length) return '<svg width="' + w + '" height="' + h + '"></svg>';
-  var lo = cpAt(p, t0), hi = cpOf(c) || 1; if (hi <= lo) lo = hi*0.98;
+  var lo = cpAt(p, t0), hi = valOf(c, m) || 1; if (hi <= lo) lo = hi*0.98;
   var x = function(t){ return (t - t0)/(t1 - t0)*(w - 4) + 1; }, y = function(v){ return h - 3 - (v - lo)/(hi - lo)*(h - 6); };
-  return '<svg width="' + w + '" height="' + h + '" aria-hidden="true"><path d="' + stepPath(p, x, y, t0, t1) + '" fill="none" stroke="var(--accent-2)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="' + x(t1).toFixed(1) + '" cy="' + y(hi).toFixed(1) + '" r="2" fill="var(--accent-2)"/></svg>';
+  return '<svg width="' + w + '" height="' + h + '" aria-hidden="true"><path d="' + stepPath(p, x, y, t0, t1) + '" fill="none" stroke="var(--m)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="' + x(t1).toFixed(1) + '" cy="' + y(hi).toFixed(1) + '" r="2" fill="var(--m)"/></svg>';
 }
-function niceStep(span, n){ var r = span/(n || 4), m = Math.pow(10, Math.floor(Math.log10(r))), f = r/m; return (f < 1.5 ? 1 : f < 3.5 ? 2.5 : f < 7.5 ? 5 : 10)*m; }
+function niceStep(span, n){ var r = span/(n || 4), m = Math.pow(10, Math.floor(Math.log10(r))), f = r/m; return Math.max(1, (f < 1.5 ? 1 : f < 3.5 ? 2.5 : f < 7.5 ? 5 : 10)*m); }
 function narrowView(){ return ($("progress").clientWidth || 800) < 640; }
-var HATCH = '<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--accent-2)" opacity=".35"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--accent-2)" stroke-width="2.5"/></pattern>'
-  + '<linearGradient id="cpfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent-2)" stop-opacity=".32"/><stop offset="1" stop-color="var(--accent-2)" stop-opacity="0"/></linearGradient></defs>';
+var DEFS = '<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--m)" opacity=".35"/><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--m)" stroke-width="2.5"/></pattern>'
+  + '<linearGradient id="mfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--m);stop-opacity:.32"/><stop offset="1" style="stop-color:var(--m);stop-opacity:0"/></linearGradient></defs>';
+/* The selected measure owns the axis, the fill and the bold line. The other is drawn thin and faint on its own
+   scale (fitted to the same plot height, no second axis) so the two shapes can be compared; exact values are in the tooltip. */
 function lineChart(c){
-  var nar = narrowView(), p = ptsOf(c), W = nar ? 360 : 640, H = nar ? 220 : 250, L = 42, R = nar ? 40 : 52, T = 16, B = 24;
+  var m = progM, o = other(m), nar = narrowView(), p = ptsOf(c, m), q = ptsOf(c, o), W = nar ? 360 : 640, H = nar ? 220 : 250, L = 42, R = nar ? 44 : 56, T = 16, B = 24;
   if (!p.length) return '<div class="empty-state">No history yet for ' + esc(c.name) + '.</div>';
   var t1 = nowMin(), t0 = progRange ? Math.max(p[0][0], t1 - progRange*1440) : p[0][0]; if (t1 - t0 < 1440) t0 = t1 - 1440;
-  var lo = cpAt(p, t0), hi = cpOf(c), st = niceStep(Math.max(hi - lo, hi*0.02)), ylo = Math.floor(lo/st)*st, yhi = Math.ceil(hi/st)*st; if (yhi === ylo) yhi += st;
+  var lo = cpAt(p, t0), hi = valOf(c, m), st = niceStep(Math.max(hi - lo, hi*0.02)), ylo = Math.floor(lo/st)*st, yhi = Math.ceil(hi/st)*st; if (yhi === ylo) yhi += st;
   var x = function(t){ return L + (t - t0)/(t1 - t0)*(W - L - R); }, y = function(v){ return T + (yhi - v)/(yhi - ylo)*(H - T - B); };
+  var qlo = q.length ? cpAt(q, t0) : 0, qhi = valOf(c, o); if (qhi <= qlo) qlo = qhi*0.98;
+  var y2 = function(v){ return T + 4 + (qhi - v)/(qhi - qlo || 1)*(H - T - B - 8); };
   var g = "", k = 0;
-  /* game weeks: faint alternating bands with a line at each Wednesday reset */
   for (var a = resetMin(t0); a < t1; a += 7*1440, k++){
     var xa = Math.max(L, x(a)), xb = Math.min(W - R, x(a + 7*1440));
     if (k % 2) g += '<rect class="wk" x="' + xa.toFixed(1) + '" y="' + T + '" width="' + (xb - xa).toFixed(1) + '" height="' + (H - T - B) + '"/>';
     if (a > t0){ g += '<line class="reset" x1="' + x(a).toFixed(1) + '" x2="' + x(a).toFixed(1) + '" y1="' + (T - 6) + '" y2="' + (H - B) + '"/>'; if (xb - xa > 40 && x(a) < W - R - 60) g += '<text class="wkl" x="' + (x(a) + 4).toFixed(1) + '" y="' + (T - 1) + '">reset ' + dstr(a) + '</text>'; }
   }
-  for (var v = ylo; v <= yhi + 1; v += st) g += '<line class="' + (v === ylo ? "base" : "grid") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/><text class="tick" x="' + (L - 6) + '" y="' + (y(v) + 3).toFixed(1) + '" text-anchor="end">' + kshort(v) + '</text>';
+  for (var v = ylo; v <= yhi + 0.5; v += st) g += '<line class="' + (v === ylo ? "base" : "grid") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/><text class="tick" x="' + (L - 6) + '" y="' + (y(v) + 3).toFixed(1) + '" text-anchor="end">' + axisV(v, m) + '</text>';
   var days = (t1 - t0)/1440, every = days <= 8 ? 1 : days <= 20 ? 3 : days <= 45 ? 7 : 14;
   var off = Math.round((wall(t0*60000) - t0*60000)/60000), first = Math.ceil((t0 + off)/1440)*1440 - off;  /* first local midnight */
   for (var n = 0, tt = first; tt < t1; tt += 1440, n++){ if (n % every) continue; var xx = x(tt); if (xx < L + 12 || xx > W - R - 12) continue; g += '<text class="tick" x="' + xx.toFixed(1) + '" y="' + (H - 7) + '" text-anchor="middle">' + dstr(tt) + '</text>'; }
-  var line = stepPath(p, x, y, t0, t1), ex = x(t1), ey = y(hi);
-  chartState.line = {p: p, t0: t0, t1: t1, x: x, y: y, W: W, L: L, R: R};
-  return '<div class="cwrap" id="lwrap"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Highest combat power of ' + esc(c.name) + ', ' + num(lo) + ' to ' + num(hi) + '">' + HATCH + g
-    + '<path d="' + line + 'V' + y(ylo).toFixed(1) + 'H' + L + 'Z" fill="url(#cpfill)"/><path class="line" d="' + line + '"/>'
+  var line = stepPath(p, x, y, t0, t1), ex = x(t1), ey = y(hi), line2 = q.length ? stepPath(q, x, y2, t0, t1) : "", ey2 = y2(qhi);
+  if (Math.abs(ey2 - ey) < 13) ey2 = ey + (ey2 >= ey ? 13 : -13);
+  chartState.line = {p: p, q: q, t0: t0, t1: t1, x: x, y: y, W: W, L: L, R: R};
+  return '<div class="cwrap" id="lwrap"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Highest ' + METRIC[m].name.toLowerCase() + ' of ' + esc(c.name) + ', ' + num(lo) + ' to ' + num(hi) + ', with ' + METRIC[o].name.toLowerCase() + ' for comparison">' + DEFS + g
+    + (line2 ? '<path class="line2" d="' + line2 + '"/><text class="endl2" x="' + (ex + 7).toFixed(1) + '" y="' + (ey2 + 4).toFixed(1) + '">' + axisV(qhi, o) + '</text>' : '')
+    + '<path d="' + line + 'V' + y(ylo).toFixed(1) + 'H' + L + 'Z" fill="url(#mfill)"/><path class="line" d="' + line + '"/>'
     + '<circle class="halo" cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="8"/><circle class="dot" cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="4"/>'
-    + '<text class="endl" x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4).toFixed(1) + '">' + kshort(hi) + '</text>'
+    + '<text class="endl" x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4).toFixed(1) + '">' + axisV(hi, m) + '</text>'
     + '<line class="xh" id="cxh" y1="' + T + '" y2="' + (H - B) + '" visibility="hidden"/><circle class="dot" id="cdot" r="4.5" visibility="hidden"/>'
     + '<rect id="chit" x="' + L + '" y="0" width="' + (W - L - R) + '" height="' + H + '" fill="transparent"/></svg><div class="tip" id="ctip" hidden></div></div>';
 }
 function weekChart(c){
-  var nar = narrowView(), ws = weeksOf(c).slice(nar ? -6 : -12), W = nar ? 360 : 640, H = nar ? 170 : 180, L = 42, R = 8, T = 18, B = 34;
+  var m = progM, nar = narrowView(), ws = weeksOf(c, m).slice(nar ? -6 : -12), W = nar ? 360 : 640, H = nar ? 170 : 180, L = 42, R = 8, T = 18, B = 34;
   if (!ws.length) return '';
-  chartState.p0 = ptsOf(c)[0][0];
+  chartState.p0 = ptsOf(c, m)[0][0];
   var max = Math.max.apply(null, ws.map(function(w){ return w.gain; }).concat([1])), st = niceStep(max, 3), top = Math.ceil(max/st)*st;
   var bw = (W - L - R)/ws.length, y = function(v){ return T + (top - v)/top*(H - T - B); }, g = "";
-  for (var v = 0; v <= top + 1; v += st) g += '<line class="' + (v ? "grid" : "base") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/><text class="tick" x="' + (L - 6) + '" y="' + (y(v) + 3).toFixed(1) + '" text-anchor="end">' + kshort(v) + '</text>';
+  for (var v = 0; v <= top + 0.5; v += st) g += '<line class="' + (v ? "grid" : "base") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/><text class="tick" x="' + (L - 6) + '" y="' + (y(v) + 3).toFixed(1) + '" text-anchor="end">' + axisV(v, m) + '</text>';
   var best = -1, bi = -1; ws.forEach(function(w, i){ if (!w.partial && w.gain > best){ best = w.gain; bi = i; } });
   ws.forEach(function(w, i){
     var bx = L + i*bw + Math.min(10, bw*0.18), bwid = Math.max(6, bw - 2*Math.min(10, bw*0.18)), by = y(w.gain), h = Math.max(0, y(0) - by), r = Math.min(4, h, bwid/2);
     var path = h > 0 ? 'M' + bx.toFixed(1) + ',' + y(0).toFixed(1) + 'V' + (by + r).toFixed(1) + 'Q' + bx.toFixed(1) + ',' + by.toFixed(1) + ' ' + (bx + r).toFixed(1) + ',' + by.toFixed(1) + 'H' + (bx + bwid - r).toFixed(1) + 'Q' + (bx + bwid).toFixed(1) + ',' + by.toFixed(1) + ' ' + (bx + bwid).toFixed(1) + ',' + (by + r).toFixed(1) + 'V' + y(0).toFixed(1) + 'Z' : '';
     g += '<rect class="bhit" data-wi="' + i + '" x="' + (L + i*bw).toFixed(1) + '" y="' + T + '" width="' + bw.toFixed(1) + '" height="' + (H - T - B + 2) + '"/>';
     if (path) g += '<path class="bar' + (w.partial ? " part" : "") + '" d="' + path + '"/>';
-    if (w.partial || i === bi || ws.length <= 6) g += '<text class="bval" x="' + (bx + bwid/2).toFixed(1) + '" y="' + (by - 5).toFixed(1) + '" text-anchor="middle">+' + kshort(w.gain) + '</text>';
+    if (w.partial || i === bi || ws.length <= 6) g += '<text class="bval" x="' + (bx + bwid/2).toFixed(1) + '" y="' + (by - 5).toFixed(1) + '" text-anchor="middle">+' + axisV(w.gain, m) + '</text>';
     g += '<text class="tick" x="' + (bx + bwid/2).toFixed(1) + '" y="' + (H - B + 14) + '" text-anchor="middle">' + (w.first ? "from " + dstr(chartState.p0) : dstr(w.a)) + '</text>'
       + (w.partial ? '<text class="wkl" x="' + (bx + bwid/2).toFixed(1) + '" y="' + (H - B + 26) + '" text-anchor="middle">so far</text>' : '');
   });
   chartState.weeks = ws; chartState.wW = W;
-  return '<div class="cwrap" id="wwrap"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Combat power gained each game week by ' + esc(c.name) + '">' + HATCH + g + '</svg><div class="tip" id="wtip" hidden></div></div>';
+  return '<div class="cwrap" id="wwrap"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + METRIC[m].name + ' gained each game week by ' + esc(c.name) + '">' + DEFS + g + '</svg><div class="tip" id="wtip" hidden></div></div>';
 }
 function lineHover(ev){
   var cs = chartState.line, svg = ev.currentTarget.ownerSVGElement; if (!cs) return;
@@ -916,49 +944,54 @@ function lineHover(ev){
   var t = cs.t0 + (sx - cs.L)/(cs.W - cs.L - cs.R)*(cs.t1 - cs.t0); t = Math.max(cs.t0, Math.min(cs.t1, t));
   var v = cpAt(cs.p, t), when = cs.p[0][0], prev = 0;
   for (var i = 0; i < cs.p.length && cs.p[i][0] <= t; i++){ when = cs.p[i][0]; prev = i ? cs.p[i - 1][1] : 0; }
-  var px = cs.x(t), py = cs.y(v), k = r.width/cs.W;
+  var px = cs.x(t), py = cs.y(v), k = r.width/cs.W, m = progM, o = other(m);
   $("cxh").setAttribute("x1", px); $("cxh").setAttribute("x2", px); $("cxh").setAttribute("visibility", "visible");
   $("cdot").setAttribute("cx", px); $("cdot").setAttribute("cy", py); $("cdot").setAttribute("visibility", "visible");
-  var tip = $("ctip"); tip.hidden = false; tip.style.left = Math.max(80, Math.min(r.width - 80, px*k)) + "px"; tip.style.top = (py*k) + "px";
-  tip.innerHTML = '<b>' + num(v) + '</b> CP<small>' + dstr(Math.floor(t)) + ' · ' + (when > cs.t0 && prev ? 'reached ' + dstr(when, true) + ', +' + num(v - prev) : 'start of range') + '</small>';
+  var tip = $("ctip"); tip.hidden = false; tip.style.left = Math.max(90, Math.min(r.width - 90, px*k)) + "px"; tip.style.top = (py*k) + "px";
+  tip.innerHTML = '<b>' + num(v) + '</b> ' + METRIC[m].short + (cs.q.length ? ' <span class="t2">· ' + num(cpAt(cs.q, t)) + ' ' + METRIC[o].short + '</span>' : '')
+    + '<small>' + dstr(Math.floor(t)) + ' · ' + (when > cs.t0 && prev ? 'reached ' + dstr(when, true) + ', +' + num(v - prev) : 'start of range') + '</small>';
 }
 function lineLeave(){ ["cxh", "cdot"].forEach(function(id){ if ($(id)) $(id).setAttribute("visibility", "hidden"); }); if ($("ctip")) $("ctip").hidden = true; }
 function barHover(ev){
   var w = chartState.weeks[+ev.currentTarget.dataset.wi], svg = ev.currentTarget.ownerSVGElement, r = svg.getBoundingClientRect(), b = ev.currentTarget.getBBox(), k = r.width/chartState.wW;
   var tip = $("wtip"); tip.hidden = false; tip.style.left = Math.max(80, Math.min(r.width - 80, (b.x + b.width/2)*k)) + "px"; tip.style.top = (18*k) + "px";
-  tip.innerHTML = '<b>+' + num(w.gain) + '</b> CP<small>' + (w.first ? 'from ' + dstr(chartState.p0) + ' (history starts mid-week)' : 'week from reset ' + dstr(w.a, true)) + (w.partial ? ' · so far' : ' to ' + dstr(w.b)) + '</small>';
+  tip.innerHTML = '<b>+' + num(w.gain) + '</b> ' + METRIC[progM].short + '<small>' + (w.first ? 'from ' + dstr(chartState.p0) + ' (history starts mid-week)' : 'week from reset ' + dstr(w.a, true)) + (w.partial ? ' · so far' : ' to ' + dstr(w.b)) + '</small>';
 }
 function renderProgress(){
   var el = $("progress"); if (!el || $("panel-progress").hidden) return;
-  if (!chars.length || (!hist && fetchHist)){ el.innerHTML = '<div class="empty-state">Loading combat power history…</div>'; return; }
-  var groups = {}, order = [];
+  if (!chars.length || (!hist && fetchHist)){ el.innerHTML = '<div class="empty-state">Loading progress history…</div>'; return; }
+  var m = progM, o = other(m), groups = {}, order = [];
   chars.forEach(function(c){ if (!groups[c.player]){ groups[c.player] = []; order.push(c.player); } groups[c.player].push(c); });
   if (!progSel || !chars.some(function(c){ return c.name === progSel; })) progSel = (chars.filter(function(c){ return c.player === PLANNER_PLAYER && c.main; })[0] || chars[0]).name;
-  var html = '<div class="prog"><div><div class="phead"><i></i><i></i><span>Highest</span><span>This week</span><span style="text-align:left;padding-left:10px">Trend</span></div><div class="rlist">';
+  var html = '<div class="prog" style="--m:' + METRIC[m].col + ';--o:' + METRIC[o].col + '"><div>'
+    + '<div class="mseg" role="group" aria-label="Measure">' + ["cp", "il"].map(function(k){ return '<button type="button" class="' + k + (k === m ? " on" : "") + '" data-pm="' + k + '" aria-pressed="' + (k === m) + '">' + METRIC[k].name + '</button>'; }).join("") + '</div>'
+    + '<div class="phead"><i></i><i></i><span>Highest</span><span>This week</span><span style="text-align:left;padding-left:10px">Trend</span></div><div class="rlist">';
   order.forEach(function(pl){
     html += '<div class="pgroup"><div class="pname">' + esc(pl) + '</div>';
     groups[pl].forEach(function(c){
-      var g = thisWeek(c);
+      var g = thisWeek(c, m);
       html += '<button type="button" class="prow' + (c.name === progSel ? " sel" : "") + '" data-pc="' + esc(c.name) + '">' + glyph(c.cls, true)
-        + '<span class="rn">' + esc(c.name) + '<small>' + esc(c.cls) + '</small></span><span class="pc">' + num(cpOf(c)) + '</span><span class="pg">' + (g ? "+" + num(g) : "–") + '</span>' + spark(c) + '</button>';
+        + '<span class="rn">' + esc(c.name) + '<small>' + esc(c.cls) + '</small></span><span class="pc">' + num(valOf(c, m)) + '</span><span class="pg">' + (g ? "+" + num(g) : "–") + '</span>' + spark(c, m) + '</button>';
     });
     html += '</div>';
   });
   html += '</div></div>';
-  var c = chars.filter(function(x){ return x.name === progSel; })[0], p = ptsOf(c), ws = weeksOf(c), cur = ws[ws.length - 1], last = ws.length > 1 ? ws[ws.length - 2] : null;
-  var full = ws.filter(function(w){ return !w.partial && !w.first; }), best = full.reduce(function(m, w){ return w.gain > (m ? m.gain : -1) ? w : m; }, null);
+  var c = chars.filter(function(x){ return x.name === progSel; })[0], p = ptsOf(c, m), ws = weeksOf(c, m), cur = ws[ws.length - 1], last = ws.length > 1 ? ws[ws.length - 2] : null;
+  var full = ws.filter(function(w){ return !w.partial && !w.first; }), best = full.reduce(function(b, w){ return w.gain > (b ? b.gain : -1) ? w : b; }, null);
   var stat = function(lbl, val, sub){ return '<div><span>' + lbl + '</span><b>' + val + '</b><small>' + (sub || "&nbsp;") + '</small></div>'; };
+  var nowV = m === "cp" ? +c.cp : 0;
   html += '<div class="pchart"><div class="phero">' + (function(){ var k = CLSKEY[c.cls] || String(c.cls || "").toLowerCase(), em = ART.cls[k]; return (em ? '<img class="porfb" alt="" src="' + em + '">' : '') + (c.img ? '<img class="por" alt="" src="' + esc(c.img) + '" onerror="this.remove()">' : ''); })()
     + '<div class="hin"><div class="who">' + glyph(c.cls) + '<div><h2>' + esc(c.name) + '</h2><div class="cls">' + esc(c.cls) + ' · ' + esc(c.player) + (c.level && c.level < 45 ? ' · Lv ' + c.level : '') + '</div></div></div>'
-    + '<p class="big">' + num(cpOf(c)) + '</p><div class="lbl">Highest combat power</div>'
-    + (+c.cp && +c.cp < cpOf(c) ? '<div class="now">Showing ' + num(c.cp) + ' right now</div>' : '') + '</div></div>'
+    + '<p class="big">' + num(valOf(c, m)) + '</p><div class="lbl">Highest ' + METRIC[m].name.toLowerCase() + '</div>'
+    + '<div class="alt"><span class="sw"></span>' + METRIC[o].name + ' <b>' + num(valOf(c, o)) + '</b></div>'
+    + (nowV && nowV < valOf(c, m) ? '<div class="now">Showing ' + num(nowV) + ' right now</div>' : '') + '</div></div>'
     + '<div class="pstats">' + stat("This week", cur ? "+" + num(cur.gain) : "–", cur ? "since reset " + dstr(cur.a) : "")
     + stat("Last week", last ? "+" + num(last.gain) : "–", last ? (last.first ? "from " + dstr(p[0][0]) : dstr(last.a)) + " – " + dstr(last.b) : "")
     + stat("Best week", best ? "+" + num(best.gain) : "–", best ? "from " + dstr(best.a) : "needs a full week")
-    + stat("Since " + (p.length ? dstr(p[0][0]) : "start"), p.length ? "+" + num(cpOf(c) - p[0][1]) : "–", p.length ? "from " + num(p[0][1]) : "") + '</div>'
-    + '<div class="psec"><h3>Gain per game week <small style="text-transform:none;letter-spacing:0">Wednesday reset to reset</small></h3>' + weekChart(c) + '</div>'
-    + '<div class="psec"><h3>Highest combat power<span class="prange">' + [[7, "7d"], [30, "30d"], [0, "All"]].map(function(o){ return '<button type="button" class="chipbtn' + (progRange === o[0] ? " on" : "") + '" data-prange="' + o[0] + '">' + o[1] + '</button>'; }).join("") + '</span></h3>' + lineChart(c) + '</div>'
-    + '<p class="pfoot">A new high counts once the next hourly check confirms it, so one-off glitches on the official site are ignored. History starts ' + (p.length ? dstr(p[0][0]) : "now") + '.</p></div></div>';
+    + stat("Since " + (p.length ? dstr(p[0][0]) : "start"), p.length ? "+" + num(valOf(c, m) - p[0][1]) : "–", p.length ? "from " + num(p[0][1]) : "") + '</div>'
+    + '<div class="psec"><h3>' + METRIC[m].name + ' gained per game week <small style="text-transform:none;letter-spacing:0">Wednesday reset to reset</small></h3>' + weekChart(c) + '</div>'
+    + '<div class="psec"><h3><span class="key"><i class="km"></i>' + METRIC[m].name + '</span><span class="key faint"><i class="ko"></i>' + METRIC[o].name + '</span><span class="prange">' + [[7, "7d"], [30, "30d"], [0, "All"]].map(function(r){ return '<button type="button" class="chipbtn' + (progRange === r[0] ? " on" : "") + '" data-prange="' + r[0] + '">' + r[1] + '</button>'; }).join("") + '</span></h3>' + lineChart(c) + '</div>'
+    + '<p class="pfoot">Highest values seen. A new high counts once the next hourly check confirms it, so glitches on the official site are ignored. The faint ' + METRIC[o].name.toLowerCase() + ' line uses its own scale; hover for exact numbers. History starts ' + (p.length ? dstr(p[0][0]) : "now") + '.</p></div></div>';
   el.innerHTML = html;
   var hit = $("chit"); if (hit){ hit.addEventListener("pointermove", lineHover); hit.addEventListener("pointerdown", lineHover); hit.addEventListener("pointerleave", lineLeave); }
   Array.prototype.forEach.call(el.querySelectorAll(".bhit"), function(b){ b.addEventListener("pointerenter", barHover); b.addEventListener("pointerdown", barHover); b.addEventListener("pointerleave", function(){ $("wtip").hidden = true; }); });

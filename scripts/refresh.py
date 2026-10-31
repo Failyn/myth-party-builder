@@ -75,20 +75,20 @@ def fetch(entry, prev):
     return doc, samples
 
 
-def track_cp(doc, prev, hist, now_min):
-    """Keep the highest combat power seen. A new high only counts once the next
-    run backs it up (the site once showed one character at double CP for an hour).
-    Each new high is added to the character's history. Returns True if history grew."""
+def track_high(doc, prev, series, now_min, field):
+    """Keep the highest value seen for field ("cp" or "il"). A new high only
+    counts once the next run backs it up (the site once showed one character at
+    double CP for an hour). Each new high is added to series. True if it grew."""
     prev = prev or {}
-    cp, last = int(doc["cp"] or 0), int(prev.get("cpLast") or 0)
-    best = int(prev.get("cpMax") or 0)
-    confirmed = min(cp, last) if last else cp
-    doc["cpLast"] = cp
+    val, last = int(doc[field] or 0), int(prev.get(field + "Last") or 0)
+    best = int(prev.get(field + "Max") or 0)
+    confirmed = min(val, last) if last else val
+    doc[field + "Last"] = val
     if confirmed > best:
-        doc["cpMax"] = confirmed
-        hist.append([now_min, confirmed])
+        doc[field + "Max"] = confirmed
+        series.append([now_min, confirmed])
         return True
-    doc["cpMax"] = best or cp
+    doc[field + "Max"] = best or val
     return False
 
 
@@ -107,16 +107,19 @@ def main():
     url, key = os.environ.get("SUPABASE_URL", "").rstrip("/"), os.environ.get("SUPABASE_SERVICE_KEY", "")
     previous = read_previous(url, key) if url and key else {}
     stored = read_previous(url, key, "cphist") if url and key else {}
-    history = {k: v.get("pts", []) for k, v in stored.items()}
+    history = {k: {"pts": v.get("pts", []), "il": v.get("il")} for k, v in stored.items()}
     seed_path = os.path.join(HERE, "..", "cp_seed.json")
     seed = json.load(open(seed_path)) if os.path.exists(seed_path) else {}
+    grown = set()  # histories that need writing
     for cid_, sv in seed.items():  # one-off: history rebuilt from old run logs, used only where none is stored yet
-        if cid_ not in history:
-            history[cid_] = sv["pts"]
-            old = previous.setdefault(cid_, {})
-            old.setdefault("cpMax", sv["cpMax"]); old.setdefault("cpLast", sv["cpLast"])
+        h, old = history.setdefault(cid_, {"pts": None, "il": None}), previous.setdefault(cid_, {})
+        for field, key_ in (("cp", "pts"), ("il", "il")):
+            if h.get(key_) is None and key_ in sv:
+                h[key_] = sv[key_]; grown.add(cid_)
+                old.setdefault(field + "Max", sv[field + "Max"]); old.setdefault(field + "Last", sv[field + "Last"])
+    for h in history.values():
+        h["pts"], h["il"] = h.get("pts") or [], h.get("il") or []
     now_min = int(time.time() // 60)
-    grown = set(k for k in seed if k not in stored)  # seeded histories still need writing
     restore_path = os.path.join(HERE, "..", "restore_il.json")
     if os.path.exists(restore_path):  # one-off: known-good item levels to recover from bad data
         for cid_, value in json.load(open(restore_path)).items():
@@ -128,11 +131,12 @@ def main():
         try:
             doc, samples = fetch(e, previous.get(e["id"]))
             doc["readAtIso"] = now
-            if track_cp(doc, previous.get(e["id"]), history.setdefault(e["id"], []), now_min):
+            h = history.setdefault(e["id"], {"pts": [], "il": []})
+            if track_high(doc, previous.get(e["id"]), h["pts"], now_min, "cp") | track_high(doc, previous.get(e["id"]), h["il"], now_min, "il"):
                 grown.add(e["id"])
             rows.append({"coll": "chars", "id": e["id"], "data": doc, "updated_at": now})
             note = (" (held; site said %s, run %s of %s)" % (doc["ilSeen"], doc["ilHeld"], ACCEPT_AFTER)) if doc.get("ilHeld") else ""
-            print("ok   %-10s Lv%-2s %-12s IL %-5s CP %-7s max %-7s asked %sx%s" % (e["id"], doc["level"], doc["cls"], doc["il"], doc["cp"], doc["cpMax"], samples, note))
+            print("ok   %-10s Lv%-2s %-12s IL %-5s CP %-7s max %-7s IL max %-5s asked %sx%s" % (e["id"], doc["level"], doc["cls"], doc["il"], doc["cp"], doc["cpMax"], doc["ilMax"], samples, note))
         except Exception as ex:  # keep the previous numbers for this character
             failed.append(e["id"])
             print("FAIL %-10s %s" % (e["id"], ex))
@@ -143,7 +147,7 @@ def main():
     head = {"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"}
     names = {k: v.get("name") for k, v in previous.items()}
     names.update({r["id"]: r["data"]["name"] for r in rows})
-    rows += [{"coll": "cphist", "id": k, "data": {"name": names.get(k) or k, "pts": history[k]}, "updated_at": now}
+    rows += [{"coll": "cphist", "id": k, "data": {"name": names.get(k) or k, "pts": history[k]["pts"], "il": history[k]["il"]}, "updated_at": now}
              for k in sorted(grown) if k in history]
     if rows:
         req = urllib.request.Request(url + "/rest/v1/docs", data=json.dumps(rows).encode("utf-8"), method="POST",
