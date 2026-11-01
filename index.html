@@ -92,6 +92,7 @@ button{cursor:pointer}
 .kin{margin-top:8px;font-size:.82rem;display:flex;gap:14px;flex-wrap:wrap}
 .kin b{font-family:var(--mono);color:var(--accent-2)}
 .party.active{border-color:var(--accent)}
+.chipbtn.mv{padding:3px 8px}
 .party-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px;cursor:pointer}
 .party-h h3{font-size:1.05rem}
 .party-h .pd{font-size:.86rem;color:var(--muted)}
@@ -513,13 +514,13 @@ function renderParties(){
     if (n >= d.min && !low.length) foot += '<span class="ok">Ready</span>';
     var amt2 = p.amount || 80, cubes = amt2/CUBE, per = d.kinah || 0, each = per*cubes;
     var kin = '<div class="kin">' + (per ? '<span>Kinah per run: <b>' + kfmt(each) + '</b> each (' + cubes + ' cubes × ' + kfmt(per) + ')</span>' : '<span>Kinah per cube not set for ' + esc(d.name) + '</span>')
-      + '<span>Runs done: <b>' + (p.runs || 0) + '</b> · kinah earned: <b>' + kfmt(p.earned || 0) + '</b> each</span></div>';
+      + '</div>';  /* runs done and kinah earned are still counted in p.runs / p.earned, just not shown (Aleks, 2026-11-01) */
     var run = '<div class="runrow"><label for="amt-' + i + '">Energy per run</label><input class="pin" id="amt-' + i + '" data-amt="' + i + '" type="number" min="0" step="40" value="' + amt2 + '">'
       + '<button type="button" class="runbtn" data-run="' + i + '"' + (n ? '' : ' disabled') + '>Run done: −' + amt2 + ' each</button>'
       + '</div>';
     html += '<div class="party art-' + (d.art || d.id) + (i === active ? " active" : "") + '" data-p="' + i + '">'
       + '<div class="party-h" data-sel="' + i + '"><h3>Party ' + (i + 1) + '</h3><span class="pd">' + esc(d.name) + (d.mode === "Hard" ? ' · Hard' : '') + (d.stage ? ' · Stage ' + d.stage : '') + ' · ' + num(d.il) + '+ · ' + esc(d.drops) + '</span>'
-      + '<span class="pact"><button type="button" class="chipbtn" data-clear="' + i + '">clear</button><button type="button" class="chipbtn" data-del="' + i + '">remove</button></span></div>'
+      + '<span class="pact"><button type="button" class="chipbtn mv" data-mv="' + i + ':-1"' + (i ? '' : ' disabled') + ' title="Move up" aria-label="Move party ' + (i + 1) + ' up">↑</button><button type="button" class="chipbtn mv" data-mv="' + i + ':1"' + (i < parties.length - 1 ? '' : ' disabled') + ' title="Move down" aria-label="Move party ' + (i + 1) + ' down">↓</button><button type="button" class="chipbtn" data-clear="' + i + '">clear</button><button type="button" class="chipbtn" data-del="' + i + '">remove</button></span></div>'
       + '<div class="slots">' + slots + '</div><div class="party-f">' + foot + '</div>' + kin + run + '</div>';
   });
   html += '<button type="button" class="addparty" id="addparty">+ add a party</button>';
@@ -658,7 +659,7 @@ document.addEventListener("click", function(ev){
   if (d.tab){ setTab(d.tab); return; }
   if (t.id === "lockbtn"){ if (unlocked){ notice("Editing is unlocked on this device."); } else askPass(); return; }
   if (t.id === "passgo"){ var pv = $("passin").value.trim(); if (pv) checkPass(pv); return; }
-  if (!unlocked && (d.d || t.id === "addparty" || d.run != null || d.clear != null || d.del != null || d.rm || d.c || d.set || d.spend)){ askPass(); return; }
+  if (!unlocked && (d.d || t.id === "addparty" || d.run != null || d.clear != null || d.del != null || d.mv || d.rm || d.c || d.set || d.spend)){ askPass(); return; }
   if (d.pc){ progSel = d.pc; renderProgress(); var pc = document.querySelector(".pchart"); if (pc && pc.getBoundingClientRect().top > innerHeight) pc.scrollIntoView({behavior: "smooth", block: "start"}); return; }
   if (d.pm){ progM = d.pm; try { localStorage.setItem("myth-builder:metric", progM); } catch (e) {} renderProgress(); return; }
   if (d.prange != null){ progRange = +d.prange; renderProgress(); return; }
@@ -679,6 +680,7 @@ document.addEventListener("click", function(ev){
   if (t.id === "addparty"){ parties.push({dungeon: parties[active] ? parties[active].dungeon : "vakron", members:[], amount:80, runs:0, earned:0}); active = parties.length - 1; savePlan(); return; }
   if (d.run != null){ runDone(+d.run); return; }
   if (d.clear != null){ var pc = parties[+d.clear]; pc.members = []; pc.runs = 0; pc.earned = 0; active = +d.clear; savePlan(); return; }
+  if (d.mv){ var mv = d.mv.split(":"), a = +mv[0], b = a + (+mv[1]); if (b >= 0 && b < parties.length){ var tmp = parties[a]; parties[a] = parties[b]; parties[b] = tmp; active = active === a ? b : active === b ? a : active; savePlan(); } return; }
   if (d.del != null){ parties.splice(+d.del, 1); active = 0; savePlan(); return; }
   if (d.rm){ var k = d.rm.indexOf(":"), pi = +d.rm.slice(0, k), nm = d.rm.slice(k + 1); parties[pi].members = parties[pi].members.filter(function(x){ return x !== nm; }); active = pi; savePlan(); return; }
   if (d.c){
