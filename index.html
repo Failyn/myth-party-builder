@@ -328,7 +328,7 @@ button{cursor:pointer}
   <div class="tabs">
     <button class="tabbtn active" type="button" data-tab="builder">Builder</button>
     <button class="tabbtn" type="button" data-tab="energy">Energy</button>
-    <button class="tabbtn" type="button" data-tab="planner">Planner</button>
+    <button class="tabbtn" type="button" data-tab="planner" hidden>Planner</button><!-- hidden for now (Aleks, 2026-11-01); remove "hidden" and allow "planner" in the tab restore below to bring it back -->
     <button class="tabbtn" type="button" data-tab="progress">Progress</button>
   </div>
   <div class="lock"><button type="button" class="chipbtn" id="lockbtn">Unlock editing</button><span id="lockform" hidden><input class="pin wide" id="passin" type="password" autocomplete="off" placeholder="Passcode" aria-label="Group passcode"><button type="button" class="chipbtn" id="passgo">OK</button></span></div>
@@ -1004,7 +1004,7 @@ function setTab(name){
   if (name === "progress") loadHist();
   try { localStorage.setItem("myth-builder:tab", name); } catch (e) {}
 }
-try { var t0 = localStorage.getItem("myth-builder:tab"); if (t0 === "energy" || t0 === "planner" || t0 === "progress") setTab(t0); } catch (e) {}
+try { var t0 = localStorage.getItem("myth-builder:tab"); if (t0 === "energy" || t0 === "progress") setTab(t0); } catch (e) {}
 
 /* ---- boot ---- */
 renderBuilder(); renderEnergy(); renderClock();
