@@ -1089,6 +1089,7 @@ function start(){
     if (!typing()) renderBuilder();
   });
   poll();
+  loadHist();  /* fetch history in the background so the Progress tab is ready (and works when the page opens on it) */
   setInterval(function(){ if (!document.hidden) poll(); }, 8000);
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) poll(); });
   if (pass) checkPass(pass, true);
