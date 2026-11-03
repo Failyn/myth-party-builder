@@ -148,7 +148,8 @@ button{cursor:pointer}
 .row .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .row .rn small{font-weight:400;color:var(--muted);font-size:.64rem;margin-left:4px}
 .row .ri,.row .rc,.row .re{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.row .re{font-size:.68rem;color:var(--muted)}
+.row .re{font-size:.68rem;color:var(--muted);display:grid;grid-template-columns:minmax(0,1fr) 3.4ch;align-items:baseline}
+.row .re .ex{text-align:left}
 .row .rc{color:var(--accent-2)}
 .row .rp{font-size:.72rem;font-weight:700;color:var(--good);text-align:right}
 .row.used{opacity:.5}
@@ -537,7 +538,7 @@ function renderParties(){
 function rEnergy(n){
   var e = nowEnergy(n, Date.now()), x = extraOf(n); if (!e && !x) return "";
   var v = e ? e.value : 0, base = Math.floor(v/RUN), more = Math.floor((v + x)/RUN) - base;
-  return "⚡" + v + (more > 0 ? '<sup class="xs">+' + more + '</sup>' : "");
+  return '<span class="ev">⚡' + v + '</span><span class="ex">' + (more > 0 ? '<sup class="xs">+' + more + '</sup>' : '') + '</span>';  /* fixed +N slot keeps numbers aligned */
 }
 function renderRoster(){
   if (!chars.length){ $("roster").innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters yet. Ask Claude to add the roster." : "Loading the roster…") + '</div>'; return; }
