@@ -418,6 +418,13 @@ function playerOrder(){ var o = []; chars.forEach(function(c){ if (o.indexOf(c.p
 function eid(n){ return String(n).replace(/[^A-Za-z0-9_-]/g, function(c){ return "~" + c.charCodeAt(0).toString(16); }); }
 function byName(n){ for (var i = 0; i < chars.length; i++) if (chars[i].name === n) return chars[i]; return null; }
 function dungeon(id){ for (var i = 0; i < DUNGEONS.length; i++) if (DUNGEONS[i].id === id) return DUNGEONS[i]; return DUNGEONS[0]; }
+/* characters in player order, and within each player by party number (no party last), Aleks 2026-11-03 */
+function byParty(){
+  var po = playerOrder(), at = function(c){ var k = partyOf(c.name); return k < 0 ? 1e6 : k; };
+  return chars.map(function(c, i){ return {c: c, i: i}; }).sort(function(a, b){
+    return (po.indexOf(a.c.player) - po.indexOf(b.c.player)) || (at(a.c) - at(b.c)) || (a.i - b.i);
+  }).map(function(x){ return x.c; });
+}
 function partyOf(n){ for (var i = 0; i < parties.length; i++) if (parties[i].members.indexOf(n) >= 0) return i; return -1; }
 function notice(msg, bad){ var el = $("notice"); if (!msg){ el.hidden = true; return; } el.textContent = msg; el.className = "notice" + (bad ? " bad" : ""); el.hidden = false; }
 
@@ -535,7 +542,7 @@ function rEnergy(n){
 function renderRoster(){
   if (!chars.length){ $("roster").innerHTML = '<div class="empty-state">' + (loaded.chars ? "No characters yet. Ask Claude to add the roster." : "Loading the roster…") + '</div>'; return; }
   var d = parties[active] ? dungeon(parties[active].dungeon) : DUNGEONS[0], groups = {}, order = [];
-  chars.forEach(function(c){ if (!groups[c.player]){ groups[c.player] = []; order.push(c.player); } groups[c.player].push(c); });
+  byParty().forEach(function(c){ if (!groups[c.player]){ groups[c.player] = []; order.push(c.player); } groups[c.player].push(c); });
   var html = '<div class="rlist">';
   order.forEach(function(pl){
     html += '<div class="pgroup"><div class="pname">' + esc(pl) + '<small>' + groups[pl].length + (groups[pl].length === 1 ? ' character' : ' characters') + '</small></div>';
@@ -557,7 +564,7 @@ function renderEnergy(){
   var keep = {}, foc = document.activeElement && document.activeElement.id;
   Array.prototype.forEach.call(document.querySelectorAll(".einput"), function(i){ keep[i.id] = i.value; });
   var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Full in</th><th>Entered</th>' + (unlocked ? '<th>Set current energy</th>' : '') + '<th>Extra (blue)</th></tr></thead><tbody>', last = null;
-  chars.forEach(function(c){
+  byParty().forEach(function(c){
     var e = nowEnergy(c.name, now), first = c.player !== last; last = c.player;
     var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '">'
       + (unlocked ? ' <button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="160">+160</button><button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="800">+800</button>' : '') + '</td>';
@@ -598,7 +605,7 @@ function failWrite(err){
 }
 var planBusy = false, planDirty = false;
 function savePlan(){
-  renderBuilder();
+  renderBuilder(); if (!typing()) renderEnergy();
   if (!db) return;
   planDirty = true; if (planBusy) return; planBusy = true;
   (function loop(){
@@ -1088,7 +1095,7 @@ function start(){
     if (b && Array.isArray(b.parties)){
       parties = b.parties.map(function(p){ return {dungeon: String(p.dungeon || "vakron"), members: Array.isArray(p.members) ? p.members.slice(0, 5).map(String) : [], amount: Number(p.amount) || 80, runs: Number(p.runs) || 0, earned: Number(p.earned) || 0}; });
     }
-    if (!typing()) renderBuilder();
+    if (!typing()){ renderBuilder(); renderEnergy(); }
   });
   poll();
   loadHist();  /* fetch history in the background so the Progress tab is ready (and works when the page opens on it) */
