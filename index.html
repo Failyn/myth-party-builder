@@ -241,7 +241,15 @@ button{cursor:pointer}
 .grow .glyph{width:18px;height:18px}.grow .glyph img{width:14px;height:14px}
 .grow .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .grow .gi{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
-.sheet{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.sheet{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+  background:
+    radial-gradient(ellipse 34% 52% at 50% 40%,color-mix(in srgb,var(--accent-2) 15%,transparent),transparent 72%),
+    radial-gradient(ellipse 55% 45% at 0% 0%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 70%),
+    radial-gradient(ellipse 55% 45% at 100% 100%,rgba(120,90,255,.10),transparent 70%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.012) 0 2px,transparent 2px 9px),
+    linear-gradient(180deg,#171c28,#0f131b)}
+.sheet .wm{position:absolute;left:50%;top:42%;width:min(70%,520px);transform:translate(-50%,-50%);opacity:.045;pointer-events:none;filter:grayscale(1)}
+.sheet > *:not(.wm):not(.icard){position:relative}
 .sheet-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
 .sheet-h h2{font-size:1.15rem}
 .sheet-h .when{margin-left:auto;font-family:var(--mono);font-size:.62rem;color:var(--muted)}
@@ -262,7 +270,7 @@ button{cursor:pointer}
 .gench{font-family:var(--mono);font-weight:700;color:var(--ink);font-size:.7rem}
 .gench .x{color:var(--extra)}
 .gempty{opacity:.45}
-.gcen{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.gcen{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;align-self:start;padding-top:18px}
 .gpor{width:150px;height:150px;border-radius:50%;overflow:hidden;border:2px solid color-mix(in srgb,var(--accent-2) 55%,var(--line));background:var(--surface-2);display:grid;place-items:center;box-shadow:0 0 30px color-mix(in srgb,var(--accent-2) 18%,transparent)}
 .gpor img.p{width:100%;height:100%;object-fit:cover;object-position:center 18%}
 .gpor img.fb{width:90px;height:90px;opacity:.35}
@@ -272,6 +280,20 @@ button{cursor:pointer}
 .gcen .nums span{display:flex;flex-direction:column;align-items:center}
 .gcen .nums i{font-style:normal;font-size:.58rem;letter-spacing:.06em;color:var(--muted)}
 .gcen .nums .cpv{color:var(--accent-2)}
+.arc{width:100%;margin-top:6px}
+.arc-h{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.arcg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.arcg .acard{flex:0 0 calc((100% - 12px)/3)}
+.acard{--g:var(--muted);position:relative;aspect-ratio:3/4;border-radius:7px;overflow:hidden;padding:0;border:1px solid color-mix(in srgb,var(--g) 75%,transparent);background:var(--surface-2);
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.35)}
+.acard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.acard::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.85));pointer-events:none}
+.acard .aen{position:absolute;top:3px;right:3px;z-index:1;font-family:var(--mono);font-weight:700;font-size:.62rem;background:rgba(0,0,0,.7);color:#fff;border:1px solid color-mix(in srgb,var(--g) 60%,transparent);border-radius:4px;padding:0 4px}
+.acard .anm{position:absolute;left:0;right:0;bottom:3px;z-index:1;font-size:.6rem;font-weight:600;color:#fff;text-align:center;text-shadow:0 1px 2px #000}
+.acard:hover,.acard.on{border-color:var(--g);box-shadow:0 0 0 1px var(--g),0 0 14px color-mix(in srgb,var(--g) 45%,transparent)}
+.icard .setb{display:flex;gap:8px;color:var(--muted);font-size:.72rem;padding:1px 0}
+.icard .setb b{font-family:var(--mono);min-width:1.4ch}
+.icard .setb.on{color:var(--ink)}.icard .setb.on b{color:var(--accent-2)}
 .icard{position:absolute;z-index:5;width:320px;max-width:calc(100% - 20px);background:var(--surface-2);border:1px solid color-mix(in srgb,var(--g) 45%,var(--line));border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);padding:12px 14px;font-size:.78rem}
 .icard.hov{pointer-events:none}
 .icard.hov .x{visibility:hidden}
@@ -300,7 +322,8 @@ button{cursor:pointer}
 .icard .foot{color:var(--muted);font-size:.68rem;margin-top:8px}
 @media (max-width:1020px){ .gearv{grid-template-columns:minmax(0,1fr)} }
 @media (max-width:760px){
-  .doll{grid-template-columns:minmax(0,1fr)} .gcen{order:-1;flex-direction:row;text-align:left;justify-content:flex-start;gap:12px}
+  .doll{grid-template-columns:minmax(0,1fr)} .gcen{order:-1;flex-direction:row;flex-wrap:wrap;text-align:left;justify-content:flex-start;gap:12px} .arc{flex:1 0 100%}
+  .arcg .acard{flex:0 0 calc((100% - 24px)/5)}
   .gpor{width:72px!important;height:72px!important} .gpor img.fb{width:46px;height:46px}
   .gcol.r .gitem{grid-template-columns:44px minmax(0,1fr);text-align:left} .gcol.r .gitem .gic{order:0} .gcol.r .gsub{justify-content:flex-start}
   .icard{left:10px!important;right:10px;width:auto}
@@ -1146,11 +1169,16 @@ function itemCard(it){
   if (d.mainStats && d.mainStats.length){ h += '<h4>Base stats</h4>'; d.mainStats.forEach(function(s){ var ex = s.extra && !/^0(\.0+)?%?$/.test(s.extra) ? s.extra : ""; h += kv(s.name, s.value, ex); }); }
   var subs = d.subStats || [], skills = d.subSkills || [];
   if (subs.length || skills.length){
-    h += '<h4>' + (d.subStatCount === 0 ? 'Bonus stats (fixed)' : 'Bonus rolls ' + (subs.length + skills.length)) + '</h4>';
+    h += '<h4>' + (!subs.length ? 'Skills ' + skills.length + (d.subSkillCountMax ? ' / ' + d.subSkillCountMax : '') : d.subStatCount === 0 ? 'Bonus stats (fixed)' : 'Bonus rolls ' + (subs.length + skills.length)) + '</h4>';
     var fixed = d.subStatCount === 0;  /* fixed bonus stats, nothing was rolled */
     subs.forEach(function(s){ var r = fixed ? "" : rollRate(it.slot, s.name); h += '<div class="kv roll' + (r ? " r-" + r : "") + '"><span>' + esc(s.name) + '</span><span>' + esc(s.value) + '</span></div>'; });
     skills.forEach(function(k){ h += '<div class="ms skill">' + (k.icon ? '<img alt="" src="' + esc(k.icon) + '">' : '') + '<span>' + esc(k.name) + '</span><span class="v">Lv ' + esc(k.level || 1) + '</span></div>'; });
     if (!fixed && subs.some(function(s){ return rollRate(it.slot, s.name); })) h += '<div class="rkey"><i class="r-best"></i>best <i class="r-ok"></i>good <i class="r-def"></i>Constitution <i class="r-bad"></i>low value</div>';
+  }
+  if (d.set && d.set.name){
+    var on = +d.set.equippedCount || 0;
+    h += '<h4>Set · ' + esc(d.set.name) + ' (' + on + ' worn)</h4>';
+    (d.set.bonuses || []).forEach(function(b){ h += '<div class="setb' + (on >= b.degree ? " on" : "") + '"><b>' + b.degree + '</b><span>' + esc((b.descriptions || []).join("; ")) + '</span></div>'; });
   }
   /* manastones and godstone are hidden for now (Aleks, 2026-11-04); the data is still saved */
   var foot = []; if (d.soulBindRate) foot.push("Soul bind " + d.soulBindRate + "%"); if (d.sources && d.sources.length) foot.push("From " + d.sources.join(", "));
@@ -1177,13 +1205,13 @@ function renderGear(){
   gearItems = bySlot;
   var em = ART.cls[CLSKEY[c.cls] || String(c.cls || "").toLowerCase()];
   var when = ""; try { if (g && g.at) when = "Updated " + new Date(g.at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}); } catch (e) {}
-  html += '<div class="sheet" id="sheet"><div class="sheet-h"><h2>Equipment</h2><span class="when">' + esc(when) + '</span></div>';
+  html += '<div class="sheet" id="sheet">' + (em ? '<img class="wm" alt="" src="' + em + '">' : '') + '<div class="sheet-h"><h2>Equipment</h2><span class="when">' + esc(when) + '</span></div>';
   if (!cache) html += '<div class="empty-state">Loading ' + esc(c.name) + '\'s equipment…</div>';
   else if (!g) html += '<div class="empty-state">No equipment saved for ' + esc(c.name) + ' yet. It is added by the hourly update.</div>';
   else {
     html += '<div class="doll"><div class="gcol l">' + GLEFT.map(function(s){ return gearItem(bySlot[s[0]], s[1], false); }).join("") + '</div>'
       + '<div class="gcen"><div class="gpor">' + (em ? '<img class="fb" alt="" src="' + em + '">' : '') + '</div><div><div class="nm">' + esc(c.name) + '</div><div class="cl">' + esc(c.cls) + ' · ' + esc(c.player) + '</div>'
-      + '<div class="nums" style="margin-top:6px"><span><i>IL</i>' + num(c.il) + '</span><span class="cpv"><i>CP</i>' + num(cpOf(c)) + '</span></div></div></div>'
+      + '<div class="nums" style="margin-top:6px"><span><i>IL</i>' + num(c.il) + '</span><span class="cpv"><i>CP</i>' + num(cpOf(c)) + '</span></div></div>' + arcanaBlock(g) + '</div>'
       + '<div class="gcol r">' + GRIGHT.map(function(s){ return gearItem(bySlot[s[0]], s[1], true); }).join("") + '</div></div>';
   }
   html += '</div></div>';
@@ -1191,12 +1219,21 @@ function renderGear(){
   if (c.img && g){ var por = el.querySelector(".gpor"), im = new Image(); im.className = "p"; im.alt = ""; im.onload = function(){ por.innerHTML = ""; por.appendChild(im); }; im.src = c.img; }
   if (gearOpen && bySlot[gearOpen]) openCard(bySlot[gearOpen]);
   /* mouse: show the stat card while hovering; a click pins it. Touch keeps tap-to-open. */
-  Array.prototype.forEach.call(el.querySelectorAll(".gitem[data-gi]"), function(b){
+  Array.prototype.forEach.call(el.querySelectorAll(".gitem[data-gi], .acard[data-gi]"), function(b){
     b.addEventListener("pointerenter", function(ev){ if (ev.pointerType !== "mouse" || gearOpen) return; var it = gearItems[b.dataset.gi]; if (it) openCard(it, true); });
     b.addEventListener("pointerleave", function(ev){ if (ev.pointerType !== "mouse" || gearOpen) return; closeHover(); });
   });
 }
 function closeHover(){ Array.prototype.forEach.call(document.querySelectorAll(".icard.hov"), function(x){ x.remove(); }); }
+function arcanaBlock(g){
+  var cards = (g.items || []).filter(function(it){ return /^Arcana/.test(it.slot); }).sort(function(a, b){ return a.slot < b.slot ? -1 : 1; });
+  if (!cards.length) return '';
+  return '<div class="arc"><div class="arc-h"><span>Arcana</span><span>' + cards.length + ' equipped</span></div><div class="arcg">'
+    + cards.map(function(it){ var cat = it.d && it.d.categoryName || it.name;
+        return '<button type="button" class="acard' + (gearOpen === it.slot ? " on" : "") + '" style="--g:' + gcol(it.grade) + '" data-gi="' + esc(it.slot) + '" title="' + esc(it.name) + '">'
+          + (it.icon ? '<img alt="" src="' + esc(it.icon) + '" loading="lazy">' : '') + (it.enchant ? '<span class="aen">+' + it.enchant + '</span>' : '') + '<span class="anm">' + esc(cat) + '</span></button>'; }).join("")
+    + '</div></div>';
+}
 function openCard(it, hover){
   var sheet = $("sheet"), btn = sheet && sheet.querySelector('[data-gi="' + it.slot + '"]'); if (!btn) return;
   closeHover();

@@ -97,7 +97,7 @@ WORN = {"MainHand", "SubHand", "Helmet", "Shoulder", "Torso", "Pants", "Gloves",
 DETAIL_KEEP = ("level", "categoryName", "equipLevel", "maxEnchantLevel", "maxExceedEnchantLevel", "magicStoneSlotCount",
                "godStoneSlotCount", "mainStats", "subStats", "subSkills", "subSkillCountMax", "subStatCount",
                "magicStoneStat", "godStoneStat", "soulBindRate", "sources")
-DETAIL_SINCE = 1793809523   # details saved before this (unix time) lack fields above, so they are fetched again once
+DETAIL_SINCE = 1793810590   # details saved before this (unix time) lack fields above, so they are fetched again once
 FULL_REFRESH_H = 20   # re-read every item about once a day (manastones and rerolled stats don't change the item id)
 
 
@@ -111,7 +111,7 @@ def read_gear(cid, prev_gear):
     from concurrent.futures import ThreadPoolExecutor
     base = {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER}
     lst = get_json("https://aion2.plaync.com/api/character/equipment", base)["equipment"]["equipmentList"]
-    worn = [it for it in lst if it.get("slotPosName") in WORN]
+    worn = [it for it in lst if it.get("slotPosName") in WORN or str(it.get("slotPosName", "")).startswith("Arcana")]
     prev_items = {x["slot"]: x for x in (prev_gear or {}).get("items", [])}
     now = time.time()
     last = float((prev_gear or {}).get("detAt") or 0)
@@ -124,7 +124,10 @@ def read_gear(cid, prev_gear):
             d = get_json("https://aion2.plaync.com/api/character/equipment/item",
                          {"id": it["id"], "enchantLevel": it.get("enchantLevel", 0), "characterId": cid, "serverId": SERVER,
                           "slotPos": it["slotPos"], "lang": "en-US", "region": REGION})
-            return {k: d[k] for k in DETAIL_KEEP if k in d}, True
+            keep = {k: d[k] for k in DETAIL_KEEP if k in d}
+            if isinstance(d.get("set"), dict):  # Arcana set: name, how many worn, bonuses (the full card list is not needed)
+                keep["set"] = {k: d["set"].get(k) for k in ("name", "equippedCount", "bonuses")}
+            return keep, True
         except Exception:
             return (old or {}).get("d"), False
     with ThreadPoolExecutor(max_workers=8) as pool:
