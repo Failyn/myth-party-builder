@@ -154,7 +154,7 @@ def gear_docs(rid, name, g, now):
     meta = {"name": name, "at": now, "detAt": g["detAt"], "slots": [it["slot"] for it in g["items"]]}
     docs = {rid + "~_": meta}
     for it in g["items"]:
-        docs[rid + "~" + it["slot"]] = dict(it, name=name)
+        docs[rid + "~" + it["slot"]] = dict(it, owner=name)
     return docs
 
 
