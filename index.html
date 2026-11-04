@@ -273,6 +273,8 @@ button{cursor:pointer}
 .gcen .nums i{font-style:normal;font-size:.58rem;letter-spacing:.06em;color:var(--muted)}
 .gcen .nums .cpv{color:var(--accent-2)}
 .icard{position:absolute;z-index:5;width:320px;max-width:calc(100% - 20px);background:var(--surface-2);border:1px solid color-mix(in srgb,var(--g) 45%,var(--line));border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);padding:12px 14px;font-size:.78rem}
+.icard.hov{pointer-events:none}
+.icard.hov .x{visibility:hidden}
 .icard .ih{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;margin-bottom:8px}
 .icard .ih b{display:block;color:var(--g);font-size:.92rem;line-height:1.2}
 .icard .ih small{color:var(--muted);font-size:.7rem}
@@ -1076,7 +1078,7 @@ function renderProgress(){
   Array.prototype.forEach.call(el.querySelectorAll(".bhit"), function(b){ b.addEventListener("pointerenter", barHover); b.addEventListener("pointerdown", barHover); b.addEventListener("pointerleave", function(){ $("wtip").hidden = true; }); });
 }
 /* ---- equipment tab: worn gear per character, item stats on click ---- */
-var gearSel = null, gearCache = {}, gearBusy = {}, gearOpen = null, fetchGear = null;
+var gearSel = null, gearCache = {}, gearBusy = {}, gearOpen = null, fetchGear = null, gearItems = {};
 var GRADE = {Common: "#c3c8d0", Rare: "#5fcf86", Legend: "#4fa3ff", Unique: "#e6b04a", Epic: "#ff8c42", Special: "#3fd3c6"};
 var GLEFT = [["MainHand", "Weapon"], ["SubHand", "Off-hand"], ["Helmet", "Helm"], ["Shoulder", "Pauldrons"], ["Torso", "Top"], ["Pants", "Legs"], ["Gloves", "Gloves"], ["Boots", "Shoes"], ["Cape", "Cloak"], ["Belt", "Belt"]];
 var GRIGHT = [["Necklace", "Necklace"], ["Amulet", "Amulet"], ["Earring1", "Left earring"], ["Earring2", "Right earring"], ["Ring1", "Left ring"], ["Ring2", "Right ring"], ["Bracelet1", "Left bracelet"], ["Bracelet2", "Right bracelet"], ["Rune1", "Left rune"], ["Rune2", "Right rune"]];
@@ -1127,6 +1129,7 @@ function renderGear(){
   var c = byName(gearSel), k = c._id || c.name, cache = gearCache[k], g = cache && cache.g, bySlot = {};
   if (!cache) loadGear(c);
   (g && g.items || []).forEach(function(it){ bySlot[it.slot] = it; });
+  gearItems = bySlot;
   var em = ART.cls[CLSKEY[c.cls] || String(c.cls || "").toLowerCase()];
   var when = ""; try { if (g && g.at) when = "Updated " + new Date(g.at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}); } catch (e) {}
   html += '<div class="sheet" id="sheet"><div class="sheet-h"><h2>Equipment</h2><span class="when">' + esc(when) + '</span></div>';
@@ -1142,10 +1145,17 @@ function renderGear(){
   el.innerHTML = html;
   if (c.img && g){ var por = el.querySelector(".gpor"), im = new Image(); im.className = "p"; im.alt = ""; im.onload = function(){ por.innerHTML = ""; por.appendChild(im); }; im.src = c.img; }
   if (gearOpen && bySlot[gearOpen]) openCard(bySlot[gearOpen]);
+  /* mouse: show the stat card while hovering; a click pins it. Touch keeps tap-to-open. */
+  Array.prototype.forEach.call(el.querySelectorAll(".gitem[data-gi]"), function(b){
+    b.addEventListener("pointerenter", function(ev){ if (ev.pointerType !== "mouse" || gearOpen) return; var it = gearItems[b.dataset.gi]; if (it) openCard(it, true); });
+    b.addEventListener("pointerleave", function(ev){ if (ev.pointerType !== "mouse" || gearOpen) return; closeHover(); });
+  });
 }
-function openCard(it){
+function closeHover(){ Array.prototype.forEach.call(document.querySelectorAll(".icard.hov"), function(x){ x.remove(); }); }
+function openCard(it, hover){
   var sheet = $("sheet"), btn = sheet && sheet.querySelector('[data-gi="' + it.slot + '"]'); if (!btn) return;
-  var card = document.createElement("div"); card.className = "icard"; card.style.setProperty("--g", gcol(it.grade)); card.innerHTML = itemCard(it); card.setAttribute("role", "dialog"); card.setAttribute("aria-label", it.name);
+  closeHover();
+  var card = document.createElement("div"); card.className = "icard" + (hover ? " hov" : ""); card.style.setProperty("--g", gcol(it.grade)); card.innerHTML = itemCard(it); card.setAttribute("role", "dialog"); card.setAttribute("aria-label", it.name);
   sheet.appendChild(card);
   var sr = sheet.getBoundingClientRect(), br = btn.getBoundingClientRect(), cw = card.offsetWidth, ch = card.offsetHeight, right = btn.closest(".gcol.r") && innerWidth > 760;
   var left = right ? br.left - sr.left - cw - 8 : br.right - sr.left + 8;
