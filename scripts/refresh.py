@@ -110,7 +110,12 @@ def read_gear(cid, prev_gear):
     items that changed since last time, or for everything once a day. Returns (doc, details fetched)."""
     from concurrent.futures import ThreadPoolExecutor
     base = {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER}
-    lst = get_json("https://aion2.plaync.com/api/character/equipment", base)["equipment"]["equipmentList"]
+    eqd = get_json("https://aion2.plaync.com/api/character/equipment", base)
+    lst = eqd["equipment"]["equipmentList"]
+    # skills: equipped actives and stigmas ("Dp" in the data), plus passives, as [name, icon, level, kind]
+    skills = [[k.get("name", ""), k.get("icon", ""), k.get("skillLevel", 0), {"Dp": "Stigma"}.get(k.get("category"), k.get("category", ""))]
+              for k in ((eqd.get("skill") or {}).get("skillList") or [])
+              if k.get("acquired") and (k.get("equip") or k.get("category") == "Passive")]
     worn = [it for it in lst if it.get("slotPosName") in WORN or str(it.get("slotPosName", "")).startswith("Arcana")]
     prev_items = {x["slot"]: x for x in (prev_gear or {}).get("items", [])}
     now = time.time()
@@ -137,7 +142,7 @@ def read_gear(cid, prev_gear):
              for it, (d, _) in zip(worn, got)]
     fetched = sum(1 for _, f in got if f)
     det_at = now if full else (prev_gear or {}).get("detAt") or now
-    return {"items": items, "detAt": det_at}, fetched
+    return {"items": items, "detAt": det_at, "skills": skills}, fetched
 
 
 def thin(series, now_min, keep_days=30):
@@ -157,7 +162,7 @@ def thin(series, now_min, keep_days=30):
 
 def gear_docs(rid, name, g, now):
     """Split one character's gear into small records: '<id>~_' lists the worn slots, '<id>~<slot>' holds one item."""
-    meta = {"name": name, "at": now, "detAt": g["detAt"], "slots": [it["slot"] for it in g["items"]]}
+    meta = {"name": name, "at": now, "detAt": g["detAt"], "slots": [it["slot"] for it in g["items"]], "skills": g.get("skills", [])}
     docs = {rid + "~_": meta}
     for it in g["items"]:
         docs[rid + "~" + it["slot"]] = dict(it, owner=name)

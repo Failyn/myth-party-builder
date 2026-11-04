@@ -253,7 +253,7 @@ button{cursor:pointer}
 .sheet-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
 .sheet-h h2{font-size:1.15rem}
 .sheet-h .when{margin-left:auto;font-family:var(--mono);font-size:.62rem;color:var(--muted)}
-.doll{display:grid;grid-template-columns:minmax(0,1fr) clamp(130px,16vw,190px) minmax(0,1fr);gap:14px;align-items:center}
+.doll{display:grid;grid-template-columns:minmax(0,1fr) clamp(150px,17vw,215px) minmax(0,1fr);gap:14px;align-items:center}
 .gpor{width:clamp(110px,13vw,150px)!important;height:clamp(110px,13vw,150px)!important}
 .gcol{display:flex;flex-direction:column;gap:6px;min-width:0}
 .gitem{--g:var(--muted);display:grid;grid-template-columns:44px minmax(0,1fr);gap:9px;align-items:center;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:3px 5px;color:var(--ink)}
@@ -280,17 +280,27 @@ button{cursor:pointer}
 .gcen .nums span{display:flex;flex-direction:column;align-items:center}
 .gcen .nums i{font-style:normal;font-size:.58rem;letter-spacing:.06em;color:var(--muted)}
 .gcen .nums .cpv{color:var(--accent-2)}
-.arc{width:100%;margin-top:6px}
 .arc-h{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.arcg{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-.arcg .acard{flex:0 0 calc((100% - 12px)/3)}
-.acard{--g:var(--muted);position:relative;aspect-ratio:3/4;border-radius:7px;overflow:hidden;padding:0;border:1px solid color-mix(in srgb,var(--g) 75%,transparent);background:var(--surface-2);
-  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.35)}
-.acard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.acard::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.85));pointer-events:none}
-.acard .aen{position:absolute;top:3px;right:3px;z-index:1;font-family:var(--mono);font-weight:700;font-size:.62rem;background:rgba(0,0,0,.7);color:#fff;border:1px solid color-mix(in srgb,var(--g) 60%,transparent);border-radius:4px;padding:0 4px}
-.acard .anm{position:absolute;left:0;right:0;bottom:3px;z-index:1;font-size:.6rem;font-weight:600;color:#fff;text-align:center;text-shadow:0 1px 2px #000}
-.acard:hover,.acard.on{border-color:var(--g);box-shadow:0 0 0 1px var(--g),0 0 14px color-mix(in srgb,var(--g) 45%,transparent)}
+.skb{width:100%;margin-top:8px}
+.skg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.sk{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+.sk img{width:100%;height:100%;display:block}
+.sk b{position:absolute;right:1px;bottom:0;font-family:var(--mono);font-size:.58rem;font-weight:700;color:#fff;background:rgba(0,0,0,.72);border-radius:3px;padding:0 2px;line-height:1.25}
+.arcs{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.arcs .arc-h{font-size:.64rem}
+.arow{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px}
+.acell{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.acell .aname{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.acard{--g:#8a7a55;position:relative;width:100%;aspect-ratio:5/7;border-radius:6px;overflow:hidden;padding:0;
+  border:2px solid color-mix(in srgb,var(--g) 80%,#000);background:#14171e;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.55),inset 0 0 0 3px color-mix(in srgb,var(--g) 35%,transparent),0 4px 12px rgba(0,0,0,.4)}
+.acard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.acard::before{content:"";position:absolute;inset:4px;border:1px solid color-mix(in srgb,var(--g) 55%,transparent);border-radius:3px;z-index:1;pointer-events:none}
+.acard .aen{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:2;min-width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--mono);font-weight:700;font-size:.66rem;color:#fff;background:rgba(10,12,16,.85);border:1px solid color-mix(in srgb,var(--g) 70%,transparent)}
+.acard.empty{--g:#4a4f5c;background:radial-gradient(circle at 50% 45%,#262b36,#12151b 70%);display:grid;place-items:center;color:#8d93a1}
+.acard.empty svg{width:42%;height:auto;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.75;position:relative;z-index:2}
+button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 2px rgba(0,0,0,.55),0 0 0 1px var(--g),0 0 16px color-mix(in srgb,var(--g) 50%,transparent)}
 .icard .setb{display:flex;gap:8px;color:var(--muted);font-size:.72rem;padding:1px 0}
 .icard .setb b{font-family:var(--mono);min-width:1.4ch}
 .icard .setb.on{color:var(--ink)}.icard .setb.on b{color:var(--accent-2)}
@@ -322,8 +332,8 @@ button{cursor:pointer}
 .icard .foot{color:var(--muted);font-size:.68rem;margin-top:8px}
 @media (max-width:1020px){ .gearv{grid-template-columns:minmax(0,1fr)} }
 @media (max-width:760px){
-  .doll{grid-template-columns:minmax(0,1fr)} .gcen{order:-1;flex-direction:row;flex-wrap:wrap;text-align:left;justify-content:flex-start;gap:12px} .arc{flex:1 0 100%}
-  .arcg .acard{flex:0 0 calc((100% - 24px)/5)}
+  .doll{grid-template-columns:minmax(0,1fr)} .gcen{order:-1;flex-direction:row;flex-wrap:wrap;text-align:left;justify-content:flex-start;gap:12px} .skb{flex:1 0 100%} .skg{grid-template-columns:repeat(auto-fill,minmax(36px,1fr))}
+  .arow{grid-template-columns:repeat(5,minmax(0,1fr))}
   .gpor{width:72px!important;height:72px!important} .gpor img.fb{width:46px;height:46px}
   .gcol.r .gitem{grid-template-columns:44px minmax(0,1fr);text-align:left} .gcol.r .gitem .gic{order:0} .gcol.r .gsub{justify-content:flex-start}
   .icard{left:10px!important;right:10px;width:auto}
@@ -1211,8 +1221,8 @@ function renderGear(){
   else {
     html += '<div class="doll"><div class="gcol l">' + GLEFT.map(function(s){ return gearItem(bySlot[s[0]], s[1], false); }).join("") + '</div>'
       + '<div class="gcen"><div class="gpor">' + (em ? '<img class="fb" alt="" src="' + em + '">' : '') + '</div><div><div class="nm">' + esc(c.name) + '</div><div class="cl">' + esc(c.cls) + ' · ' + esc(c.player) + '</div>'
-      + '<div class="nums" style="margin-top:6px"><span><i>IL</i>' + num(c.il) + '</span><span class="cpv"><i>CP</i>' + num(cpOf(c)) + '</span></div></div>' + arcanaBlock(g) + '</div>'
-      + '<div class="gcol r">' + GRIGHT.map(function(s){ return gearItem(bySlot[s[0]], s[1], true); }).join("") + '</div></div>';
+      + '<div class="nums" style="margin-top:6px"><span><i>IL</i>' + num(c.il) + '</span><span class="cpv"><i>CP</i>' + num(cpOf(c)) + '</span></div></div>' + skillsBlock(g) + '</div>'
+      + '<div class="gcol r">' + GRIGHT.map(function(s){ return gearItem(bySlot[s[0]], s[1], true); }).join("") + '</div></div>' + arcanaStrip(g);
   }
   html += '</div></div>';
   el.innerHTML = html;
@@ -1225,14 +1235,34 @@ function renderGear(){
   });
 }
 function closeHover(){ Array.prototype.forEach.call(document.querySelectorAll(".icard.hov"), function(x){ x.remove(); }); }
-function arcanaBlock(g){
-  var cards = (g.items || []).filter(function(it){ return /^Arcana/.test(it.slot); }).sort(function(a, b){ return a.slot < b.slot ? -1 : 1; });
-  if (!cards.length) return '';
-  return '<div class="arc"><div class="arc-h"><span>Arcana</span><span>' + cards.length + ' equipped</span></div><div class="arcg">'
-    + cards.map(function(it){ var cat = it.d && it.d.categoryName || it.name;
-        return '<button type="button" class="acard' + (gearOpen === it.slot ? " on" : "") + '" style="--g:' + gcol(it.grade) + '" data-gi="' + esc(it.slot) + '" title="' + esc(it.name) + '">'
-          + (it.icon ? '<img alt="" src="' + esc(it.icon) + '" loading="lazy">' : '') + (it.enchant ? '<span class="aen">+' + it.enchant + '</span>' : '') + '<span class="anm">' + esc(cat) + '</span></button>'; }).join("")
-    + '</div></div>';
+/* Arcana: the ten card types, game order first (Chalice..Mirror are in Global today), the rest shown as empty frames */
+var ARC_TYPES = [["Chalice", "Grail"], ["Parchment", "Parchment"], ["Compass", "Compass"], ["Bell", "Bell"], ["Mirror", "Mirror"],
+  ["Libra", "Libra"], ["Key", "Key"], ["Hourglass", "Hourglass"], ["Dice", "Dice"], ["Lantern", "Lantern"]];
+var ARC_SVG = {
+  Libra: '<path d="M12 4v15M7 19h10M5 7h14"/><path d="M5 7l-3 6h6zM19 7l-3 6h6z"/><circle cx="12" cy="4" r="1"/>',
+  Key: '<circle cx="8" cy="8" r="4"/><path d="M11 11l8 8M16 16l2-2M18 18l2-2"/>',
+  Hourglass: '<path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/>',
+  Dice: '<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="15" r="1.2"/><circle cx="15" cy="9" r="1.2"/><circle cx="9" cy="15" r="1.2"/>',
+  Lantern: '<path d="M9 4h6M12 2v2M8 7h8l-1 11H9zM7 18h10M10 21h4"/><path d="M12 10v5"/>',
+  _: '<rect x="6" y="4" width="12" height="16" rx="2"/>'
+};
+function arcanaStrip(g){
+  var have = {}; (g.items || []).forEach(function(it){ if (/^Arcana/.test(it.slot)) have[(it.d && it.d.categoryName) || it.name] = it; });
+  var n = Object.keys(have).length;
+  var tiles = ARC_TYPES.map(function(t){
+    var it = have[t[0]];
+    if (!it) return '<div class="acell"><div class="acard empty"><svg viewBox="0 0 24 24" aria-hidden="true">' + (ARC_SVG[t[0]] || ARC_SVG._) + '</svg></div><span class="aname">' + t[1] + '</span></div>';
+    return '<div class="acell"><button type="button" class="acard' + (gearOpen === it.slot ? " on" : "") + '" style="--g:' + gcol(it.grade) + '" data-gi="' + esc(it.slot) + '" aria-label="' + esc(it.name) + '">'
+      + (it.icon ? '<img alt="" src="' + esc(it.icon) + '" loading="lazy">' : '') + (it.enchant ? '<span class="aen">+' + it.enchant + '</span>' : '') + '</button><span class="aname">' + t[1] + '</span></div>';
+  }).join("");
+  return '<div class="arcs"><div class="arc-h"><span>Arcana</span><span>' + n + ' / ' + ARC_TYPES.length + '</span></div><div class="arow">' + tiles + '</div></div>';
+}
+function skillsBlock(g){
+  var sk = g.skills || [], act = sk.filter(function(k){ return k[3] === "Active"; }), stg = sk.filter(function(k){ return k[3] === "Stigma"; });
+  if (!act.length && !stg.length) return '';
+  var icons = function(list){ return '<div class="skg">' + list.map(function(k){ return '<span class="sk" title="' + esc(k[0]) + ' · Lv ' + esc(k[2]) + '">' + (k[1] ? '<img alt="' + esc(k[0]) + '" src="' + esc(k[1]) + '" loading="lazy">' : '') + '<b>' + esc(k[2]) + '</b></span>'; }).join("") + '</div>'; };
+  return '<div class="skb">' + (act.length ? '<div class="arc-h"><span>Skills</span><span>' + act.length + '</span></div>' + icons(act) : '')
+    + (stg.length ? '<div class="arc-h" style="margin-top:8px"><span>Stigma</span><span>' + stg.length + '</span></div>' + icons(stg) : '') + '</div>';
 }
 function openCard(it, hover){
   var sheet = $("sheet"), btn = sheet && sheet.querySelector('[data-gi="' + it.slot + '"]'); if (!btn) return;
@@ -1309,7 +1339,7 @@ fetchGear = function(id, ok, bad){  /* gear is stored as '<id>~_' (worn slots) p
     var meta = null, by = {};
     rows.forEach(function(x){ var slot = x.id.slice(id.length + 1); if (x.id.indexOf(id + "~") !== 0) return; if (slot === "_") meta = x.data; else by[slot] = x.data; });
     if (!meta) return ok([]);
-    ok([{data: {at: meta.at, items: (meta.slots || []).map(function(sl){ return by[sl]; }).filter(Boolean)}}]);
+    ok([{data: {at: meta.at, skills: meta.skills || [], items: (meta.slots || []).map(function(sl){ return by[sl]; }).filter(Boolean)}}]);
   }).then(null, bad);
 };
 fetchHist = function(ok, bad){
