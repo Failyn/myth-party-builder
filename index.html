@@ -1109,7 +1109,8 @@ function gearItem(it, label, right){
     + '<span class="gtx"><span class="gnm">' + esc(it.name) + '</span><span class="gsub">' + sub + '</span></span></button>';
 }
 /* Bonus-roll colours, from Aleks's Cleric priorities (2026-11-04); used for every class for now.
-   best = gold, ok = green, def = blue, bad = red; anything not listed stays neutral. */
+   best = gold (Combat Speed everywhere), ok = green, def = blue (only Constitution), bad = red (other defensive
+   rolls, MP, flight, move speed off boots). Items with fixed bonus stats (bracelets) are not coloured. */
 var ROLL_BEST = {
   MainHand: ["Combat Speed", "Weapon Damage Boost", "Damage Boost", "Might", "Precision"],
   SubHand: ["Combat Speed", "Weapon Damage Boost", "Damage Boost", "Might", "Precision"],
@@ -1124,11 +1125,13 @@ var ROLL_BEST = {
 };
 var ROLL_OK = ["Attack", "Critical Hit", "Accuracy", "Might", "Precision", "Combat Speed", "Attack increase", "Damage Boost", "Weapon Damage Boost", "Critical Damage Boost",
   "Multi-hit Chance", "Double Chance", "Perfect Chance", "Critical Attack", "Front Attack", "Back Attack", "Status Effect Chance"];
-var ROLL_DEF = ["Defense", "Defense increase", "Front Defense", "Back Defense", "HP", "Block", "Evasion", "Critical Hit Resist", "Critical Damage Defense", "Critical Damage Tolerance",
-  "Damage Tolerance", "Weapon Damage Tolerance", "Double Resist", "Perfect Resist", "Status Effect Resist", "Constitution", "Endurance", "Natural HP Regen", "Regeneration"];
-var ROLL_BAD = ["MP", "Natural MP Regen", "Flight Power", "Move Speed"];
+var ROLL_DEF = ["Constitution"];
+var ROLL_BAD = ["MP", "Natural MP Regen", "Flight Power", "Move Speed", "Defense", "Defense increase", "Front Defense", "Back Defense", "HP", "Block", "Evasion",
+  "Critical Hit Resist", "Critical Damage Defense", "Critical Damage Tolerance", "Damage Tolerance", "Weapon Damage Tolerance", "Double Resist", "Perfect Resist",
+  "Status Effect Resist", "Endurance", "Natural HP Regen", "Regeneration"];
 function rollRate(slot, name){
   var b = ROLL_BEST[slot] || [], low = String(name).toLowerCase();
+  if (name === "Combat Speed") return "best";
   if (b.some(function(x){ return x.charAt(0) === "~" ? low.indexOf(x.slice(1)) >= 0 : x === name; })) return "best";
   if (ROLL_OK.indexOf(name) >= 0) return "ok";
   if (ROLL_DEF.indexOf(name) >= 0) return "def";
@@ -1143,10 +1146,11 @@ function itemCard(it){
   if (d.mainStats && d.mainStats.length){ h += '<h4>Base stats</h4>'; d.mainStats.forEach(function(s){ var ex = s.extra && !/^0(\.0+)?%?$/.test(s.extra) ? s.extra : ""; h += kv(s.name, s.value, ex); }); }
   var subs = d.subStats || [], skills = d.subSkills || [];
   if (subs.length || skills.length){
-    h += '<h4>Bonus rolls ' + (subs.length + skills.length) + '</h4>';
-    subs.forEach(function(s){ var r = rollRate(it.slot, s.name); h += '<div class="kv roll' + (r ? " r-" + r : "") + '"><span>' + esc(s.name) + '</span><span>' + esc(s.value) + '</span></div>'; });
+    h += '<h4>' + (d.subStatCount === 0 ? 'Bonus stats (fixed)' : 'Bonus rolls ' + (subs.length + skills.length)) + '</h4>';
+    var fixed = d.subStatCount === 0;  /* fixed bonus stats, nothing was rolled */
+    subs.forEach(function(s){ var r = fixed ? "" : rollRate(it.slot, s.name); h += '<div class="kv roll' + (r ? " r-" + r : "") + '"><span>' + esc(s.name) + '</span><span>' + esc(s.value) + '</span></div>'; });
     skills.forEach(function(k){ h += '<div class="ms skill">' + (k.icon ? '<img alt="" src="' + esc(k.icon) + '">' : '') + '<span>' + esc(k.name) + '</span><span class="v">Lv ' + esc(k.level || 1) + '</span></div>'; });
-    if (subs.some(function(s){ return rollRate(it.slot, s.name); })) h += '<div class="rkey"><i class="r-best"></i>best <i class="r-ok"></i>good <i class="r-def"></i>defense <i class="r-bad"></i>low value</div>';
+    if (!fixed && subs.some(function(s){ return rollRate(it.slot, s.name); })) h += '<div class="rkey"><i class="r-best"></i>best <i class="r-ok"></i>good <i class="r-def"></i>Constitution <i class="r-bad"></i>low value</div>';
   }
   /* manastones and godstone are hidden for now (Aleks, 2026-11-04); the data is still saved */
   var foot = []; if (d.soulBindRate) foot.push("Soul bind " + d.soulBindRate + "%"); if (d.sources && d.sources.length) foot.push("From " + d.sources.join(", "));
