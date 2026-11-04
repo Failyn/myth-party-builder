@@ -282,10 +282,20 @@ button{cursor:pointer}
 .icard h4{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:9px 0 3px;border-top:1px solid var(--line);padding-top:7px}
 .icard .kv{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
 .icard .kv span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.icard .kv .ex{color:var(--good)}
+.icard .kv .ex{color:var(--muted)}
 .icard .ms{display:flex;align-items:center;gap:6px;padding:1px 0}
 .icard .ms img{width:16px;height:16px}
 .icard .ms .v{margin-left:auto;font-family:var(--mono)}
+.icard .roll{padding-left:7px;border-left:2px solid transparent;margin-left:-9px}
+.icard .r-best{color:var(--accent-2);border-left-color:var(--accent-2)}
+.icard .r-ok{color:var(--good);border-left-color:var(--good)}
+.icard .r-def{color:var(--extra);border-left-color:var(--extra)}
+.icard .r-bad{color:var(--bad);border-left-color:var(--bad)}
+.icard .skill{color:var(--ink)}
+.icard .skill img{width:18px;height:18px;border-radius:4px}
+.icard .rkey{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:8px;font-size:.64rem;color:var(--muted)}
+.icard .rkey i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:-6px}
+.icard .rkey i.r-best{background:var(--accent-2)}.icard .rkey i.r-ok{background:var(--good)}.icard .rkey i.r-def{background:var(--extra)}.icard .rkey i.r-bad{background:var(--bad)}
 .icard .gs{color:var(--muted);font-size:.72rem;white-space:pre-line;margin-top:2px}
 .icard .foot{color:var(--muted);font-size:.68rem;margin-top:8px}
 @media (max-width:1020px){ .gearv{grid-template-columns:minmax(0,1fr)} }
@@ -1098,16 +1108,47 @@ function gearItem(it, label, right){
     + '<span class="gic">' + (it.icon ? '<img alt="" src="' + esc(it.icon) + '" loading="lazy">' : '') + '</span>'
     + '<span class="gtx"><span class="gnm">' + esc(it.name) + '</span><span class="gsub">' + sub + '</span></span></button>';
 }
+/* Bonus-roll colours, from Aleks's Cleric priorities (2026-11-04); used for every class for now.
+   best = gold, ok = green, def = blue, bad = red; anything not listed stays neutral. */
+var ROLL_BEST = {
+  MainHand: ["Combat Speed", "Weapon Damage Boost", "Damage Boost", "Might", "Precision"],
+  SubHand: ["Combat Speed", "Weapon Damage Boost", "Damage Boost", "Might", "Precision"],
+  Helmet: ["~heal", "Double Chance", "Attack", "Critical Hit"],
+  Shoulder: ["Critical Damage Boost", "Double Chance", "Attack", "Critical Hit"],
+  Torso: ["Damage Boost", "Perfect Chance", "Attack", "Critical Hit"],
+  Pants: ["Damage Tolerance", "Perfect Chance", "Attack increase", "Attack", "Critical Hit"],
+  Gloves: ["Combat Speed", "Perfect Chance", "Attack", "Critical Hit"],
+  Cape: ["Double Chance", "Attack increase", "Attack", "Critical Hit"],
+  Boots: ["Move Speed", "Perfect Chance", "Attack", "Critical Hit"],
+  Ring1: ["Might"], Ring2: ["Might"]
+};
+var ROLL_OK = ["Attack", "Critical Hit", "Accuracy", "Might", "Precision", "Combat Speed", "Attack increase", "Damage Boost", "Weapon Damage Boost", "Critical Damage Boost",
+  "Multi-hit Chance", "Double Chance", "Perfect Chance", "Critical Attack", "Front Attack", "Back Attack", "Status Effect Chance"];
+var ROLL_DEF = ["Defense", "Defense increase", "Front Defense", "Back Defense", "HP", "Block", "Evasion", "Critical Hit Resist", "Critical Damage Defense", "Critical Damage Tolerance",
+  "Damage Tolerance", "Weapon Damage Tolerance", "Double Resist", "Perfect Resist", "Status Effect Resist", "Constitution", "Endurance", "Natural HP Regen", "Regeneration"];
+var ROLL_BAD = ["MP", "Natural MP Regen", "Flight Power", "Move Speed"];
+function rollRate(slot, name){
+  var b = ROLL_BEST[slot] || [], low = String(name).toLowerCase();
+  if (b.some(function(x){ return x.charAt(0) === "~" ? low.indexOf(x.slice(1)) >= 0 : x === name; })) return "best";
+  if (ROLL_OK.indexOf(name) >= 0) return "ok";
+  if (ROLL_DEF.indexOf(name) >= 0) return "def";
+  if (ROLL_BAD.indexOf(name) >= 0) return "bad";
+  return /heal/.test(low) ? "ok" : "";
+}
 function itemCard(it){
   var d = it.d || {}, h = '';
   var kv = function(n, v, ex){ return '<div class="kv"><span>' + esc(n) + '</span><span>' + esc(v) + (ex ? ' <span class="ex">(+' + esc(ex) + ')</span>' : '') + '</span></div>'; };
   h += '<div class="ih"><span class="gic">' + (it.icon ? '<img alt="" src="' + esc(it.icon) + '">' : '') + '</span><div><b>' + esc(it.name) + '</b><small>' + esc(it.grade) + (d.categoryName ? ' · ' + esc(d.categoryName) : '') + (d.level ? ' · Lv ' + d.level : '') + '</small></div><button type="button" class="x" data-gclose="1" aria-label="Close">×</button></div>';
   h += '<div class="kv"><span>Enchant</span><span>+' + (it.enchant || 0) + (d.maxEnchantLevel ? ' / ' + d.maxEnchantLevel : '') + (d.maxExceedEnchantLevel ? ' · exceed +' + (it.exceed || 0) + ' / ' + d.maxExceedEnchantLevel : '') + '</span></div>';
   if (d.mainStats && d.mainStats.length){ h += '<h4>Base stats</h4>'; d.mainStats.forEach(function(s){ var ex = s.extra && !/^0(\.0+)?%?$/.test(s.extra) ? s.extra : ""; h += kv(s.name, s.value, ex); }); }
-  if (d.subStats && d.subStats.length){ h += '<h4>Bonus stats</h4>'; d.subStats.forEach(function(s){ h += kv(s.name, s.value); }); }
-  if (d.magicStoneStat && d.magicStoneStat.length){ h += '<h4>Manastones ' + d.magicStoneStat.length + (d.magicStoneSlotCount ? ' / ' + d.magicStoneSlotCount : '') + '</h4>';
-    d.magicStoneStat.forEach(function(m){ h += '<div class="ms" style="color:' + gcol(m.grade) + '">' + (m.icon ? '<img alt="" src="' + esc(m.icon) + '">' : '') + '<span>' + esc(m.name) + '</span><span class="v">' + esc(m.value) + '</span></div>'; }); }
-  if (d.godStoneStat && d.godStoneStat.length){ h += '<h4>Godstone</h4>'; d.godStoneStat.forEach(function(g){ h += '<div class="ms" style="color:' + gcol(g.grade) + '">' + (g.icon ? '<img alt="" src="' + esc(g.icon) + '">' : '') + '<span>' + esc(g.name) + '</span></div><div class="gs">' + esc(g.desc || "") + '</div>'; }); }
+  var subs = d.subStats || [], skills = d.subSkills || [];
+  if (subs.length || skills.length){
+    h += '<h4>Bonus rolls ' + (subs.length + skills.length) + '</h4>';
+    subs.forEach(function(s){ var r = rollRate(it.slot, s.name); h += '<div class="kv roll' + (r ? " r-" + r : "") + '"><span>' + esc(s.name) + '</span><span>' + esc(s.value) + '</span></div>'; });
+    skills.forEach(function(k){ h += '<div class="ms skill">' + (k.icon ? '<img alt="" src="' + esc(k.icon) + '">' : '') + '<span>' + esc(k.name) + '</span><span class="v">Lv ' + esc(k.level || 1) + '</span></div>'; });
+    if (subs.some(function(s){ return rollRate(it.slot, s.name); })) h += '<div class="rkey"><i class="r-best"></i>best <i class="r-ok"></i>good <i class="r-def"></i>defense <i class="r-bad"></i>low value</div>';
+  }
+  /* manastones and godstone are hidden for now (Aleks, 2026-11-04); the data is still saved */
   var foot = []; if (d.soulBindRate) foot.push("Soul bind " + d.soulBindRate + "%"); if (d.sources && d.sources.length) foot.push("From " + d.sources.join(", "));
   if (foot.length) h += '<div class="foot">' + esc(foot.join(" · ")) + '</div>';
   if (!it.d) h += '<div class="foot">Stats not loaded yet; they arrive with the next hourly update.</div>';

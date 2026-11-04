@@ -95,7 +95,9 @@ def track_high(doc, prev, series, now_min, field):
 WORN = {"MainHand", "SubHand", "Helmet", "Shoulder", "Torso", "Pants", "Gloves", "Boots", "Cape", "Belt",
         "Necklace", "Amulet", "Earring1", "Earring2", "Ring1", "Ring2", "Bracelet1", "Bracelet2", "Rune1", "Rune2"}
 DETAIL_KEEP = ("level", "categoryName", "equipLevel", "maxEnchantLevel", "maxExceedEnchantLevel", "magicStoneSlotCount",
-               "godStoneSlotCount", "mainStats", "subStats", "magicStoneStat", "godStoneStat", "soulBindRate", "sources")
+               "godStoneSlotCount", "mainStats", "subStats", "subSkills", "subSkillCountMax", "subStatCount",
+               "magicStoneStat", "godStoneStat", "soulBindRate", "sources")
+DETAIL_SINCE = 1793809523   # details saved before this (unix time) lack fields above, so they are fetched again once
 FULL_REFRESH_H = 20   # re-read every item about once a day (manastones and rerolled stats don't change the item id)
 
 
@@ -112,7 +114,8 @@ def read_gear(cid, prev_gear):
     worn = [it for it in lst if it.get("slotPosName") in WORN]
     prev_items = {x["slot"]: x for x in (prev_gear or {}).get("items", [])}
     now = time.time()
-    full = now - float((prev_gear or {}).get("detAt") or 0) > FULL_REFRESH_H * 3600
+    last = float((prev_gear or {}).get("detAt") or 0)
+    full = now - last > FULL_REFRESH_H * 3600 or last < DETAIL_SINCE
     def detail(it):
         old = prev_items.get(it["slotPosName"])
         if not full and old and old.get("key") == item_key(it) and old.get("d"):
