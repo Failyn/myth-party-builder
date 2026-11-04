@@ -1212,8 +1212,13 @@ db = {
               function(){ inflight--; lastWrite = Date.now(); throw {code: "unavailable"}; });
     }}; }
 };
-fetchGear = function(id, ok, bad){
-  fetch(SB.url + "/rest/v1/docs?select=data&coll=eq.gear&id=eq." + encodeURIComponent(id), {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok, bad);
+fetchGear = function(id, ok, bad){  /* gear is stored as '<id>~_' (worn slots) plus one '<id>~<slot>' record per item */
+  fetch(SB.url + "/rest/v1/docs?select=id,data&coll=eq.gear&id=like." + encodeURIComponent(id + "~*"), {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(rows){
+    var meta = null, by = {};
+    rows.forEach(function(x){ var slot = x.id.slice(id.length + 1); if (x.id.indexOf(id + "~") !== 0) return; if (slot === "_") meta = x.data; else by[slot] = x.data; });
+    if (!meta) return ok([]);
+    ok([{data: {at: meta.at, items: (meta.slots || []).map(function(sl){ return by[sl]; }).filter(Boolean)}}]);
+  }).then(null, bad);
 };
 fetchHist = function(ok, bad){
   fetch(SB.url + "/rest/v1/docs?select=id,data&coll=eq.cphist", {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok, bad);

@@ -134,6 +134,46 @@ def read_gear(cid, prev_gear):
     return {"items": items, "detAt": det_at}, fetched
 
 
+def thin(series, now_min, keep_days=30):
+    """Every stored record must stay under 20 KB, so points older than keep_days keep only the last one per day."""
+    cut, out, seen = now_min - keep_days * 1440, [], {}
+    for t, v in series:
+        if t >= cut:
+            out.append([t, v])
+        else:
+            day = t // 1440
+            if day in seen:
+                out[seen[day]] = [t, v]
+            else:
+                seen[day] = len(out); out.append([t, v])
+    return out
+
+
+def gear_docs(rid, name, g, now):
+    """Split one character's gear into small records: '<id>~_' lists the worn slots, '<id>~<slot>' holds one item."""
+    meta = {"name": name, "at": now, "detAt": g["detAt"], "slots": [it["slot"] for it in g["items"]]}
+    docs = {rid + "~_": meta}
+    for it in g["items"]:
+        docs[rid + "~" + it["slot"]] = dict(it, name=name)
+    return docs
+
+
+def post_rows(url, head, rows, label):
+    """Write rows in chunks; a failure is reported but never stops the other writes."""
+    ok = 0
+    for i in range(0, len(rows), 100):
+        chunk = rows[i:i + 100]
+        try:
+            req = urllib.request.Request(url + "/rest/v1/docs", data=json.dumps(chunk).encode("utf-8"), method="POST",
+                                         headers=dict(head, Prefer="resolution=merge-duplicates,return=minimal"))
+            urllib.request.urlopen(req, timeout=60).read(); ok += len(chunk)
+        except urllib.error.HTTPError as ex:
+            print("WRITE FAILED for %s: %s %s" % (label, ex.code, ex.read()[:300]))
+        except Exception as ex:
+            print("WRITE FAILED for %s: %s" % (label, ex))
+    return ok
+
+
 def read_previous(url, key, coll="chars"):
     req = urllib.request.Request(url + "/rest/v1/docs?coll=eq.%s&select=id,data" % coll,
                                  headers={"apikey": key, "Authorization": "Bearer " + key})
@@ -168,7 +208,13 @@ def main():
             old = previous.setdefault(cid_, {})
             if value > int(old.get("il") or 0):
                 old["il"], old["ilHeld"] = value, 0
-    stored_gear = read_previous(url, key, "gear") if url and key else {}
+    gear_raw = read_previous(url, key, "gear") if url and key else {}
+    stored_gear = {}
+    for gid, gd in gear_raw.items():
+        rid, _, slot = gid.partition("~")
+        sg = stored_gear.setdefault(rid, {"items": [], "detAt": 0})
+        if slot == "_": sg["detAt"] = gd.get("detAt") or 0
+        else: sg["items"].append(gd)
     rows, failed, gear_rows = [], [], []
     for e in roster:
         try:
@@ -180,9 +226,11 @@ def main():
             rows.append({"coll": "chars", "id": e["id"], "data": doc, "updated_at": now})
             try:
                 g, nd = read_gear(doc["cid"], stored_gear.get(e["id"]))
-                g.update(name=doc["name"], at=now)
-                if json.dumps(g.get("items"), sort_keys=True) != json.dumps((stored_gear.get(e["id"]) or {}).get("items"), sort_keys=True) or g["detAt"] != (stored_gear.get(e["id"]) or {}).get("detAt"):
-                    gear_rows.append({"coll": "gear", "id": e["id"], "data": g, "updated_at": now})
+                for gid, gd in gear_docs(e["id"], doc["name"], g, now).items():
+                    old = gear_raw.get(gid)
+                    same = old is not None and json.dumps({k: v for k, v in old.items() if k != "at"}, sort_keys=True) == json.dumps({k: v for k, v in gd.items() if k != "at"}, sort_keys=True)
+                    if not same:
+                        gear_rows.append({"coll": "gear", "id": gid, "data": gd, "updated_at": now})
                 gnote = " gear %d items, %d details" % (len(g["items"]), nd)
             except Exception as gex:  # gear never blocks the stats
                 gnote = " gear FAILED (%s)" % gex
@@ -201,18 +249,19 @@ def main():
     names.update({r["id"]: r["data"]["name"] for r in rows})
     rows += [{"coll": "cphist", "id": k, "data": {"name": names.get(k) or k, "pts": history[k]["pts"], "il": history[k]["il"]}, "updated_at": now}
              for k in sorted(grown) if k in history]
-    n_gear = len(gear_rows)
-    rows += gear_rows
-    if rows:
-        req = urllib.request.Request(url + "/rest/v1/docs", data=json.dumps(rows).encode("utf-8"), method="POST",
-                                     headers=dict(head, Prefer="resolution=merge-duplicates,return=minimal"))
-        urllib.request.urlopen(req, timeout=30).read()
+    hist_rows = [r for r in rows if r["coll"] == "cphist"]
+    for r in hist_rows:
+        r["data"]["pts"], r["data"]["il"] = thin(r["data"]["pts"], now_min), thin(r["data"]["il"], now_min)
+    char_rows = [r for r in rows if r["coll"] != "cphist"]
+    n_chars = post_rows(url, head, char_rows, "characters")   # the stats first, on their own
+    n_hist = post_rows(url, head, hist_rows, "CP history")
+    n_gear = post_rows(url, head, gear_rows, "gear")
     # remove characters that are no longer in roster.json
     keep = ",".join('"%s"' % e["id"] for e in roster)
     req = urllib.request.Request(url + "/rest/v1/docs?coll=eq.chars&id=not.in.(%s)" % urllib.parse.quote(keep), method="DELETE", headers=head)
     urllib.request.urlopen(req, timeout=30).read()
-    print("wrote %d characters, %d CP histories and %d gear sets, %d failed" % (len(rows) - len(grown) - n_gear, len(grown), n_gear, len(failed)))
-    return 0 if rows else 1
+    print("wrote %d characters, %d CP histories and %d gear records, %d failed" % (n_chars, n_hist, n_gear, len(failed)))
+    return 0 if n_chars else 1
 
 
 if __name__ == "__main__":
