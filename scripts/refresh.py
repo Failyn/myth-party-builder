@@ -92,6 +92,48 @@ def track_high(doc, prev, series, now_min, field):
     return False
 
 
+WORN = {"MainHand", "SubHand", "Helmet", "Shoulder", "Torso", "Pants", "Gloves", "Boots", "Cape", "Belt",
+        "Necklace", "Amulet", "Earring1", "Earring2", "Ring1", "Ring2", "Bracelet1", "Bracelet2", "Rune1", "Rune2"}
+DETAIL_KEEP = ("level", "categoryName", "equipLevel", "maxEnchantLevel", "maxExceedEnchantLevel", "magicStoneSlotCount",
+               "godStoneSlotCount", "mainStats", "subStats", "magicStoneStat", "godStoneStat", "soulBindRate", "sources")
+FULL_REFRESH_H = 20   # re-read every item about once a day (manastones and rerolled stats don't change the item id)
+
+
+def item_key(it):
+    return "%s:%s:%s" % (it.get("id"), it.get("enchantLevel"), it.get("exceedLevel"))
+
+
+def read_gear(cid, prev_gear):
+    """Worn equipment for one character. Item details (stats, manastones, godstone) are fetched only for
+    items that changed since last time, or for everything once a day. Returns (doc, details fetched)."""
+    from concurrent.futures import ThreadPoolExecutor
+    base = {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER}
+    lst = get_json("https://aion2.plaync.com/api/character/equipment", base)["equipment"]["equipmentList"]
+    worn = [it for it in lst if it.get("slotPosName") in WORN]
+    prev_items = {x["slot"]: x for x in (prev_gear or {}).get("items", [])}
+    now = time.time()
+    full = now - float((prev_gear or {}).get("detAt") or 0) > FULL_REFRESH_H * 3600
+    def detail(it):
+        old = prev_items.get(it["slotPosName"])
+        if not full and old and old.get("key") == item_key(it) and old.get("d"):
+            return old["d"], False
+        try:
+            d = get_json("https://aion2.plaync.com/api/character/equipment/item",
+                         {"id": it["id"], "enchantLevel": it.get("enchantLevel", 0), "characterId": cid, "serverId": SERVER,
+                          "slotPos": it["slotPos"], "lang": "en-US", "region": REGION})
+            return {k: d[k] for k in DETAIL_KEEP if k in d}, True
+        except Exception:
+            return (old or {}).get("d"), False
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        got = list(pool.map(detail, worn))
+    items = [{"slot": it["slotPosName"], "id": it["id"], "name": it["name"], "grade": it.get("grade", ""), "icon": it.get("icon", ""),
+              "enchant": it.get("enchantLevel", 0), "exceed": it.get("exceedLevel", 0), "key": item_key(it), "d": d}
+             for it, (d, _) in zip(worn, got)]
+    fetched = sum(1 for _, f in got if f)
+    det_at = now if full else (prev_gear or {}).get("detAt") or now
+    return {"items": items, "detAt": det_at}, fetched
+
+
 def read_previous(url, key, coll="chars"):
     req = urllib.request.Request(url + "/rest/v1/docs?coll=eq.%s&select=id,data" % coll,
                                  headers={"apikey": key, "Authorization": "Bearer " + key})
@@ -126,7 +168,8 @@ def main():
             old = previous.setdefault(cid_, {})
             if value > int(old.get("il") or 0):
                 old["il"], old["ilHeld"] = value, 0
-    rows, failed = [], []
+    stored_gear = read_previous(url, key, "gear") if url and key else {}
+    rows, failed, gear_rows = [], [], []
     for e in roster:
         try:
             doc, samples = fetch(e, previous.get(e["id"]))
@@ -135,13 +178,22 @@ def main():
             if track_high(doc, previous.get(e["id"]), h["pts"], now_min, "cp") | track_high(doc, previous.get(e["id"]), h["il"], now_min, "il"):
                 grown.add(e["id"])
             rows.append({"coll": "chars", "id": e["id"], "data": doc, "updated_at": now})
+            try:
+                g, nd = read_gear(doc["cid"], stored_gear.get(e["id"]))
+                g.update(name=doc["name"], at=now)
+                if json.dumps(g.get("items"), sort_keys=True) != json.dumps((stored_gear.get(e["id"]) or {}).get("items"), sort_keys=True) or g["detAt"] != (stored_gear.get(e["id"]) or {}).get("detAt"):
+                    gear_rows.append({"coll": "gear", "id": e["id"], "data": g, "updated_at": now})
+                gnote = " gear %d items, %d details" % (len(g["items"]), nd)
+            except Exception as gex:  # gear never blocks the stats
+                gnote = " gear FAILED (%s)" % gex
             note = (" (held; site said %s, run %s of %s)" % (doc["ilSeen"], doc["ilHeld"], ACCEPT_AFTER)) if doc.get("ilHeld") else ""
-            print("ok   %-10s Lv%-2s %-12s IL %-5s CP %-7s max %-7s IL max %-5s asked %sx%s" % (e["id"], doc["level"], doc["cls"], doc["il"], doc["cp"], doc["cpMax"], doc["ilMax"], samples, note))
+            print("ok   %-10s Lv%-2s %-12s IL %-5s CP %-7s max %-7s IL max %-5s asked %sx%s%s" % (e["id"], doc["level"], doc["cls"], doc["il"], doc["cp"], doc["cpMax"], doc["ilMax"], samples, note, gnote))
         except Exception as ex:  # keep the previous numbers for this character
             failed.append(e["id"])
             print("FAIL %-10s %s" % (e["id"], ex))
         time.sleep(0.2)
     if dry:
+        if gear_rows: json.dump(gear_rows, open(os.environ.get("GEAR_OUT", "/dev/null"), "w"))
         print("dry run: %d fetched, %d failed, nothing written" % (len(rows), len(failed)))
         return 0 if rows else 1
     head = {"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"}
@@ -149,6 +201,8 @@ def main():
     names.update({r["id"]: r["data"]["name"] for r in rows})
     rows += [{"coll": "cphist", "id": k, "data": {"name": names.get(k) or k, "pts": history[k]["pts"], "il": history[k]["il"]}, "updated_at": now}
              for k in sorted(grown) if k in history]
+    n_gear = len(gear_rows)
+    rows += gear_rows
     if rows:
         req = urllib.request.Request(url + "/rest/v1/docs", data=json.dumps(rows).encode("utf-8"), method="POST",
                                      headers=dict(head, Prefer="resolution=merge-duplicates,return=minimal"))
@@ -157,7 +211,7 @@ def main():
     keep = ",".join('"%s"' % e["id"] for e in roster)
     req = urllib.request.Request(url + "/rest/v1/docs?coll=eq.chars&id=not.in.(%s)" % urllib.parse.quote(keep), method="DELETE", headers=head)
     urllib.request.urlopen(req, timeout=30).read()
-    print("wrote %d characters and %d CP histories, %d failed" % (len(rows) - len(grown), len(grown), len(failed)))
+    print("wrote %d characters, %d CP histories and %d gear sets, %d failed" % (len(rows) - len(grown) - n_gear, len(grown), n_gear, len(failed)))
     return 0 if rows else 1
 
 

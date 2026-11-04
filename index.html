@@ -232,6 +232,67 @@ button{cursor:pointer}
 .ptl.over{color:var(--bad)}
 .pstep{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .pin.prun{width:64px;text-align:center}
+/* equipment */
+.gearv{display:grid;grid-template-columns:230px minmax(0,1fr);gap:16px;align-items:start}
+.grow{display:grid;grid-template-columns:18px minmax(0,1fr) 6ch;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--line);padding:4px 9px;font-size:.76rem;color:var(--ink)}
+.pname + .grow{border-top:none}
+.grow:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.grow.sel{background:color-mix(in srgb,var(--accent-2) 14%,transparent);box-shadow:inset 3px 0 0 var(--accent-2)}
+.grow .glyph{width:18px;height:18px}.grow .glyph img{width:14px;height:14px}
+.grow .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.grow .gi{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.sheet{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.sheet-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.sheet-h h2{font-size:1.15rem}
+.sheet-h .when{margin-left:auto;font-family:var(--mono);font-size:.62rem;color:var(--muted)}
+.doll{display:grid;grid-template-columns:minmax(0,1fr) clamp(130px,16vw,190px) minmax(0,1fr);gap:14px;align-items:center}
+.gpor{width:clamp(110px,13vw,150px)!important;height:clamp(110px,13vw,150px)!important}
+.gcol{display:flex;flex-direction:column;gap:6px;min-width:0}
+.gitem{--g:var(--muted);display:grid;grid-template-columns:44px minmax(0,1fr);gap:9px;align-items:center;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:3px 5px;color:var(--ink)}
+.gcol.r .gitem{grid-template-columns:minmax(0,1fr) 44px;text-align:right}
+.gcol.r .gitem .gic{order:2}
+.gitem:hover,.gitem.on{background:color-mix(in srgb,var(--g) 9%,transparent);border-color:color-mix(in srgb,var(--g) 35%,transparent)}
+.gic{position:relative;width:44px;height:44px;border-radius:7px;border:1px solid color-mix(in srgb,var(--g) 70%,transparent);
+  background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--g) 40%,#0000),transparent 75%),linear-gradient(160deg,color-mix(in srgb,var(--g) 30%,var(--surface-2)),var(--surface-2));display:grid;place-items:center;overflow:hidden}
+.gic img{width:40px;height:40px;display:block}
+.gtx{min-width:0;line-height:1.25}
+.gnm{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;font-weight:600;font-size:.84rem;line-height:1.2;color:var(--g);overflow:hidden;overflow-wrap:anywhere}
+.gsub{display:flex;gap:6px;align-items:center;font-size:.7rem;color:var(--muted)}
+.gcol.r .gsub{justify-content:flex-end}
+.gench{font-family:var(--mono);font-weight:700;color:var(--ink);font-size:.7rem}
+.gench .x{color:var(--extra)}
+.gempty{opacity:.45}
+.gcen{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.gpor{width:150px;height:150px;border-radius:50%;overflow:hidden;border:2px solid color-mix(in srgb,var(--accent-2) 55%,var(--line));background:var(--surface-2);display:grid;place-items:center;box-shadow:0 0 30px color-mix(in srgb,var(--accent-2) 18%,transparent)}
+.gpor img.p{width:100%;height:100%;object-fit:cover;object-position:center 18%}
+.gpor img.fb{width:90px;height:90px;opacity:.35}
+.gcen .nm{font-family:var(--display);font-weight:600;font-size:1.05rem}
+.gcen .cl{font-size:.74rem;color:var(--muted)}
+.gcen .nums{display:flex;gap:14px;font-family:var(--mono);font-size:.8rem}
+.gcen .nums span{display:flex;flex-direction:column;align-items:center}
+.gcen .nums i{font-style:normal;font-size:.58rem;letter-spacing:.06em;color:var(--muted)}
+.gcen .nums .cpv{color:var(--accent-2)}
+.icard{position:absolute;z-index:5;width:320px;max-width:calc(100% - 20px);background:var(--surface-2);border:1px solid color-mix(in srgb,var(--g) 45%,var(--line));border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);padding:12px 14px;font-size:.78rem}
+.icard .ih{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;margin-bottom:8px}
+.icard .ih b{display:block;color:var(--g);font-size:.92rem;line-height:1.2}
+.icard .ih small{color:var(--muted);font-size:.7rem}
+.icard .x{background:none;border:none;color:var(--muted);font-size:1.1rem;padding:0 2px;align-self:start}
+.icard h4{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:9px 0 3px;border-top:1px solid var(--line);padding-top:7px}
+.icard .kv{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
+.icard .kv span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.icard .kv .ex{color:var(--good)}
+.icard .ms{display:flex;align-items:center;gap:6px;padding:1px 0}
+.icard .ms img{width:16px;height:16px}
+.icard .ms .v{margin-left:auto;font-family:var(--mono)}
+.icard .gs{color:var(--muted);font-size:.72rem;white-space:pre-line;margin-top:2px}
+.icard .foot{color:var(--muted);font-size:.68rem;margin-top:8px}
+@media (max-width:1020px){ .gearv{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:760px){
+  .doll{grid-template-columns:minmax(0,1fr)} .gcen{order:-1;flex-direction:row;text-align:left;justify-content:flex-start;gap:12px}
+  .gpor{width:72px!important;height:72px!important} .gpor img.fb{width:46px;height:46px}
+  .gcol.r .gitem{grid-template-columns:44px minmax(0,1fr);text-align:left} .gcol.r .gitem .gic{order:0} .gcol.r .gsub{justify-content:flex-start}
+  .icard{left:10px!important;right:10px;width:auto}
+}
 /* progress */
 .prog{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start}
 .prow,.phead{display:grid;grid-template-columns:18px minmax(0,1fr) 9ch 8.5ch 84px;gap:8px;align-items:center}
@@ -331,6 +392,7 @@ button{cursor:pointer}
     <button class="tabbtn" type="button" data-tab="energy">Energy</button>
     <button class="tabbtn" type="button" data-tab="planner" hidden>Planner</button><!-- hidden for now (Aleks, 2026-11-01); remove "hidden" and allow "planner" in the tab restore below to bring it back -->
     <button class="tabbtn" type="button" data-tab="progress">Progress</button>
+    <button class="tabbtn" type="button" data-tab="gear">Equipment</button>
   </div>
   <div class="lock"><button type="button" class="chipbtn" id="lockbtn">Unlock editing</button><span id="lockform" hidden><input class="pin wide" id="passin" type="password" autocomplete="off" placeholder="Passcode" aria-label="Group passcode"><button type="button" class="chipbtn" id="passgo">OK</button></span></div>
   <div class="stamp" id="stamp"></div>
@@ -352,6 +414,8 @@ button{cursor:pointer}
       </div>
     </div>
   </div>
+
+  <div id="panel-gear" hidden><div id="gear"><div class="empty-state">Loading the roster…</div></div></div>
 
   <div id="panel-progress" hidden><div id="progress"><div class="empty-state">Loading combat power history…</div></div></div>
 
@@ -662,12 +726,16 @@ function saveEnergy(name, value, cap){
 document.addEventListener("click", function(ev){
   if (ev.target.closest("input, select, label")) return;
 
+  if (gearOpen && !ev.target.closest(".icard, [data-gi]")){ gearOpen = null; renderGear(); }
   var t = ev.target.closest("button, [data-sel]"); if (!t) return;
   var d = t.dataset;
   if (d.tab){ setTab(d.tab); return; }
   if (t.id === "lockbtn"){ if (unlocked){ notice("Editing is unlocked on this device."); } else askPass(); return; }
   if (t.id === "passgo"){ var pv = $("passin").value.trim(); if (pv) checkPass(pv); return; }
   if (!unlocked && (d.d || t.id === "addparty" || d.run != null || d.clear != null || d.del != null || d.mv || d.rm || d.c || d.set || d.spend)){ askPass(); return; }
+  if (d.gc){ gearSel = d.gc; gearOpen = null; renderGear(); var sh = $("sheet"); if (sh && sh.getBoundingClientRect().top > innerHeight) sh.scrollIntoView({behavior: "smooth", block: "start"}); return; }
+  if (d.gi){ gearClick(d.gi); return; }
+  if (d.gclose){ gearOpen = null; renderGear(); return; }
   if (d.pc){ progSel = d.pc; renderProgress(); var pc = document.querySelector(".pchart"); if (pc && pc.getBoundingClientRect().top > innerHeight) pc.scrollIntoView({behavior: "smooth", block: "start"}); return; }
   if (d.pm){ progM = d.pm; try { localStorage.setItem("myth-builder:metric", progM); } catch (e) {} renderProgress(); return; }
   if (d.prange != null){ progRange = +d.prange; renderProgress(); return; }
@@ -712,6 +780,7 @@ document.addEventListener("click", function(ev){
   if (d.spend){ spend(d.spend, +d.cost || RUN, Date.now()); renderEnergy(); renderParties(); return; }
 });
 document.addEventListener("keydown", function(ev){
+  if (ev.key === "Escape" && gearOpen){ gearOpen = null; renderGear(); return; }
   if (ev.key === "Enter" && ev.target.id === "passin"){ $("passgo").click(); return; }
   if (ev.key === "Enter" && ev.target.classList && (ev.target.classList.contains("pin") || ev.target.classList.contains("xinput"))){ ev.target.blur(); return; }
   if (ev.key === "Enter" && ev.target.classList && ev.target.classList.contains("einput")){ var b = ev.target.parentNode.querySelector("[data-set]"); if (b) b.click(); }
@@ -1006,13 +1075,97 @@ function renderProgress(){
   var hit = $("chit"); if (hit){ hit.addEventListener("pointermove", lineHover); hit.addEventListener("pointerdown", lineHover); hit.addEventListener("pointerleave", lineLeave); }
   Array.prototype.forEach.call(el.querySelectorAll(".bhit"), function(b){ b.addEventListener("pointerenter", barHover); b.addEventListener("pointerdown", barHover); b.addEventListener("pointerleave", function(){ $("wtip").hidden = true; }); });
 }
+/* ---- equipment tab: worn gear per character, item stats on click ---- */
+var gearSel = null, gearCache = {}, gearBusy = {}, gearOpen = null, fetchGear = null;
+var GRADE = {Common: "#c3c8d0", Rare: "#5fcf86", Legend: "#4fa3ff", Unique: "#e6b04a", Epic: "#ff8c42", Special: "#3fd3c6"};
+var GLEFT = [["MainHand", "Weapon"], ["SubHand", "Off-hand"], ["Helmet", "Helm"], ["Shoulder", "Pauldrons"], ["Torso", "Top"], ["Pants", "Legs"], ["Gloves", "Gloves"], ["Boots", "Shoes"], ["Cape", "Cloak"], ["Belt", "Belt"]];
+var GRIGHT = [["Necklace", "Necklace"], ["Amulet", "Amulet"], ["Earring1", "Left earring"], ["Earring2", "Right earring"], ["Ring1", "Left ring"], ["Ring2", "Right ring"], ["Bracelet1", "Left bracelet"], ["Bracelet2", "Right bracelet"], ["Rune1", "Left rune"], ["Rune2", "Right rune"]];
+function gcol(g){ return GRADE[g] || "var(--muted)"; }
+function loadGear(c){
+  var k = c._id || c.name; if (!fetchGear || gearBusy[k] || (gearCache[k] && Date.now() - gearCache[k].t < 10*60000)) return;
+  gearBusy[k] = true;
+  fetchGear(k, function(rows){ gearBusy[k] = false; gearCache[k] = {t: Date.now(), g: rows && rows[0] ? rows[0].data : null}; if (gearSel === c.name) renderGear(); },
+    function(){ gearBusy[k] = false; notice("Could not load the equipment. Try again in a moment.", true); });
+}
+function ench(it){ return '<span class="gench">+' + (it.enchant || 0) + (it.exceed ? '<span class="x">+' + it.exceed + '</span>' : '') + '</span>'; }
+function gearItem(it, label, right){
+  if (!it) return '<div class="gitem gempty"><span class="gic"></span><span class="gtx"><span class="gnm" style="color:var(--muted)">Empty</span><span class="gsub">' + label + '</span></span></div>';
+  var lab = it.slot === "MainHand" && it.d && it.d.categoryName ? it.d.categoryName : it.slot === "SubHand" && it.d && it.d.categoryName ? it.d.categoryName : label;
+  var sub = right ? ench(it) + '<span>' + esc(lab) + '</span>' : '<span>' + esc(lab) + '</span>' + ench(it);
+  return '<button type="button" class="gitem' + (gearOpen === it.slot ? " on" : "") + '" style="--g:' + gcol(it.grade) + '" data-gi="' + esc(it.slot) + '" title="' + esc(it.name) + '">'
+    + '<span class="gic">' + (it.icon ? '<img alt="" src="' + esc(it.icon) + '" loading="lazy">' : '') + '</span>'
+    + '<span class="gtx"><span class="gnm">' + esc(it.name) + '</span><span class="gsub">' + sub + '</span></span></button>';
+}
+function itemCard(it){
+  var d = it.d || {}, h = '';
+  var kv = function(n, v, ex){ return '<div class="kv"><span>' + esc(n) + '</span><span>' + esc(v) + (ex ? ' <span class="ex">(+' + esc(ex) + ')</span>' : '') + '</span></div>'; };
+  h += '<div class="ih"><span class="gic">' + (it.icon ? '<img alt="" src="' + esc(it.icon) + '">' : '') + '</span><div><b>' + esc(it.name) + '</b><small>' + esc(it.grade) + (d.categoryName ? ' · ' + esc(d.categoryName) : '') + (d.level ? ' · Lv ' + d.level : '') + '</small></div><button type="button" class="x" data-gclose="1" aria-label="Close">×</button></div>';
+  h += '<div class="kv"><span>Enchant</span><span>+' + (it.enchant || 0) + (d.maxEnchantLevel ? ' / ' + d.maxEnchantLevel : '') + (d.maxExceedEnchantLevel ? ' · exceed +' + (it.exceed || 0) + ' / ' + d.maxExceedEnchantLevel : '') + '</span></div>';
+  if (d.mainStats && d.mainStats.length){ h += '<h4>Base stats</h4>'; d.mainStats.forEach(function(s){ var ex = s.extra && !/^0(\.0+)?%?$/.test(s.extra) ? s.extra : ""; h += kv(s.name, s.value, ex); }); }
+  if (d.subStats && d.subStats.length){ h += '<h4>Bonus stats</h4>'; d.subStats.forEach(function(s){ h += kv(s.name, s.value); }); }
+  if (d.magicStoneStat && d.magicStoneStat.length){ h += '<h4>Manastones ' + d.magicStoneStat.length + (d.magicStoneSlotCount ? ' / ' + d.magicStoneSlotCount : '') + '</h4>';
+    d.magicStoneStat.forEach(function(m){ h += '<div class="ms" style="color:' + gcol(m.grade) + '">' + (m.icon ? '<img alt="" src="' + esc(m.icon) + '">' : '') + '<span>' + esc(m.name) + '</span><span class="v">' + esc(m.value) + '</span></div>'; }); }
+  if (d.godStoneStat && d.godStoneStat.length){ h += '<h4>Godstone</h4>'; d.godStoneStat.forEach(function(g){ h += '<div class="ms" style="color:' + gcol(g.grade) + '">' + (g.icon ? '<img alt="" src="' + esc(g.icon) + '">' : '') + '<span>' + esc(g.name) + '</span></div><div class="gs">' + esc(g.desc || "") + '</div>'; }); }
+  var foot = []; if (d.soulBindRate) foot.push("Soul bind " + d.soulBindRate + "%"); if (d.sources && d.sources.length) foot.push("From " + d.sources.join(", "));
+  if (foot.length) h += '<div class="foot">' + esc(foot.join(" · ")) + '</div>';
+  if (!it.d) h += '<div class="foot">Stats not loaded yet; they arrive with the next hourly update.</div>';
+  return h;
+}
+function renderGear(){
+  var el = $("gear"); if (!el || $("panel-gear").hidden) return;
+  if (!chars.length){ el.innerHTML = '<div class="empty-state">Loading the roster…</div>'; return; }
+  if (!gearSel || !byName(gearSel)) gearSel = (chars.filter(function(c){ return c.player === PLANNER_PLAYER && c.main; })[0] || chars[0]).name;
+  var groups = {}, order = [];
+  chars.forEach(function(c){ if (!groups[c.player]){ groups[c.player] = []; order.push(c.player); } groups[c.player].push(c); });
+  var html = '<div class="gearv"><div class="rlist">';
+  order.forEach(function(pl){
+    html += '<div class="pgroup"><div class="pname">' + esc(pl) + '</div>';
+    groups[pl].forEach(function(c){ html += '<button type="button" class="grow' + (c.name === gearSel ? " sel" : "") + '" data-gc="' + esc(c.name) + '">' + glyph(c.cls, true) + '<span class="rn">' + esc(c.name) + '</span><span class="gi">' + num(c.il) + '</span></button>'; });
+    html += '</div>';
+  });
+  html += '</div>';
+  var c = byName(gearSel), k = c._id || c.name, cache = gearCache[k], g = cache && cache.g, bySlot = {};
+  if (!cache) loadGear(c);
+  (g && g.items || []).forEach(function(it){ bySlot[it.slot] = it; });
+  var em = ART.cls[CLSKEY[c.cls] || String(c.cls || "").toLowerCase()];
+  var when = ""; try { if (g && g.at) when = "Updated " + new Date(g.at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}); } catch (e) {}
+  html += '<div class="sheet" id="sheet"><div class="sheet-h"><h2>Equipment</h2><span class="when">' + esc(when) + '</span></div>';
+  if (!cache) html += '<div class="empty-state">Loading ' + esc(c.name) + '\'s equipment…</div>';
+  else if (!g) html += '<div class="empty-state">No equipment saved for ' + esc(c.name) + ' yet. It is added by the hourly update.</div>';
+  else {
+    html += '<div class="doll"><div class="gcol l">' + GLEFT.map(function(s){ return gearItem(bySlot[s[0]], s[1], false); }).join("") + '</div>'
+      + '<div class="gcen"><div class="gpor">' + (em ? '<img class="fb" alt="" src="' + em + '">' : '') + '</div><div><div class="nm">' + esc(c.name) + '</div><div class="cl">' + esc(c.cls) + ' · ' + esc(c.player) + '</div>'
+      + '<div class="nums" style="margin-top:6px"><span><i>IL</i>' + num(c.il) + '</span><span class="cpv"><i>CP</i>' + num(cpOf(c)) + '</span></div></div></div>'
+      + '<div class="gcol r">' + GRIGHT.map(function(s){ return gearItem(bySlot[s[0]], s[1], true); }).join("") + '</div></div>';
+  }
+  html += '</div></div>';
+  el.innerHTML = html;
+  if (c.img && g){ var por = el.querySelector(".gpor"), im = new Image(); im.className = "p"; im.alt = ""; im.onload = function(){ por.innerHTML = ""; por.appendChild(im); }; im.src = c.img; }
+  if (gearOpen && bySlot[gearOpen]) openCard(bySlot[gearOpen]);
+}
+function openCard(it){
+  var sheet = $("sheet"), btn = sheet && sheet.querySelector('[data-gi="' + it.slot + '"]'); if (!btn) return;
+  var card = document.createElement("div"); card.className = "icard"; card.style.setProperty("--g", gcol(it.grade)); card.innerHTML = itemCard(it); card.setAttribute("role", "dialog"); card.setAttribute("aria-label", it.name);
+  sheet.appendChild(card);
+  var sr = sheet.getBoundingClientRect(), br = btn.getBoundingClientRect(), cw = card.offsetWidth, ch = card.offsetHeight, right = btn.closest(".gcol.r") && innerWidth > 760;
+  var left = right ? br.left - sr.left - cw - 8 : br.right - sr.left + 8;
+  if (innerWidth <= 760) left = 10;
+  left = Math.max(8, Math.min(sr.width - cw - 8, left));
+  var top = br.top - sr.top - 6; top = Math.max(8, Math.min(Math.max(8, sr.height - ch - 8), top));
+  if (innerWidth <= 760) top = br.bottom - sr.top + 6;
+  card.style.left = left + "px"; card.style.top = top + "px";
+}
+function gearClick(slot){
+  gearOpen = gearOpen === slot ? null : slot; renderGear();
+}
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
-  ["builder", "energy", "planner", "progress"].forEach(function(n){ $("panel-" + n).hidden = n !== name; });
+  ["builder", "energy", "planner", "progress", "gear"].forEach(function(n){ $("panel-" + n).hidden = n !== name; });
   if (name === "progress") loadHist();
+  if (name === "gear") renderGear();
   try { localStorage.setItem("myth-builder:tab", name); } catch (e) {}
 }
-try { var t0 = localStorage.getItem("myth-builder:tab"); if (t0 === "energy" || t0 === "progress") setTab(t0); } catch (e) {}
+try { var t0 = localStorage.getItem("myth-builder:tab"); if (t0 === "energy" || t0 === "progress" || t0 === "gear") setTab(t0); } catch (e) {}
 
 /* ---- boot ---- */
 renderBuilder(); renderEnergy(); renderClock();
@@ -1044,7 +1197,7 @@ function deliver(rows){
 }
 function poll(){
   var t0 = Date.now();
-  fetch(SB.url + "/rest/v1/docs?select=coll,id,data&coll=neq.cphist", {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(rows){
+  fetch(SB.url + "/rest/v1/docs?select=coll,id,data&coll=not.in.(cphist,gear)", {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(rows){
     pollFails = 0; if (inflight || lastWrite > t0) return; deliver(rows);
   }, function(){ pollFails++; if (pollFails === 3) notice("Lost the connection to shared data. It will keep retrying.", true); });
 }
@@ -1059,19 +1212,23 @@ db = {
               function(){ inflight--; lastWrite = Date.now(); throw {code: "unavailable"}; });
     }}; }
 };
+fetchGear = function(id, ok, bad){
+  fetch(SB.url + "/rest/v1/docs?select=data&coll=eq.gear&id=eq." + encodeURIComponent(id), {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok, bad);
+};
 fetchHist = function(ok, bad){
   fetch(SB.url + "/rest/v1/docs?select=id,data&coll=eq.cphist", {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok, bad);
 };
 function start(){
   db.collection("chars").onSnapshot(function(s){
     loaded.chars = true;
-    chars = s.docs.map(function(x){ return x.data(); }).filter(function(c){ return c && c.name; });
+    chars = s.docs.map(function(x){ var c = x.data(); if (c) c._id = x.id; return c; }).filter(function(c){ return c && c.name; });
     chars.sort(function(a, b){ return (a.order || 0) - (b.order || 0); });
     var latest = chars.reduce(function(m, c){ return c.readAtIso && c.readAtIso > m ? c.readAtIso : m; }, "");
     var when = ""; try { if (latest) when = new Date(latest).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}); } catch (e) {}
     $("stamp").textContent = when ? "Stats from the official character pages, updated " + when : "";
     if (!typing()){ renderBuilder(); renderEnergy(); }
     if (!document.querySelector("#progress .prog")) renderProgress();
+    if (!document.querySelector("#gear .gearv")) renderGear();
   });
   db.collection("energy").onSnapshot(function(s){
     var next = {}; s.docs.forEach(function(x){ next[x.id] = x.data(); }); energy = next;
