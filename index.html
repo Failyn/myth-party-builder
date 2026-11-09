@@ -416,6 +416,9 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
 .tip small{display:block;color:var(--muted)}
 @media (max-width:1020px){ .prog{grid-template-columns:minmax(0,1fr)} .pchart{position:static} }
 @media (max-width:620px){ .pstats{grid-template-columns:repeat(2,minmax(0,1fr))} .pstats div:nth-child(3){border-left:none} .pstats div:nth-child(n+3){border-top:1px solid var(--line)} .phero .hin{max-width:70%} .prow .rn small{display:none} .psec h3 small{display:none} .phero .big{font-size:1.7rem} }
+.autotag{display:inline-block;margin-left:6px;font-family:var(--mono);font-size:.6rem;letter-spacing:.04em;color:var(--good);border:1px solid color-mix(in srgb,var(--good) 45%,transparent);border-radius:4px;padding:0 4px;vertical-align:1px}
+.autonote{font-size:.74rem;color:var(--muted)}
+.xauto{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--extra)}
 .empty-state{border:1px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted)}
 
 @media (max-width:1020px){
@@ -676,7 +679,8 @@ function renderEnergy(){
   var now = Date.now(), html = '<div class="etable-wrap"><table class="etable"><thead><tr><th>Player</th><th>Character</th><th>Energy now</th><th>Full in</th><th>Entered</th>' + (unlocked ? '<th>Set current energy</th>' : '') + '<th>Extra (blue)</th></tr></thead><tbody>', last = null;
   byParty().forEach(function(c){
     var e = nowEnergy(c.name, now), first = c.player !== last; last = c.player;
-    var xcell = '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '">'
+    var au = autoE(c.name);
+    var xcell = au ? '<td><span class="xauto">' + num(extraOf(c.name)) + '</span></td>' : '<td><input class="xinput" id="x-' + esc(c.name) + '" data-x="' + esc(c.name) + '" type="number" min="0" max="' + XCAP + '" step="10" inputmode="numeric" value="' + extraOf(c.name) + '" aria-label="Extra energy for ' + esc(c.name) + '">'
       + (unlocked ? ' <button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="160">+160</button><button type="button" class="ebtn ghost xadd" data-xadd="' + esc(c.name) + '" data-n="800">+800</button>' : '') + '</td>';
     var xr = Math.floor(((e ? e.value : 0) + extraOf(c.name))/RUN) - Math.floor((e ? e.value : 0)/RUN);
     var id = "e-" + c.name, cap = e ? e.cap : ((energy[eid(c.name)] && energy[eid(c.name)].cap) || 840);
@@ -685,11 +689,12 @@ function renderEnergy(){
     if (e){
       var toFull = e.value >= e.cap ? 0 : msToNext(now) + (Math.ceil((e.cap - e.value)/STEP) - 1)*PERIOD;
       html += '<td><div class="enow">' + e.value + ' <small>/ ' + e.cap + ' · ' + Math.floor(e.value/RUN) + (Math.floor(e.value/RUN) === 1 ? ' run' : ' runs') + (xr > 0 ? '<sup class="xs">+' + xr + '</sup>' : '') + '</small></div><div class="bar' + (e.value >= e.cap ? " full" : "") + '"><i style="width:' + Math.min(100, Math.round(e.value/e.cap*100)) + '%"></i></div></td>'
-        + '<td class="mono">' + (toFull ? dur(toFull) : "full") + '</td><td class="mono" style="color:var(--muted);font-size:.78rem">' + dur(Math.max(60000, now - (e.at || now))) + ' ago</td>';
+        + '<td class="mono">' + (toFull ? dur(toFull) : "full") + '</td><td class="mono" style="color:var(--muted);font-size:.78rem">' + dur(Math.max(60000, now - (e.at || now))) + ' ago' + (au ? '<span class="autotag" title="Read from the game by the Questlog app on Aleks\'s PC">Questlog</span>' : '') + '</td>';
     } else {
       html += '<td><span class="unset">not entered</span></td><td class="mono">–</td><td class="mono">–</td>';
     }
-    if (unlocked) html += '<td><div class="eacts"><input class="einput" id="' + esc(id) + '" type="number" min="0" max="2000" inputmode="numeric" placeholder="' + (e ? e.value : "0") + '" aria-label="Current energy for ' + esc(c.name) + '">'
+    if (unlocked && au) html += '<td><span class="autonote">Automatic</span></td>';
+    else if (unlocked) html += '<td><div class="eacts"><input class="einput" id="' + esc(id) + '" type="number" min="0" max="2000" inputmode="numeric" placeholder="' + (e ? e.value : "0") + '" aria-label="Current energy for ' + esc(c.name) + '">'
       + '<button type="button" class="ebtn" data-set="' + esc(c.name) + '">Set</button>'
       + (e || extraOf(c.name) ? '<button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="80" title="One run with both cubes. Uses normal energy first, then extra.">−80</button><button type="button" class="ebtn ghost" data-spend="' + esc(c.name) + '" data-cost="40" title="One cube only" style="opacity:.6">−40</button>' : '') + '</div></td>';
     html += xcell + '</tr>';
@@ -730,7 +735,10 @@ function saveExtra(name, value, quiet){
   if (!quiet){ renderEnergy(); renderParties(); }
   if (db) db.doc("extra/" + eid(name)).set(extra[eid(name)]).then(function(){}, function(){ notice("Extra energy for " + name + " could not be saved. Try again in a moment.", true); });
 }
+/* energy kept up to date by Aleks's Questlog sync (sync.ps1 tags its records src: "questlog"); the page never edits it */
+function autoE(nm){ var e = energy[eid(nm)]; return !!(e && e.src === "questlog"); }
 function spend(nm, amt, now){
+  if (autoE(nm)) return {normal: 0, extra: 0, short: 0, auto: true};
   var e = nowEnergy(nm, now), x = extraOf(nm);
   if (!e && !x) return null;
   var have = e ? e.value : 0, take = Math.min(have, amt), rem = amt - take, tx = Math.min(x, rem);
@@ -740,7 +748,7 @@ function spend(nm, amt, now){
 }
 function runDone(i){
   var p = parties[i]; if (!p) return;
-  var amt = p.amount || 80, now = Date.now(), done = 0, fromExtra = 0;
+  var amt = p.amount || 80, now = Date.now(), done = 0, fromExtra = 0, autoN = 0;
   var pd = dungeon(p.dungeon), weekTouched = false, planTouched = false;
   p.members.forEach(function(nm){
     var cm = byName(nm);
@@ -751,13 +759,14 @@ function runDone(i){
     }
     var r = spend(nm, amt, now);
     if (!r) return;
+    if (r.auto){ autoN++; return; }
     done++; if (r.extra) fromExtra++;
   });
   if (weekTouched) saveWeek();
   if (planTouched) saveEplan();
   p.runs = (p.runs || 0) + 1;
   p.earned = (p.earned || 0) + (dungeon(p.dungeon).kinah || 0)*(amt/CUBE);
-  notice("Run logged" + (done ? ": −" + amt + " energy on " + done + " character" + (done === 1 ? "" : "s") + (fromExtra ? ", " + fromExtra + " using extra energy" : "") : "") + ".");
+  notice("Run logged" + (done ? ": −" + amt + " energy on " + done + " character" + (done === 1 ? "" : "s") + (fromExtra ? ", " + fromExtra + " using extra energy" : "") : "") + (autoN ? (done ? "; " : ": ") + autoN + " tracked by Questlog, updated from the game" : "") + ".");
   renderEnergy(); renderPlanner(); savePlan();
 }
 function saveEnergy(name, value, cap){
