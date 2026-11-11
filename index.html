@@ -1366,7 +1366,8 @@ function renderRuns(){
   wk.forEach(function(r){
     var inf = runInfo(r.ev);
     html += '<tr><td class="mono">' + dstr(r.at/60000, true) + '</td><td>' + esc(inf.name) + '</td><td class="mono">' + mmss(r.secs) + '</td><td class="rparty">'
-      + (r.party || []).map(function(n){ return roster[n] ? '<b>' + esc(n) + '</b>' : '<span>' + esc(n) + '</span>'; }).join(" ") + '</td></tr>';
+      + (function(){ var ours = (r.party || []).filter(function(n){ return roster[n]; }), rest = (r.party || []).filter(function(n){ return !roster[n]; });
+          return ours.map(function(n){ return '<b>' + esc(n) + '</b>'; }).join(" ") + (rest.length ? ' <span title="Not in the static: ' + esc(rest.join(", ")) + '">+' + rest.length + (rest.length === 1 ? ' other' : ' others') + '</span>' : ''); })() + '</td></tr>';  /* only static members by name */
   });
   el.innerHTML = html + '</tbody></table></div></div></div>';
 }
