@@ -1339,7 +1339,7 @@ function renderRuns(){
   if (!runs){ el.innerHTML = '<div class="empty-state">Loading the run log…</div>'; return; }
   var w0 = Date.parse(weekKey(Date.now()) + "T07:00:00Z") - runWeek*7*864e5, w1 = w0 + 7*864e5;
   var wk = runs.filter(function(r){ return r.at >= w0 && r.at < w1; });
-  var roster = {}; chars.forEach(function(c){ roster[c.name] = c; });
+  var roster = {}, rank = {}, po = playerOrder(); chars.forEach(function(c, i){ roster[c.name] = c; rank[c.name] = po.indexOf(c.player)*1000 + i; });  /* party names in a fixed order: player, then roster order */
   var per = {}, kinds = {Conquest: 0, Transcendence: 0, Other: 0}, secs = 0;
   wk.forEach(function(r){
     var inf = runInfo(r.ev); kinds[inf.kind]++; secs += +r.secs || 0;
@@ -1366,7 +1366,7 @@ function renderRuns(){
   wk.forEach(function(r){
     var inf = runInfo(r.ev);
     html += '<tr><td class="mono">' + dstr(r.at/60000, true) + '</td><td>' + esc(inf.name) + '</td><td class="mono">' + mmss(r.secs) + '</td><td class="rparty">'
-      + (function(){ var ours = (r.party || []).filter(function(n){ return roster[n]; }), rest = (r.party || []).filter(function(n){ return !roster[n]; });
+      + (function(){ var ours = (r.party || []).filter(function(n){ return roster[n]; }).sort(function(a, b){ return rank[a] - rank[b]; }), rest = (r.party || []).filter(function(n){ return !roster[n]; });
           return ours.map(function(n){ return '<b>' + esc(n) + '</b>'; }).join(" ") + (rest.length ? ' <span title="Not in the static: ' + esc(rest.join(", ")) + '">+' + rest.length + (rest.length === 1 ? ' other' : ' others') + '</span>' : ''); })() + '</td></tr>';  /* only static members by name */
   });
   el.innerHTML = html + '</tbody></table></div></div></div>';
