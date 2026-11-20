@@ -114,6 +114,59 @@ def track_high(doc, prev, series, now_min, field):
     return changed
 
 
+WORN = {"MainHand", "SubHand", "Helmet", "Shoulder", "Torso", "Pants", "Gloves", "Boots", "Cape", "Belt",
+        "Necklace", "Amulet", "Earring1", "Earring2", "Ring1", "Ring2", "Bracelet1", "Bracelet2", "Rune1", "Rune2"}
+DETAIL_KEEP = ("level", "categoryName", "equipLevel", "maxEnchantLevel", "maxExceedEnchantLevel", "magicStoneSlotCount",
+               "godStoneSlotCount", "mainStats", "subStats", "subSkills", "subSkillCountMax", "subStatCount",
+               "magicStoneStat", "godStoneStat", "soulBindRate", "sources")
+DETAIL_SINCE = 1793810590   # details saved before this (unix time) lack fields above, so they are fetched again once
+FULL_REFRESH_H = 20   # re-read every item about once a day (manastones and rerolled stats don't change the item id)
+
+
+def item_key(it):
+    return "%s:%s:%s" % (it.get("id"), it.get("enchantLevel"), it.get("exceedLevel"))
+
+
+def read_gear(cid, prev_gear):
+    """Worn equipment for one character. Item details (stats, manastones, godstone) are fetched only for
+    items that changed since last time, or for everything once a day. Returns (doc, details fetched)."""
+    from concurrent.futures import ThreadPoolExecutor
+    base = {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER}
+    eqd = get_json("https://aion2.plaync.com/api/character/equipment", base)
+    lst = eqd["equipment"]["equipmentList"]
+    # skills: equipped actives and stigmas ("Dp" in the data), plus passives, as [name, icon, level, kind]
+    skills = [[k.get("name", ""), k.get("icon", ""), k.get("skillLevel", 0), {"Dp": "Stigma"}.get(k.get("category"), k.get("category", ""))]
+              for k in ((eqd.get("skill") or {}).get("skillList") or [])
+              if k.get("acquired") and (k.get("equip") or k.get("category") == "Passive")]
+    worn = [it for it in lst if it.get("slotPosName") in WORN or str(it.get("slotPosName", "")).startswith("Arcana")]
+    prev_items = {x["slot"]: x for x in (prev_gear or {}).get("items", [])}
+    now = time.time()
+    last = float((prev_gear or {}).get("detAt") or 0)
+    full = now - last > FULL_REFRESH_H * 3600 or last < DETAIL_SINCE
+    def detail(it):
+        old = prev_items.get(it["slotPosName"])
+        if not full and old and old.get("key") == item_key(it) and old.get("d"):
+            return old["d"], False
+        try:
+            d = get_json("https://aion2.plaync.com/api/character/equipment/item",
+                         {"id": it["id"], "enchantLevel": it.get("enchantLevel", 0), "characterId": cid, "serverId": SERVER,
+                          "slotPos": it["slotPos"], "lang": "en-US", "region": REGION})
+            keep = {k: d[k] for k in DETAIL_KEEP if k in d}
+            if isinstance(d.get("set"), dict):  # Arcana set: name, how many worn, bonuses (the full card list is not needed)
+                keep["set"] = {k: d["set"].get(k) for k in ("name", "equippedCount", "bonuses")}
+            return keep, True
+        except Exception:
+            return (old or {}).get("d"), False
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        got = list(pool.map(detail, worn))
+    items = [{"slot": it["slotPosName"], "id": it["id"], "name": it["name"], "grade": it.get("grade", ""), "icon": it.get("icon", ""),
+              "enchant": it.get("enchantLevel", 0), "exceed": it.get("exceedLevel", 0), "key": item_key(it), "d": d}
+             for it, (d, _) in zip(worn, got)]
+    fetched = sum(1 for _, f in got if f)
+    det_at = now if full else (prev_gear or {}).get("detAt") or now
+    return {"items": items, "detAt": det_at, "skills": skills}, fetched
+
+
 def thin(series, now_min, keep_days=30):
     """Every stored record must stay under 20 KB, so points older than keep_days keep only the last one per day."""
     cut, out, seen = now_min - keep_days * 1440, [], {}
