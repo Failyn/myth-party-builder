@@ -43,7 +43,8 @@ button{cursor:pointer}
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .topbar-in{max-width:1280px;margin:0 auto;padding:12px 16px 0;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
 .topbar h1{font-size:1.25rem;padding-bottom:9px}
-.tabs{display:flex;gap:18px}
+.tabs{display:flex;gap:2px 18px;flex-wrap:wrap}
+@media (max-width:620px){ .tabs{gap:0 12px} }
 .tabbtn{font-family:var(--mono);font-size:.8rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:8px 2px}
 .tabbtn.active{color:var(--accent);border-bottom-color:var(--accent)}
 .lock{display:flex;gap:6px;align-items:center;padding-bottom:8px}
@@ -361,6 +362,37 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
 .rparty b{font-weight:600}.rparty span{color:var(--muted)}
 @media (max-width:1020px){ .rgrid{grid-template-columns:minmax(0,1fr)} .rweek .rnote{margin-left:0;width:100%} }
 @media (max-width:620px){ .rstats{grid-template-columns:repeat(2,minmax(0,1fr))} .rstats div:nth-child(3){border-left:none} .rstats div:nth-child(n+3){border-top:1px solid var(--line)} .rlog th:nth-child(3),.rlog td:nth-child(3){display:none} }
+/* item level plan */
+.ilctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:10px;font-size:.8rem;color:var(--muted)}
+.ilctl label{display:flex;gap:6px;align-items:center}
+.ilctl .pin{width:90px}
+.ilctl select{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.ilpick{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:14px}
+.ilpick .ilpl{font-family:var(--display);font-weight:600;margin:0 2px 0 8px}
+.ilpick .ilpl:first-child{margin-left:0}
+.ilpick .chipbtn.on{color:var(--accent-2);border-color:var(--accent-2)}
+.ilsum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-bottom:14px}
+.ilsum div{padding:10px 14px;border-left:1px solid var(--line)}.ilsum div:first-child{border-left:none}
+.ilsum span{font-family:var(--mono);font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.ilsum b{display:block;font-family:var(--mono);font-size:1.3rem}.ilsum b.sm{font-size:.9rem;font-family:var(--body);margin:3px 0}
+.ilsum small{color:var(--muted);font-size:.68rem}
+.ilgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr));gap:12px}
+.ilctl select{max-width:100%}.ilctl label{flex-wrap:wrap}
+.ilcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.ilh{display:flex;align-items:center;gap:8px}.ilh b{font-family:var(--display);font-size:1.05rem}
+.ilh .ilnow{margin-left:auto;font-family:var(--mono);font-size:1.05rem}.ilh .ilnow i{font-style:normal;color:var(--muted);font-size:.8rem}
+.ilrow{display:grid;grid-template-columns:auto auto minmax(0,1fr) 64px;gap:8px;align-items:baseline;font-size:.76rem}
+.ilrow span{color:var(--muted)}.ilrow b{font-family:var(--mono)}.ilrow small{color:var(--muted);font-size:.68rem}
+.ilrow .pin{width:64px;padding:2px 6px;font-size:.74rem}
+.ilslots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.ils{display:grid;grid-template-columns:4.8rem minmax(0,1fr) auto;gap:6px;align-items:baseline;background:var(--surface-2);border-radius:5px;padding:3px 7px;font-size:.72rem}
+.ils span{color:var(--muted)}.ils b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ils i{font-style:normal;font-family:var(--mono);color:var(--accent-2)}
+.ils.ok i{color:var(--good)}
+.ilres{display:flex;flex-direction:column;gap:2px;font-size:.8rem}.ilres small{color:var(--muted);font-size:.7rem}.ilres small b{color:var(--good)}
+.ilres .okc{color:var(--good)}.ilres .bad{color:var(--bad)}
+.ilnote{margin:12px 0 0;max-width:900px}
+@media (max-width:760px){ .ilsum{grid-template-columns:repeat(2,minmax(0,1fr))} .ilsum div:nth-child(3){border-left:none} .ilsum div:nth-child(n+3){border-top:1px solid var(--line)} .ils{grid-template-columns:4.6rem minmax(0,1fr) auto} }
 /* progress */
 .prog{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start}
 .prow,.phead{display:grid;grid-template-columns:18px minmax(0,1fr) 9ch 8.5ch 84px;gap:8px;align-items:center}
@@ -466,6 +498,7 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
     <button class="tabbtn" type="button" data-tab="progress">Progress</button>
     <button class="tabbtn" type="button" data-tab="gear">Equipment</button>
     <button class="tabbtn" type="button" data-tab="runs">Runs</button>
+    <button class="tabbtn" type="button" data-tab="ilplan">IL plan</button>
   </div>
   <div class="lock"><button type="button" class="chipbtn" id="lockbtn">Unlock editing</button><span id="lockform" hidden><input class="pin wide" id="passin" type="password" autocomplete="off" placeholder="Passcode" aria-label="Group passcode"><button type="button" class="chipbtn" id="passgo">OK</button></span></div>
   <div class="stamp" id="stamp"></div>
@@ -487,6 +520,8 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
       </div>
     </div>
   </div>
+
+  <div id="panel-ilplan" hidden><div id="ilplan"><div class="empty-state">Loading…</div></div></div>
 
   <div id="panel-runs" hidden><div id="runs"><div class="empty-state">Loading the run log…</div></div></div>
 
@@ -814,6 +849,7 @@ document.addEventListener("click", function(ev){
   if (t.id === "lockbtn"){ if (unlocked){ notice("Editing is unlocked on this device."); } else askPass(); return; }
   if (t.id === "passgo"){ var pv = $("passin").value.trim(); if (pv) checkPass(pv); return; }
   if (!unlocked && (d.d || t.id === "addparty" || d.run != null || d.clear != null || d.del != null || d.mv || d.rm || d.c || d.set || d.spend)){ askPass(); return; }
+  if (d.ilc){ var ix = ilp.sel.indexOf(d.ilc); if (ix >= 0) ilp.sel.splice(ix, 1); else ilp.sel.push(d.ilc); saveIlp(); renderIlPlan(); return; }
   if (d.rw){ runWeek = Math.max(0, runWeek + (+d.rw)); renderRuns(); return; }
   if (d.gc){ gearSel = d.gc; gearOpen = null; renderGear(); var sh = $("sheet"); if (sh && sh.getBoundingClientRect().top > innerHeight) sh.scrollIntoView({behavior: "smooth", block: "start"}); return; }
   if (d.gi){ gearClick(d.gi); return; }
@@ -872,7 +908,13 @@ document.addEventListener("change", function(ev){
   if (ev.target.classList && ev.target.classList.contains("prun") && pSel){ var its4 = itemsOf(pSel), k4 = +ev.target.dataset.pi; if (its4[k4]){ its4[k4].runs = Math.max(its4[k4].done, Math.min(999, Math.round(parseFloat(ev.target.value) || 0))); storeItems(pSel, its4); saveEplan(); renderPlanner(); } return; }
   if (ev.target.classList && ev.target.classList.contains("psel") && pSel){ var its3 = itemsOf(pSel), k3 = +ev.target.dataset.pi; if (its3[k3]){ its3[k3].d = ev.target.value; storeItems(pSel, its3); saveEplan(); renderPlanner(); } return; }
   var ds = ev.target.dataset || {};
-  if (!unlocked && (ds.amt != null || ds.cap)){ askPass(); renderParties(); renderEnergy(); return; }
+  if (!unlocked && (ds.amt != null || ds.cap || ds.ilpi)){ askPass(); renderParties(); renderEnergy(); return; }
+  if (ev.target.id === "ilt"){ ilp.target = Math.max(1000, Math.min(4000, Math.round(+ev.target.value || 2500))); saveIlp(); renderIlPlan(); return; }
+  if (ev.target.id === "ile"){ ilp.ench = ev.target.value; saveIlp(); renderIlPlan(); return; }
+  if (ev.target.id === "ilb"){ ilp.buy = Math.max(0, Math.round(+ev.target.value || 0)); saveIlp(); renderIlPlan(); return; }
+  if (ds.ilpi){ var pv = ev.target.value === "" ? null : Math.max(0, Math.min(27, Math.round(+ev.target.value))); ilplan.piety = ilplan.piety || {};
+    if (pv === null) delete ilplan.piety[ds.ilpi]; else ilplan.piety[ds.ilpi] = {value: pv, at: Date.now()};
+    if (db) db.doc("plan/ilplan").set(ilplan).then(function(){}, failWrite); renderIlPlan(); return; }
   if (ds.x){ saveExtra(ds.x, parseFloat(ev.target.value) || 0); return; }
   if (ds.amt != null){ var pa = parties[+ds.amt]; if (pa){ pa.amount = Math.max(0, Math.min(2000, Math.round(parseFloat(ev.target.value) || 0))); savePlan(); } return; }
   var n = ds.cap; if (!n) return;
@@ -1166,7 +1208,7 @@ function gcol(g){ return GRADE[g] || "var(--muted)"; }
 function loadGear(c){
   var k = c._id || c.name; if (!fetchGear || gearBusy[k] || (gearCache[k] && Date.now() - gearCache[k].t < 10*60000)) return;
   gearBusy[k] = true;
-  fetchGear(k, function(rows){ gearBusy[k] = false; gearCache[k] = {t: Date.now(), g: rows && rows[0] ? rows[0].data : null}; if (gearSel === c.name) renderGear(); },
+  fetchGear(k, function(rows){ gearBusy[k] = false; gearCache[k] = {t: Date.now(), g: rows && rows[0] ? rows[0].data : null}; if (gearSel === c.name) renderGear(); renderIlPlan(); },
     function(){ gearBusy[k] = false; notice("Could not load the equipment. Try again in a moment.", true); });
 }
 function ench(it){ return '<span class="gench">+' + (it.enchant || 0) + (it.exceed ? '<span class="x">+' + it.exceed + '</span>' : '') + '</span>'; }
@@ -1320,7 +1362,7 @@ function gearClick(slot){
 /* ---- runs tab: cleared energy dungeons from Aleks's Questlog log (sync.ps1 saves them as plan/run~<id>) ---- */
 var runs = null, runsAt = 0, runsBusy = false, fetchRuns = null, runWeek = 0;
 var RUN_NAMES = {Fire_Temple: "Fire Temple", BakronIsland: "Vakron Sky Island", Urugugu_Canyon: "Urugugu Canyon", Draupnir: "Draupnir", Krao_Cave: "Krao Cave", KraoCave: "Krao Cave",
-  FerociousHorn: "Ferocious Horn Den", Ferocious_Horn: "Ferocious Horn Den", DeusCenter: "Deus Research Base", Arkanis: "Shattered Arkanis"};
+  FerociousHorn: "Ferocious Horn Den", Ferocious_Horn: "Ferocious Horn Den", FierceHornCave: "Ferocious Horn Den", DeusCenter: "Deus Research Base", Arkanis: "Shattered Arkanis"};
 function runInfo(ev){
   var m = /^(.*?)_(Normal|Hard)$/.exec(ev || ""), t = /^(.*?)_G_0*(\d+)$/.exec(ev || "");
   if (m) return {name: (RUN_NAMES[m[1]] || m[1].replace(/_/g, " ")) + (m[2] === "Hard" ? " · Hard" : ""), kind: "Conquest"};
@@ -1330,7 +1372,7 @@ function runInfo(ev){
 function loadRuns(force){
   if (!fetchRuns || runsBusy || (!force && runs && Date.now() - runsAt < 2*60000)){ renderRuns(); return; }
   runsBusy = true;
-  fetchRuns(function(rows){ runsBusy = false; runsAt = Date.now(); runs = (rows || []).map(function(r){ return r.data; }).filter(function(d){ return d && d.at; }).sort(function(a, b){ return b.at - a.at; }); renderRuns(); },
+  fetchRuns(function(rows){ runsBusy = false; runsAt = Date.now(); runs = (rows || []).map(function(r){ return r.data; }).filter(function(d){ return d && d.at; }).sort(function(a, b){ return b.at - a.at; }); renderRuns(); renderIlPlan(); },
     function(){ runsBusy = false; renderRuns(); notice("Could not load the run log. Try again in a moment.", true); });
 }
 function mmss(s){ s = Math.round(+s || 0); return Math.floor(s/60) + ":" + ("0" + (s % 60)).slice(-2); }
@@ -1371,15 +1413,140 @@ function renderRuns(){
   });
   el.innerHTML = html + '</tbody></table></div></div></div>';
 }
+/* ---- item level plan: what it takes to reach a target item level with Ferocious Horn Den (Normal, tier 86) ----
+   Model from Aleks (2026-11-21): +2 piety per double-claim run, 28 piety = 1 ticket = a piece of choice, the guard costs
+   3 tickets. Every run rolls the drop table 4 times: 2 claim rolls at 7.5% and 2 miniboss rolls at 3.75%.
+   Item level of one item, fitted on Questlog data (within about +-2): tier + 6.5, +1.3 per enchant to +10 at tier 86
+   (+1.0 below), +0.7 per enchant from +11 to +15, +6.8 per exceed level. A character's item level is the sum of its
+   items plus a fixed bonus, so a swap moves it by exactly the difference. */
+var HD = [["SubHand", "Guard", 5.649993], ["Helmet", "Helm", 13.558577], ["Shoulder", "Pauldrons", 13.558577], ["Torso", "Breastplate", 8.474989],
+  ["Pants", "Greaves", 11.299335], ["Gloves", "Gloves", 16.949976], ["Boots", "Boots", 13.558577], ["Cape", "Cloak", 16.949976]];
+var HD_TIER = 86, HD_ROLLS = [0.075, 0.075, 0.0375, 0.0375], PIETY_RUN = 2, PIETY_TICKET = 28, GUARD_TICKETS = 3, RUN_ENERGY = 80, SIMS = 1500;
+var ilp = {target: 2500, ench: "10", buy: 1600, sel: null}, ilplan = {piety: {}};
+try { var ilps = JSON.parse(localStorage.getItem("myth-builder:ilplan") || "null"); if (ilps) for (var k in ilps) ilp[k] = ilps[k]; } catch (e) {}
+function saveIlp(){ try { localStorage.setItem("myth-builder:ilplan", JSON.stringify(ilp)); } catch (e) {} }
+function itemIL(tier, grade, en, ex){
+  tier = +tier || 0; en = +en || 0; ex = +ex || 0;
+  return tier + 6.5 - (grade === "Legend" ? 1.5 : 0) + (tier >= 86 ? 1.3 : 1.0)*Math.min(en, 10) + 0.7*Math.max(0, Math.min(en, 15) - 10) + 6.8*ex;
+}
+function enchGoal(){ return ilp.ench === "10" ? 10 : ilp.ench === "15" ? 15 : 0; }   /* 0 = keep current enchant levels */
+function newPieceEnch(cur){ return enchGoal() || Math.min(15, (cur && +cur.enchant) || 0); }
+/* Horn Den Normal runs per character from the run log, and piety now (an override counts runs after it was set) */
+function hornRuns(name, after){ return (runs || []).filter(function(r){ return r.ev === "FierceHornCave_Normal" && r.at > (after || 0) && (r.party || []).indexOf(name) >= 0; }).length; }
+function pietyOf(name){
+  var o = ilplan.piety && ilplan.piety[name];
+  var total = o ? (+o.value || 0) + PIETY_RUN*hornRuns(name, o.at) : PIETY_RUN*hornRuns(name, 0);
+  return {now: total % PIETY_TICKET, tickets: Math.floor(total/PIETY_TICKET), manual: !!o, runs: hornRuns(name, 0)};
+}
+function charPlan(c){
+  var cache = gearCache[c._id || c.name], g = cache && cache.g; if (!g) return null;
+  var by = {}; (g.items || []).forEach(function(it){ by[it.slot] = it; });
+  var slots = HD.map(function(h){
+    var it = by[h[0]], tier = it && it.d ? +it.d.level || 0 : 0, cur = it ? itemIL(tier, it.grade, it.enchant, it.exceed) : 0;
+    var has = tier >= HD_TIER, ne = newPieceEnch(it), gain = has ? 0 : Math.max(0, Math.round(itemIL(HD_TIER, "Unique", ne, 0) - cur));
+    /* Horn Den pieces already worn: enchanting them up to the goal is free item level (enchant cost is left out) */
+    var free = has && enchGoal() && +it.enchant < enchGoal() && !+it.exceed ? Math.max(0, Math.round(itemIL(tier, it.grade, enchGoal(), 0) - cur)) : 0;
+    return {slot: h[0], label: h[1], w: h[2], it: it, cur: cur, has: has, gain: gain, free: free};
+  });
+  var arc = (g.items || []).filter(function(it){ return /^Arcana/.test(it.slot); }), ARC = {Common: 20, Rare: 40, Legend: 60, Unique: 80};
+  var arcGain = arc.reduce(function(a, it){ return a + Math.max(0, 80 - (ARC[it.grade] || 80)); }, 0);
+  var free = slots.reduce(function(a, s){ return a + s.free; }, 0), il = (+c.il || 0) + free;
+  return {c: c, now: +c.il || 0, free: free, il: il, slots: slots, piety: pietyOf(c.name), arcGain: arcGain, max: il + slots.reduce(function(a, s){ return a + s.gain; }, 0)};
+}
+/* simulate the group running together until everyone reaches the target (or has every piece) */
+function simulate(plans, target){
+  var W = HD.reduce(function(a, h){ return a + h[2]; }, 0), perT = plans.map(function(){ return []; }), perF = plans.map(function(){ return []; }), gT = [], gF = [];
+  for (var s = 0; s < SIMS; s++){
+    var st = plans.map(function(p){ var miss = {}; p.slots.forEach(function(x){ if (!x.has) miss[x.slot] = x.gain; });
+      return {il: p.il, p: p.piety.now, t: 0, miss: miss, dT: p.il >= target ? 0 : (p.max >= target ? -1 : Infinity), dF: Object.keys(miss).length ? -1 : 0}; });
+    var run = 0;
+    while (st.some(function(x){ return x.dF < 0; }) && run < 3000){
+      run++;
+      st.forEach(function(x){
+        if (x.dF >= 0) return;
+        x.p += PIETY_RUN; if (x.p >= PIETY_TICKET){ x.p -= PIETY_TICKET; x.t++; }
+        HD_ROLLS.forEach(function(pr){ if (Math.random() < pr){ var r = Math.random()*W, k = 0; while (r > HD[k][2]){ r -= HD[k][2]; k++; } var sl = HD[k][0]; if (sl in x.miss){ x.il += x.miss[sl]; delete x.miss[sl]; } } });
+        while (x.t > 0){
+          var best = null; Object.keys(x.miss).forEach(function(sl){ if (sl !== "SubHand" && (!best || x.miss[sl] > x.miss[best])) best = sl; });
+          if (best){ x.il += x.miss[best]; delete x.miss[best]; x.t--; continue; }
+          if ("SubHand" in x.miss && x.t >= GUARD_TICKETS){ x.il += x.miss.SubHand; delete x.miss.SubHand; x.t -= GUARD_TICKETS; continue; }
+          break;
+        }
+        if (x.dT < 0 && x.il >= target) x.dT = run;
+        if (!Object.keys(x.miss).length) x.dF = run;
+      });
+    }
+    st.forEach(function(x, i){ perT[i].push(x.dT); perF[i].push(x.dF < 0 ? Infinity : x.dF); });
+    var reach = st.filter(function(x){ return x.dT !== Infinity; });
+    gT.push(reach.length ? Math.max.apply(null, reach.map(function(x){ return x.dT; })) : Infinity);
+    gF.push(Math.max.apply(null, st.map(function(x){ return x.dF < 0 ? Infinity : x.dF; })));
+  }
+  var q = function(a, f){ var b = a.slice().sort(function(x, y){ return x - y; }); return b[Math.min(b.length - 1, Math.floor(f*b.length))]; };
+  var qq = function(a){ return {med: q(a, 0.5), p80: q(a, 0.8)}; };
+  return {t: perT.map(qq), f: perF.map(qq), gT: qq(gT), gF: qq(gF)};
+}
+function energyNow(c){ var e = nowEnergy(c.name, Date.now()); return (e ? e.value : 0) + extraOf(c.name); }
+function readyBy(need, have){
+  var weekly = 7*8*15 + (+ilp.buy || 0), short = need - have;
+  if (short <= 0) return "covered now";
+  var d = new Date(Date.now() + short/weekly*7*864e5);
+  return "about " + d.getDate() + " " + MON[d.getMonth()] + " (" + num(short) + " short, " + num(weekly) + "/week)";
+}
+function rr(n){ return n === Infinity ? "not reachable" : n + (n === 1 ? " run" : " runs"); }
+var ilSim = null, ilSimKey = "";
+function renderIlPlan(){
+  var el = $("ilplan"); if (!el || $("panel-ilplan").hidden) return;
+  if (!chars.length){ el.innerHTML = '<div class="empty-state">Loading the roster…</div>'; return; }
+  if (!runs && fetchRuns) loadRuns(true);
+  if (!ilp.sel || !ilp.sel.length) ilp.sel = ["Eos", "Xentis", "Mv", "Yunkyoung"].filter(function(n){ return byName(n); });
+  var sel = ilp.sel.map(byName).filter(Boolean);
+  sel.forEach(function(c){ if (!gearCache[c._id || c.name]) loadGear(c); });
+  var plans = sel.map(charPlan), ready = plans.every(Boolean) && runs;
+  var groups = {}, order = [];
+  chars.forEach(function(c){ if (!groups[c.player]){ groups[c.player] = []; order.push(c.player); } groups[c.player].push(c); });
+  var html = '<div class="ilctl"><label>Target item level <input class="pin" type="number" step="50" min="1000" max="4000" id="ilt" value="' + ilp.target + '"></label>'
+    + '<label>Enchant <select id="ile"><option value="same"' + (ilp.ench === "same" ? " selected" : "") + '>keep current enchant levels</option><option value="10"' + (ilp.ench === "10" ? " selected" : "") + '>enchant Horn Den pieces to +10</option><option value="15"' + (ilp.ench === "15" ? " selected" : "") + '>enchant Horn Den pieces to +15</option></select></label>'
+    + '<label>Energy bought per week <input class="pin" type="number" step="40" min="0" max="5000" id="ilb" value="' + ilp.buy + '"></label></div>'
+    + '<div class="ilpick">' + order.map(function(pl){ return '<span class="ilpl">' + esc(pl) + '</span>' + groups[pl].map(function(c){ return '<button type="button" class="chipbtn' + (ilp.sel.indexOf(c.name) >= 0 ? " on" : "") + '" data-ilc="' + esc(c.name) + '">' + esc(c.name) + '</button>'; }).join(""); }).join("") + '</div>';
+  if (!sel.length){ el.innerHTML = html + '<div class="empty-state">Pick the characters that run Horn Den together.</div>'; return; }
+  if (!ready){ el.innerHTML = html + '<div class="empty-state">Loading gear and the run log…</div>'; return; }
+  var key = JSON.stringify([ilp.target, ilp.ench, plans.map(function(p){ return [p.c.name, p.il, p.max, p.piety.now, p.slots.map(function(s){ return s.gain; })]; })]);
+  if (key !== ilSimKey){ ilSim = simulate(plans, +ilp.target); ilSimKey = key; }
+  var reach = plans.filter(function(p){ return p.max >= ilp.target; }), worst = null;
+  plans.forEach(function(p, i){ if (!worst || ilSim.f[i].med > ilSim.f[worst.i].med) worst = {p: p, i: i}; });
+  var low = Math.min.apply(null, sel.map(energyNow)), gT = ilSim.gT, gF = ilSim.gF;
+  html += '<div class="ilsum"><div><span>Reach ' + num(ilp.target) + '</span><b>' + reach.length + ' of ' + plans.length + '</b><small>' + (reach.length ? (gT.med ? gT.med + ' runs together (80%: ' + gT.p80 + ')' : 'already there') : 'none with Horn Den alone') + '</small></div>'
+    + '<div><span>Full Horn Den sets, everyone</span><b>' + gF.med + ' runs</b><small>' + num(gF.med*RUN_ENERGY) + ' energy each · 80%: ' + gF.p80 + ' runs</small></div>'
+    + '<div><span>Slowest to a full set</span><b>' + esc(worst.p.c.name) + '</b><small>' + ilSim.f[worst.i].med + ' runs alone · ' + worst.p.slots.filter(function(s){ return !s.has; }).length + ' pieces missing</small></div>'
+    + '<div><span>Energy for full sets</span><b class="sm">' + esc(readyBy(gF.med*RUN_ENERGY, low)) + '</b><small>lowest energy in the group (' + num(low) + '), refill + ' + num(ilp.buy) + ' bought/week</small></div></div>';
+  html += '<div class="ilgrid">';
+  plans.forEach(function(p, i){
+    var t = ilSim.t[i], f = ilSim.f[i], have = energyNow(p.c), pt = p.piety;
+    html += '<div class="ilcard"><div class="ilh">' + glyph(p.c.cls, true) + '<b>' + esc(p.c.name) + '</b><span class="ilnow">' + num(p.now) + '<i> → ' + num(ilp.target) + '</i></span></div>'
+      + '<div class="ilrow"><span>Piety</span><b>' + pt.now + ' / ' + PIETY_TICKET + '</b><small>' + Math.ceil((PIETY_TICKET - pt.now)/PIETY_RUN) + ' runs to the next ticket · ' + (pt.manual ? 'set by hand' : pt.runs + ' Normal runs logged') + '</small>'
+      + '<input class="pin ilpi" type="number" min="0" max="27" data-ilpi="' + esc(p.c.name) + '" placeholder="set" title="Set the piety you see in game if runs were done without Aleks"></div>'
+      + '<div class="ilslots">' + p.slots.map(function(s){
+          var n = s.it ? s.it.name.split(" ")[0] : "–";   /* gear family, e.g. Vakron / Nuakum */
+          return '<div class="ils' + (s.has ? " ok" : "") + '"><span>' + s.label + '</span><b>' + esc(n) + (s.it ? ' +' + s.it.enchant + (s.it.exceed ? '+' + s.it.exceed : '') : '') + '</b><i>' + (s.has ? (s.free ? '✓ +' + s.free : '✓') : '+' + s.gain) + '</i></div>'; }).join("") + '</div>'
+      + '<div class="ilres">'
+      + (p.free ? '<small>Enchanting the Horn Den pieces you have to +' + enchGoal() + ': <b>+' + p.free + '</b> without energy → ' + num(p.il) + '</small>' : '')
+      + (p.il >= ilp.target ? '<b class="okc">' + num(ilp.target) + ' without more runs</b>'
+          : p.max < ilp.target ? '<b class="bad">Full Horn Den set only reaches about ' + num(p.max) + '</b>'
+          : '<b>' + num(ilp.target) + ' after about ' + rr(t.med) + '</b><small>80%: ' + t.p80 + ' runs · ' + num(t.med*RUN_ENERGY) + ' energy · has ' + num(have) + ' → ' + esc(readyBy(t.med*RUN_ENERGY, have)) + '</small>')
+      + '<small>Full set: ' + (f.med ? 'about ' + rr(f.med) + ' (80%: ' + f.p80 + ')' : 'done') + ' → about ' + num(p.max) + (p.arcGain ? ' · Arcana to gold later: +' + p.arcGain : '') + '</small></div></div>';
+  });
+  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets go to the biggest missing upgrade. Enchant cost is left out: at +10/+15, Horn Den pieces you already have count as enchanted for free. Item levels per piece are estimated from tier and enchant (about ±2); the starting item level is the official one and updates hourly.</p>';
+}
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
-  ["builder", "energy", "planner", "progress", "gear", "runs"].forEach(function(n){ $("panel-" + n).hidden = n !== name; });
+  ["builder", "energy", "planner", "progress", "gear", "runs", "ilplan"].forEach(function(n){ $("panel-" + n).hidden = n !== name; });
+  if (name === "ilplan") renderIlPlan();
   if (name === "runs") loadRuns();
   if (name === "progress") loadHist();
   if (name === "gear") renderGear();
   try { localStorage.setItem("myth-builder:tab", name); } catch (e) {}
 }
-try { var t0 = localStorage.getItem("myth-builder:tab"); if (t0 === "energy" || t0 === "progress" || t0 === "gear" || t0 === "runs") setTab(t0); } catch (e) {}
+try { var t0 = localStorage.getItem("myth-builder:tab"); if (t0 === "energy" || t0 === "progress" || t0 === "gear" || t0 === "runs" || t0 === "ilplan") setTab(t0); } catch (e) {}
 
 /* ---- boot ---- */
 renderBuilder(); renderEnergy(); renderClock();
@@ -1465,6 +1632,10 @@ function start(){
     var w = s.exists ? s.data() : null;
     if (w) weekc = {key: String(w.key || ""), conquest: +w.conquest || 0, trans: +w.trans || 0};
     if (!typing()) renderPlanner();
+  });
+  db.doc("plan/ilplan").onSnapshot(function(s){
+    var d = s.exists ? s.data() : null; ilplan = d && typeof d === "object" ? d : {piety: {}};
+    if (!typing()) renderIlPlan();
   });
   db.doc("plan/eplan").onSnapshot(function(s){
     var e = s.exists ? s.data() : null;
