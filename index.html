@@ -376,7 +376,7 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
 .ilsum span{font-family:var(--mono);font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .ilsum b{display:block;font-family:var(--mono);font-size:1.3rem}.ilsum b.sm{font-size:.9rem;font-family:var(--body);margin:3px 0}
 .ilsum small{color:var(--muted);font-size:.68rem}
-.ilgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr));gap:12px}
+.ilgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:12px}
 .ilctl select{max-width:100%}.ilctl label{flex-wrap:wrap}
 .ilcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .ilh{display:flex;align-items:center;gap:8px}.ilh b{font-family:var(--display);font-size:1.05rem}
@@ -384,9 +384,9 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
 .ilrow{display:grid;grid-template-columns:auto auto minmax(0,1fr) 64px;gap:8px;align-items:baseline;font-size:.76rem}
 .ilrow span{color:var(--muted)}.ilrow b{font-family:var(--mono)}.ilrow small{color:var(--muted);font-size:.68rem}
 .ilrow .pin{width:64px;padding:2px 6px;font-size:.74rem}
-.ilslots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.ilslots{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px}
 .ils{display:grid;grid-template-columns:4.4rem minmax(0,1fr) auto;gap:4px;align-items:baseline;background:var(--surface-2);border-radius:5px;padding:3px 7px;font-size:.72rem}
-.ils span{color:var(--muted)}.ils b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ils span{color:var(--muted)}.ils b{font-weight:500;overflow-wrap:anywhere;line-height:1.2}
 .ils i{font-style:normal;font-family:var(--mono);color:var(--accent-2)}
 .ils.ok i{color:var(--good)}
 .ilres{display:flex;flex-direction:column;gap:2px;font-size:.8rem}.ilres small{color:var(--muted);font-size:.7rem}.ilres small b{color:var(--good)}
