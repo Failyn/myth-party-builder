@@ -288,6 +288,41 @@ button{cursor:pointer}
 .sk img{width:100%;height:100%;display:block}
 .sk b{position:absolute;right:1px;bottom:0;font-family:var(--mono);font-size:.58rem;font-weight:700;color:#fff;background:rgba(0,0,0,.72);border-radius:3px;padding:0 2px;line-height:1.25}
 .arcs{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+/* Daevanion boards (Equipment tab) */
+.gmode{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:8px}
+.gmode button{background:none;border:0;color:var(--muted);font:inherit;font-size:.74rem;padding:4px 10px;cursor:pointer}
+.gmode button.on{background:color-mix(in srgb,var(--accent-2) 18%,transparent);color:var(--text)}
+.dvtabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.dvtab{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--text);font:inherit;cursor:pointer;text-align:left;min-width:0}
+.dvtab img{width:26px;height:26px;flex:none;opacity:.85}
+.dvtab b{display:block;font-size:.82rem}.dvtab small{display:block;font-family:var(--mono);font-size:.62rem;color:var(--muted);white-space:nowrap}
+.dvtab.on{border-color:var(--accent-2);box-shadow:inset 0 -2px 0 var(--accent-2)}
+.dvmain{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+.dvboard{position:relative;border:1px solid var(--line);border-radius:10px;background:radial-gradient(circle at 50% 50%,rgba(230,176,74,.07),transparent 65%),#0c1017;padding:8px}
+.dvboard svg{display:block;width:100%;height:auto}
+.dvboard .nd{cursor:default}
+.dvinfo{min-height:2.6em;margin-top:6px;font-size:.76rem;color:var(--muted);line-height:1.3}
+.dvinfo b{color:var(--text)}
+.dvside h4,.dvall h4{font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;font-weight:500;display:flex;justify-content:space-between}
+.dvside .blk{margin-bottom:14px}
+.dvst{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:.78rem}
+.dvst span:nth-child(even){font-family:var(--mono);text-align:right}
+.dvst .off{color:#e6b04a}.dvst .def{color:#8fb4d9}.dvst .bad{color:#e06c6c}
+.dvsk{display:flex;flex-wrap:wrap;gap:4px}
+.dvsk span{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 6px 2px 2px}
+.dvsk img{width:18px;height:18px;border-radius:3px}
+.dvall{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:20px}
+.dvtw{overflow-x:auto}
+table.dvtbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.dvtbl th{font-family:var(--mono);font-size:.58rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:3px 6px;border-bottom:1px solid var(--line)}
+.dvtbl td{padding:3px 6px;border-bottom:1px solid color-mix(in srgb,var(--line) 50%,transparent);white-space:nowrap}
+.dvtbl td.n{font-family:var(--mono);text-align:right}
+.dvtbl .si{display:flex;align-items:center;gap:6px}.dvtbl .si img{width:20px;height:20px;border-radius:4px}
+.dvtbl .dots i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:2px;background:#2a3140;border:1px solid #3a4356}
+.dvtbl .dots i.on{background:#4fa3ff;border-color:#4fa3ff}
+.dvtbl .bp{font-family:var(--mono);font-size:.72rem}.bp.ok{color:#e6b04a}.bp.waste{color:#e06c6c}.bp.mut{color:var(--muted)}
+.dvtbl tr.off td{opacity:.6}
+@media (max-width:860px){ .dvmain,.dvall{grid-template-columns:minmax(0,1fr)} .dvtabs{grid-template-columns:repeat(2,minmax(0,1fr))} }
 .arcs .arc-h{font-size:.64rem}
 .arow{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px}
 .acell{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
@@ -868,6 +903,8 @@ document.addEventListener("click", function(ev){
   if (d.rw){ runWeek = Math.max(0, runWeek + (+d.rw)); renderRuns(); return; }
   if (d.gc){ gearSel = d.gc; gearOpen = null; renderGear(); var sh = $("sheet"); if (sh && sh.getBoundingClientRect().top > innerHeight) sh.scrollIntoView({behavior: "smooth", block: "start"}); return; }
   if (d.gi){ gearClick(d.gi); return; }
+  if (d.gmode){ gearMode = d.gmode; gearOpen = null; try { localStorage.setItem("myth-builder:gmode", gearMode); } catch (e) {} renderGear(); return; }
+  if (d.dvb != null){ dvBoard = +d.dvb; renderGear(); return; }
   if (d.gclose){ gearOpen = null; renderGear(); return; }
   if (d.pc){ progSel = d.pc; renderProgress(); var pc = document.querySelector(".pchart"); if (pc && pc.getBoundingClientRect().top > innerHeight) pc.scrollIntoView({behavior: "smooth", block: "start"}); return; }
   if (d.pm){ progM = d.pm; try { localStorage.setItem("myth-builder:metric", progM); } catch (e) {} renderProgress(); return; }
@@ -1217,6 +1254,8 @@ function renderProgress(){
 }
 /* ---- equipment tab: worn gear per character, item stats on click ---- */
 var gearSel = null, gearCache = {}, gearBusy = {}, gearOpen = null, fetchGear = null, gearItems = {};
+var gearMode = "gear", dvBoard = 0;  /* Equipment tab: worn gear or Daevanion boards; which of the four boards */
+try { if (localStorage.getItem("myth-builder:gmode") === "dv") gearMode = "dv"; } catch (e) {}
 var GRADE = {Common: "#c3c8d0", Rare: "#5fcf86", Legend: "#4fa3ff", Unique: "#e6b04a", Epic: "#ff8c42", Special: "#3fd3c6"};
 var GLEFT = [["MainHand", "Weapon"], ["SubHand", "Off-hand"], ["Helmet", "Helm"], ["Shoulder", "Pauldrons"], ["Torso", "Top"], ["Pants", "Legs"], ["Gloves", "Gloves"], ["Boots", "Shoes"], ["Cape", "Cloak"], ["Belt", "Belt"]];
 var GRIGHT = [["Necklace", "Necklace"], ["Amulet", "Amulet"], ["Earring1", "Left earring"], ["Earring2", "Right earring"], ["Ring1", "Left ring"], ["Ring2", "Right ring"], ["Bracelet1", "Left bracelet"], ["Bracelet2", "Right bracelet"], ["Rune1", "Left rune"], ["Rune2", "Right rune"]];
@@ -1310,9 +1349,12 @@ function renderGear(){
   gearItems = bySlot;
   var em = ART.cls[CLSKEY[c.cls] || String(c.cls || "").toLowerCase()];
   var when = ""; try { if (g && g.at) when = "Updated " + new Date(g.at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}); } catch (e) {}
-  html += '<div class="sheet" id="sheet">' + (em ? '<img class="wm" alt="" src="' + em + '">' : '') + '<div class="sheet-h"><h2>Equipment</h2><span class="when">' + esc(when) + '</span></div>';
+  var dvm = gearMode === "dv";
+  html += '<div class="sheet" id="sheet">' + (em ? '<img class="wm" alt="" src="' + em + '">' : '') + '<div class="sheet-h"><h2>' + (dvm ? 'Daevanion' : 'Equipment') + '</h2>'
+    + '<span class="gmode"><button type="button" data-gmode="gear" class="' + (dvm ? '' : 'on') + '">Gear</button><button type="button" data-gmode="dv" class="' + (dvm ? 'on' : '') + '">Daevanion</button></span><span class="when">' + esc(when) + '</span></div>';
   if (!cache) html += '<div class="empty-state">Loading ' + esc(c.name) + '\'s equipment…</div>';
   else if (!g) html += '<div class="empty-state">No equipment saved for ' + esc(c.name) + ' yet. It is added by the hourly update.</div>';
+  else if (dvm) html += dvView(c, g);
   else {
     html += '<div class="doll"><div class="gcol l">' + GLEFT.map(function(s){ return gearItem(bySlot[s[0]], s[1], false); }).join("") + '</div>'
       + '<div class="gcen"><div class="gpor">' + (em ? '<img class="fb" alt="" src="' + em + '">' : '') + '</div><div><div class="nm">' + esc(c.name) + '</div><div class="cl">' + esc(c.cls) + ' · ' + esc(c.player) + '</div>'
@@ -1321,12 +1363,104 @@ function renderGear(){
   }
   html += '</div></div>';
   el.innerHTML = html;
-  if (c.img && g){ var por = el.querySelector(".gpor"), im = new Image(); im.className = "p"; im.alt = ""; im.onload = function(){ por.innerHTML = ""; por.appendChild(im); }; im.src = c.img; }
+  if (dvm) dvHover(el);
+  if (c.img && g && !dvm){ var por = el.querySelector(".gpor"), im = new Image(); im.className = "p"; im.alt = ""; im.onload = function(){ por.innerHTML = ""; por.appendChild(im); }; im.src = c.img; }
   if (gearOpen && bySlot[gearOpen]) openCard(bySlot[gearOpen]);
   /* mouse: show the stat card while hovering; a click pins it. Touch keeps tap-to-open. */
   Array.prototype.forEach.call(el.querySelectorAll(".gitem[data-gi], .acard[data-gi]"), function(b){
     b.addEventListener("pointerenter", function(ev){ if (ev.pointerType !== "mouse" || gearOpen) return; var it = gearItems[b.dataset.gi]; if (it) openCard(it, true); });
     b.addEventListener("pointerleave", function(ev){ if (ev.pointerType !== "mouse" || gearOpen) return; closeHover(); });
+  });
+}
+/* ---- Daevanion boards: the four main boards, saved by the hourly job as gear '<id>~dv<board>' ---- */
+var DV_COST = {w: 1, g: 2, b: 3, o: 4}, DV_GNAME = {w: "White", g: "Green", b: "Blue", o: "Orange"}, DV_GCOL = {w: "#c3c8d0", g: "#5fcf86", b: "#4fa3ff", o: "#e6b04a"};
+var DV_BP = [8, 12, 16, 20];  /* active skills only matter at these levels (Aleks) */
+var DV_OFF = /^(Attack Bonus|Critical Hit|Multi-hit Chance|Cooldown Reduction|Combat Speed|Damage Boost|Critical Damage Boost)$/;
+var DV_BAD = /^(MP|Defense Bonus|Multi-hit Resist)$/;  /* avoided (Aleks): MP, defense, multi-hit resist; HP and the resists are skippable defence */
+var dvNodes = [];
+function dvClass(stat){ return DV_OFF.test(stat) ? "off" : DV_BAD.test(stat) ? "bad" : "def"; }
+function dvParse(desc){  /* "Attack Bonus +27" or "Cooldown Reduction +3%" -> [name, value, isPercent] */
+  return String(desc || "").split("; ").map(function(e){ var m = /^(.*?) \+([\d.]+)(%?)$/.exec(e); return m ? [m[1], +m[2], !!m[3]] : null; }).filter(Boolean);
+}
+function dvStats(tiles){
+  var tot = {}, order = [];
+  tiles.forEach(function(t){ if (t[3] !== "s" || !t[4]) return; dvParse(t[5]).forEach(function(x){ var k = x[0]; if (!tot[k]){ tot[k] = [0, x[2]]; order.push(k); } tot[k][0] += x[1]; }); });
+  var rank = {off: 0, def: 1, bad: 2};
+  order.sort(function(a, b){ return rank[dvClass(a)] - rank[dvClass(b)] || tot[b][0] - tot[a][0]; });
+  if (!order.length) return '<div class="dvinfo">No stat tiles opened.</div>';
+  return '<div class="dvst">' + order.map(function(k){ var v = tot[k]; return '<span class="' + dvClass(k) + '">' + esc(k) + '</span><span>+' + (Math.round(v[0]*10)/10) + (v[1] ? '%' : '') + '</span>'; }).join("") + '</div>';
+}
+function dvSvg(b, icons){
+  var t = b.t || [], cs = 32, r0 = 99, r1 = 0, c0 = 99, c1 = 0, at = {};
+  t.forEach(function(n, i){ r0 = Math.min(r0, n[0]); r1 = Math.max(r1, n[0]); c0 = Math.min(c0, n[1]); c1 = Math.max(c1, n[1]); at[n[0] + "," + n[1]] = n; });
+  var X = function(c){ return (c - c0 + .5) * cs; }, Y = function(r){ return (r - r0 + .5) * cs; };
+  var w = (c1 - c0 + 1) * cs, h = (r1 - r0 + 1) * cs, lines = "", nodes = "";
+  t.forEach(function(n){ [[0, 1], [1, 0]].forEach(function(d){ var m = at[(n[0] + d[0]) + "," + (n[1] + d[1])]; if (!m) return;
+    var lit = n[4] && m[4];
+    lines += '<line x1="' + X(n[1]) + '" y1="' + Y(n[0]) + '" x2="' + X(m[1]) + '" y2="' + Y(m[0]) + '" stroke="' + (lit ? '#e6b04a' : '#2b3345') + '" stroke-width="' + (lit ? 2.4 : 1.6) + '"' + (lit ? ' stroke-opacity=".75"' : '') + '/>'; }); });
+  t.forEach(function(n){
+    var x = X(n[1]), y = Y(n[0]), col = DV_GCOL[n[2]] || "#8892a6", op = n[4], k = dvNodes.length; dvNodes.push(n);
+    var g = '<g class="nd" data-dvn="' + k + '">';
+    if (n[3] === "x") g += '<circle cx="' + x + '" cy="' + y + '" r="11" fill="#e6b04a" fill-opacity=".25" stroke="#e6b04a" stroke-width="2"/><circle cx="' + x + '" cy="' + y + '" r="4" fill="#e6b04a"/>';
+    else if (n[3] === "k"){
+      var nm = (dvParse(n[5])[0] || [""])[0], ic = icons[nm], s = 24;
+      g += '<rect x="' + (x - s/2 - 2) + '" y="' + (y - s/2 - 2) + '" width="' + (s + 4) + '" height="' + (s + 4) + '" rx="6" fill="#0c1017" stroke="' + col + '" stroke-width="' + (op ? 2.2 : 1.4) + '"' + (op ? '' : ' stroke-opacity=".5"') + '/>';
+      if (ic) g += '<image href="' + esc(ic) + '" x="' + (x - s/2) + '" y="' + (y - s/2) + '" width="' + s + '" height="' + s + '"' + (op ? '' : ' opacity=".28" filter="url(#dvgray)"') + '/>';
+      else g += '<text x="' + x + '" y="' + (y + 4) + '" text-anchor="middle" font-size="10" fill="' + col + '">S</text>';
+    } else {
+      var rr = {w: 5, g: 7.5, b: 8.5, o: 10}[n[2]] || 5;
+      if (n[2] === "w") g += '<circle cx="' + x + '" cy="' + y + '" r="' + rr + '" fill="' + (op ? col : '#151a24') + '" stroke="' + col + '" stroke-width="1.4"' + (op ? '' : ' stroke-opacity=".5"') + '/>';
+      else g += '<path d="M' + x + ' ' + (y - rr) + 'L' + (x + rr) + ' ' + y + 'L' + x + ' ' + (y + rr) + 'L' + (x - rr) + ' ' + y + 'Z" fill="' + (op ? col : '#151a24') + '" stroke="' + col + '" stroke-width="1.6"' + (op ? '' : ' stroke-opacity=".55"') + '/>';
+    }
+    nodes += g + '<title>' + esc(n[5] || "Start") + '</title></g>';
+  });
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(b.n || "Board") + '"><defs><filter id="dvgray"><feColorMatrix type="saturate" values="0"/></filter></defs>' + lines + nodes + '</svg>';
+}
+function dvPts(b){ var p = 0, o = 0, n = 0; (b.t || []).forEach(function(x){ if (x[3] === "x") return; n++; if (x[4]){ o++; p += DV_COST[x[2]] || 0; } }); return {pts: p, open: o, total: n}; }
+function dvView(c, g){
+  var boards = (g.boards || []).slice(0, 4);
+  if (!boards.length) return '<div class="empty-state">No Daevanion boards saved for ' + esc(c.name) + ' yet. They are added by the hourly update.</div>';
+  if (dvBoard >= boards.length) dvBoard = 0;
+  var icons = {}, skill = {}; (g.skills || []).forEach(function(k){ icons[k[0]] = k[1]; skill[k[0]] = k; });
+  dvNodes = [];
+  var all = 0, html = '<div class="dvtabs">';
+  boards.forEach(function(b, i){ var s = dvPts(b); all += s.pts;
+    html += '<button type="button" class="dvtab' + (i === dvBoard ? ' on' : '') + '" data-dvb="' + i + '"><div><b>' + esc(b.n || ("Board " + (i + 1))) + '</b><small>' + s.pts + ' pts · ' + s.open + '/' + s.total + ' tiles</small></div></button>'; });
+  html += '</div>';
+  var b = boards[dvBoard], st = dvPts(b), sk = [];
+  (b.t || []).forEach(function(n){ if (n[3] === "k" && n[4]) sk.push(n); });
+  html += '<div class="dvmain"><div><div class="dvboard">' + dvSvg(b, icons) + '</div><div class="dvinfo" id="dvinfo">Hover a tile to see what it gives.</div></div><div class="dvside">'
+    + '<div class="blk"><h4><span>' + esc(b.n || "") + '</span><span>' + st.pts + ' pts</span></h4><div class="dvinfo" style="margin:0">' + st.open + ' of ' + st.total + ' tiles open · all four boards ' + all + ' pts' + (c.dvPts ? ' (game: ' + c.dvPts + ')' : '') + '</div></div>'
+    + '<div class="blk"><h4><span>Skill tiles on this board</span><span>' + sk.length + '</span></h4><div class="dvsk">' + (sk.length ? sk.map(function(n){ var nm = (dvParse(n[5])[0] || [n[5]])[0]; return '<span>' + (icons[nm] ? '<img alt="" src="' + esc(icons[nm]) + '">' : '') + esc(nm) + '</span>'; }).join("") : '<span>none</span>') + '</div></div>'
+    + '<div class="blk"><h4><span>Stats on this board</span></h4>' + dvStats(b.t || []) + '</div></div></div>';
+  /* across the four boards: skill levels against the breakpoints, and the stat totals */
+  var fromB = {}, allT = [];
+  boards.forEach(function(bb){ (bb.t || []).forEach(function(n){ allT.push(n); if (n[3] !== "k") return; var nm = (dvParse(n[5])[0] || [""])[0]; fromB[nm] = fromB[nm] || [0, 0]; fromB[nm][1]++; if (n[4]) fromB[nm][0]++; }); });
+  var names = Object.keys(fromB);
+  (g.skills || []).forEach(function(k){ if ((k[3] === "Active" || k[3] === "Passive") && names.indexOf(k[0]) < 0) names.push(k[0]); });
+  var rows = names.map(function(nm){ var k = skill[nm] || [nm, "", 0, "", 1]; return {nm: nm, ic: k[1], lv: +k[2] || 0, kind: k[3] || "?", eq: k[4] !== 0, b: fromB[nm] || [0, 0]}; });
+  var kr = {Active: 0, Passive: 1}; rows.sort(function(a, b){ return (kr[a.kind] != null ? kr[a.kind] : 2) - (kr[b.kind] != null ? kr[b.kind] : 2) || b.lv - a.lv; });
+  html += '<div class="dvall"><div><h4><span>Skills · all four boards</span><span>breakpoints 8 · 12 · 16 · 20</span></h4><div class="dvtw"><table class="dvtbl"><thead><tr><th>Skill</th><th>Type</th><th style="text-align:right">Level</th><th>From boards</th><th>Breakpoint</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var bp = "", cls = "mut";
+    if (r.kind === "Active"){
+      var reached = 0; DV_BP.forEach(function(x){ if (r.lv >= x) reached = x; });
+      var nxt = DV_BP.filter(function(x){ return x > r.lv; })[0];
+      if (r.lv <= 1) bp = "rank 1";
+      else if (r.lv === reached){ bp = "✓ " + reached; cls = "ok"; }
+      else { bp = (reached ? "+" + (r.lv - reached) + " over " + reached : "below 8") + (nxt ? " · " + (nxt - r.lv) + "→" + nxt : ""); cls = reached ? "waste" : "mut"; }
+    }
+    var dots = ""; for (var i = 0; i < Math.max(4, r.b[1]); i++) dots += '<i class="' + (i < r.b[0] ? 'on' : '') + '"></i>';
+    html += '<tr class="' + (r.kind === "Active" && !r.eq ? 'off' : '') + '"><td><span class="si">' + (r.ic ? '<img alt="" src="' + esc(r.ic) + '">' : '') + esc(r.nm) + '</span></td><td>' + esc(r.kind) + (r.kind === "Active" && !r.eq ? ' <span class="bp mut">off bar</span>' : '') + '</td><td class="n">' + (r.lv || "–") + '</td><td class="dots">' + dots + ' <span class="bp mut">' + r.b[0] + '/' + r.b[1] + '</span></td><td><span class="bp ' + cls + '">' + bp + '</span></td></tr>';
+  });
+  html += '</tbody></table></div></div><div><h4><span>Stats · all four boards</span></h4>' + dvStats(allT) + '<div class="dvinfo">Gold = offensive, blue = defensive, red = usually avoided (MP, Defense, Multi-hit Resist).</div></div></div>';
+  return html;
+}
+function dvHover(el){
+  var info = el.querySelector("#dvinfo"); if (!info) return;
+  Array.prototype.forEach.call(el.querySelectorAll(".dvboard .nd"), function(g){
+    g.addEventListener("pointerenter", function(){ var n = dvNodes[+g.dataset.dvn]; if (!n) return;
+      info.innerHTML = n[3] === "x" ? '<b>Start</b>' : '<b>' + esc(n[5]) + '</b> · ' + (DV_GNAME[n[2]] || "") + ' tile, ' + (DV_COST[n[2]] || 0) + ' pt' + ((DV_COST[n[2]] || 0) === 1 ? '' : 's') + ' · ' + (n[4] ? '<span style="color:#5fcf86">open</span>' : 'closed'); });
   });
 }
 function closeHover(){ Array.prototype.forEach.call(document.querySelectorAll(".icard.hov"), function(x){ x.remove(); }); }
@@ -1353,7 +1487,7 @@ function arcanaStrip(g){
   return '<div class="arcs"><div class="arc-h"><span>Arcana</span><span>' + n + ' / ' + ARC_TYPES.length + '</span></div><div class="arow">' + tiles + '</div></div>';
 }
 function skillsBlock(g){
-  var sk = g.skills || [], act = sk.filter(function(k){ return k[3] === "Active"; }), stg = sk.filter(function(k){ return k[3] === "Stigma"; });
+  var sk = g.skills || [], act = sk.filter(function(k){ return k[3] === "Active" && k[4] !== 0; }), stg = sk.filter(function(k){ return k[3] === "Stigma"; });
   if (!act.length && !stg.length) return '';
   var icons = function(list){ return '<div class="skg">' + list.map(function(k){ return '<span class="sk" title="' + esc(k[0]) + ' · Lv ' + esc(k[2]) + '">' + (k[1] ? '<img alt="' + esc(k[0]) + '" src="' + esc(k[1]) + '" loading="lazy">' : '') + '<b>' + esc(k[2]) + '</b></span>'; }).join("") + '</div>'; };
   return '<div class="skb">' + (act.length ? '<div class="arc-h"><span>Skills</span><span>' + act.length + '</span></div>' + icons(act) : '')
@@ -1661,10 +1795,11 @@ db = {
 };
 fetchGear = function(id, ok, bad){  /* gear is stored as '<id>~_' (worn slots) plus one '<id>~<slot>' record per item */
   fetch(SB.url + "/rest/v1/docs?select=id,data&coll=eq.gear&id=like." + encodeURIComponent(id + "~*"), {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(rows){
-    var meta = null, by = {};
-    rows.forEach(function(x){ var slot = x.id.slice(id.length + 1); if (x.id.indexOf(id + "~") !== 0) return; if (slot === "_") meta = x.data; else by[slot] = x.data; });
+    var meta = null, by = {}, boards = [];  /* '<id>~dv<board>' records are the Daevanion boards */
+    rows.forEach(function(x){ var slot = x.id.slice(id.length + 1); if (x.id.indexOf(id + "~") !== 0) return; if (slot === "_") meta = x.data; else if (/^dv\d+$/.test(slot)) boards.push(Object.assign({id: +slot.slice(2)}, x.data)); else by[slot] = x.data; });
     if (!meta) return ok([]);
-    ok([{data: {at: meta.at, skills: meta.skills || [], items: (meta.slots || []).map(function(sl){ return by[sl]; }).filter(Boolean)}}]);
+    boards.sort(function(a, b){ return a.id - b.id; });
+    ok([{data: {at: meta.at, skills: meta.skills || [], boards: boards, items: (meta.slots || []).map(function(sl){ return by[sl]; }).filter(Boolean)}}]);
   }).then(null, bad);
 };
 fetchRuns = function(ok, bad){  /* the run log (plan/run~<id>), loaded only when needed; the database returns at most 1000 rows per request */

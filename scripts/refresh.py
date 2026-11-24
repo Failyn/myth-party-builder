@@ -47,24 +47,35 @@ def read_once(cid):
     boards = (info.get("daevanion") or {}).get("boardList") or []
     info["profile"]["_dv"] = sum(int(b.get("openNodeCount") or 0) for b in boards)   # open Daevanion nodes, all boards
     info["profile"]["_dvBoards"] = [b.get("id") for b in boards][:4]                   # the four main boards
+    info["profile"]["_dvNames"] = {b.get("id"): b.get("name", "") for b in boards}
     return info["profile"], (il[0] if il else 0)
 
 
 DV_COST = {"Common": 1, "Rare": 2, "Legend": 3, "Unique": 4}   # Daevanion points per tile colour (white/green/blue/orange)
 
 
-def daevanion_points(cid, board_ids):
-    """Points spent on the four main boards (the number the game shows) and closed white tiles left."""
+DV_GRADE = {"Common": "w", "Rare": "g", "Legend": "b", "Unique": "o"}
+DV_TYPE = {"Stat": "s", "SkillLevel": "k", "Start": "x"}
+
+
+def daevanion_points(cid, board_ids, names=None):
+    """Points spent on the four main boards (the number the game shows), closed white tiles left, and the
+    boards themselves as {boardId: {"n": name, "t": [[row, col, grade, type, open, effects]...]}} (empty cells left out)."""
     pts = white = 0
+    boards = {}
     for b in board_ids:
         nodes = get_json("https://aion2.plaync.com/api/character/daevanion/detail",
                          {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER, "boardId": b})["nodeList"]
         pts += sum(DV_COST.get(n.get("grade"), 0) for n in nodes if n.get("open"))
         white += sum(1 for n in nodes if not n.get("open") and n.get("grade") == "Common")
-    return pts, white
+        boards[b] = {"n": (names or {}).get(b, ""), "t": [
+            [n.get("row"), n.get("col"), DV_GRADE.get(n.get("grade"), ""), DV_TYPE.get(n.get("type"), "?"), 1 if n.get("open") else 0,
+             "; ".join(e.get("desc", "") for e in (n.get("effectList") or []) if e.get("desc"))]
+            for n in nodes if n.get("type") not in (None, "None")]}
+    return pts, white, boards
 
 
-def fetch(entry, prev):
+def fetch(entry, prev, need_boards=False):
     """The official page often reports an item level of 0 or a partial sum.
     Ask several times, keep the highest, and hold the previous value if the
     best answer is still far below it."""
@@ -85,9 +96,11 @@ def fetch(entry, prev):
            "img": profile.get("profileImage") or (prev or {}).get("img", ""),
            "dv": profile.get("_dv") or (prev or {}).get("dv", 0)}
     # main-board points only change when tiles change, so the board details are read again only then
-    if doc["dv"] and (doc["dv"] != (prev or {}).get("dv") or "dvPts" not in (prev or {})):
+    # (and once for characters whose boards are not saved yet)
+    if doc["dv"] and (doc["dv"] != (prev or {}).get("dv") or "dvPts" not in (prev or {}) or need_boards):
         try:
-            doc["dvPts"], doc["dvWhite"] = daevanion_points(cid, profile.get("_dvBoards") or [])
+            doc["dvPts"], doc["dvWhite"], boards = daevanion_points(cid, profile.get("_dvBoards") or [], profile.get("_dvNames"))
+            doc["_boards"] = boards
         except Exception:
             pass
     for k in ("dvPts", "dvWhite"):
@@ -160,10 +173,10 @@ def read_gear(cid, prev_gear):
     base = {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER}
     eqd = get_json("https://aion2.plaync.com/api/character/equipment", base)
     lst = eqd["equipment"]["equipmentList"]
-    # skills: equipped actives and stigmas ("Dp" in the data), plus passives, as [name, icon, level, kind]
-    skills = [[k.get("name", ""), k.get("icon", ""), k.get("skillLevel", 0), {"Dp": "Stigma"}.get(k.get("category"), k.get("category", ""))]
+    # skills: all learned actives and passives, plus equipped stigmas ("Dp" in the data), as [name, icon, level, kind, equipped]
+    skills = [[k.get("name", ""), k.get("icon", ""), k.get("skillLevel", 0), {"Dp": "Stigma"}.get(k.get("category"), k.get("category", "")), 1 if k.get("equip") else 0]
               for k in ((eqd.get("skill") or {}).get("skillList") or [])
-              if k.get("acquired") and (k.get("equip") or k.get("category") == "Passive")]
+              if k.get("acquired") and (k.get("equip") or k.get("category") in ("Passive", "Active"))]
     worn = [it for it in lst if it.get("slotPosName") in WORN or str(it.get("slotPosName", "")).startswith("Arcana")]
     prev_items = {x["slot"]: x for x in (prev_gear or {}).get("items", [])}
     now = time.time()
@@ -271,14 +284,19 @@ def main():
     stored_gear = {}
     for gid, gd in gear_raw.items():
         rid, _, slot = gid.partition("~")
+        if re.match(r"dv\d+$", slot): continue   # saved Daevanion boards, not items
         sg = stored_gear.setdefault(rid, {"items": [], "detAt": 0})
         if slot == "_": sg["detAt"] = gd.get("detAt") or 0
         else: sg["items"].append(gd)
     rows, failed, gear_rows = [], [], []
-    for e in roster:
+    for e in roster:  # gear_rows also collects the Daevanion boards
         try:
-            doc, samples = fetch(e, previous.get(e["id"]))
+            has_boards = any(gid.startswith(e["id"] + "~dv") for gid in gear_raw)
+            doc, samples = fetch(e, previous.get(e["id"]), need_boards=not has_boards)
             doc["readAtIso"] = now
+            for bid, bd in (doc.pop("_boards", None) or {}).items():   # Daevanion boards are saved beside the gear, one record each
+                bd = dict(bd, name=doc["name"], at=now)
+                gear_rows.append({"coll": "gear", "id": "%s~dv%s" % (e["id"], bid), "data": bd, "updated_at": now})
             h = history.setdefault(e["id"], {"pts": [], "il": []})
             if track_high(doc, previous.get(e["id"]), h["pts"], now_min, "cp") | track_high(doc, previous.get(e["id"]), h["il"], now_min, "il"):
                 grown.add(e["id"])
