@@ -1499,7 +1499,7 @@ function simulate(plans, target){
   var W = HD.reduce(function(a, h){ return a + h[2]; }, 0), perT = plans.map(function(){ return []; }), perF = plans.map(function(){ return []; }), gT = [], gF = [];
   for (var s = 0; s < SIMS; s++){
     var st = plans.map(function(p){ var miss = {}; p.slots.forEach(function(x){ if (!x.has) miss[x.slot] = x.gain; });
-      return {il: p.il, p: p.piety.now, t: 0, miss: miss, dT: p.il >= target ? 0 : (p.max >= target ? -1 : Infinity), dF: Object.keys(miss).length ? -1 : 0}; });
+      return {il: p.il, p: p.piety.now, t: "SubHand" in miss ? p.piety.tickets : 0, miss: miss, dT: p.il >= target ? 0 : (p.max >= target ? -1 : Infinity), dF: Object.keys(miss).length ? -1 : 0}; });
     var run = 0;
     while (st.some(function(x){ return x.dF < 0; }) && run < 3000){
       run++;
@@ -1507,10 +1507,10 @@ function simulate(plans, target){
         if (x.dF >= 0) return;
         x.p += PIETY_RUN; if (x.p >= PIETY_TICKET){ x.p -= PIETY_TICKET; x.t++; }
         HD_ROLLS.forEach(function(pr){ if (Math.random() < pr){ var r = Math.random()*W, k = 0; while (r > HD[k][2]){ r -= HD[k][2]; k++; } var sl = HD[k][0]; if (sl in x.miss){ x.il += x.miss[sl]; delete x.miss[sl]; } } });
-        while (x.t > 0){
-          var best = null; Object.keys(x.miss).forEach(function(sl){ if (sl !== "SubHand" && (!best || x.miss[sl] > x.miss[best])) best = sl; });
+        while (x.t > 0){   /* tickets are saved for the guard first (3), then buy the biggest missing piece (Aleks) */
+          if ("SubHand" in x.miss){ if (x.t >= GUARD_TICKETS){ x.il += x.miss.SubHand; delete x.miss.SubHand; x.t -= GUARD_TICKETS; continue; } break; }
+          var best = null; Object.keys(x.miss).forEach(function(sl){ if (!best || x.miss[sl] > x.miss[best]) best = sl; });
           if (best){ x.il += x.miss[best]; delete x.miss[best]; x.t--; continue; }
-          if ("SubHand" in x.miss && x.t >= GUARD_TICKETS){ x.il += x.miss.SubHand; delete x.miss.SubHand; x.t -= GUARD_TICKETS; continue; }
           break;
         }
         if (x.dT < 0 && x.il >= target) x.dT = run;
@@ -1567,7 +1567,7 @@ function renderIlPlan(){
   plans.forEach(function(p, i){
     var t = ilSim.t[i], f = ilSim.f[i], have = energyNow(p.c), pt = p.piety;
     html += '<div class="ilcard"><div class="ilh">' + glyph(p.c.cls, true) + '<b>' + esc(p.c.name) + '</b><span class="ilnow">' + num(p.now) + '<i> → ' + num(ilp.target) + '</i></span></div>'
-      + '<div class="ilrow"><span>Piety</span><b>' + pt.now + ' / ' + PIETY_TICKET + '</b><small>' + Math.ceil((PIETY_TICKET - pt.now)/PIETY_RUN) + ' runs to the next ticket · ' + (pt.tickets ? pt.tickets + (pt.tickets === 1 ? ' ticket' : ' tickets') + ' earned · ' : '') + (pt.manual ? 'set by hand' : pt.runs + ' Normal runs logged') + '</small>'
+      + '<div class="ilrow"><span>Piety</span><b>' + pt.now + ' / ' + PIETY_TICKET + '</b><small>' + Math.ceil((PIETY_TICKET - pt.now)/PIETY_RUN) + ' runs to the next ticket · ' + (pt.tickets ? pt.tickets + (pt.tickets === 1 ? ' ticket' : ' tickets') + ' earned' + (p.slots[0].has ? '' : ' (saved for the guard)') + ' · ' : '') + (pt.manual ? 'set by hand' : pt.runs + ' Normal runs logged') + '</small>'
       + '<input class="pin ilpi" type="number" min="0" max="27" data-ilpi="' + esc(p.c.name) + '" placeholder="set" title="Set the piety you see in game if runs were done without Aleks"></div>'
       + '<div class="ilslots">' + p.slots.map(function(s){
           var n = s.it ? s.it.name.split(" ")[0] : "–";   /* gear family, e.g. Vakron / Nuakum */
@@ -1579,7 +1579,7 @@ function renderIlPlan(){
           : '<b>' + num(ilp.target) + ' after about ' + rr(t.med) + '</b><small>80%: ' + t.p80 + ' runs · ' + num(t.med*RUN_ENERGY) + ' energy · has ' + num(have) + ' → ' + esc(readyBy(t.med*RUN_ENERGY, have)) + '</small>')
       + '<small>Full set: ' + (f.med ? 'about ' + rr(f.med) + ' (80%: ' + f.p80 + ')' : 'done') + ' → about ' + num(p.max) + (p.arcGain ? ' · Arcana to gold later: +' + p.arcGain : '') + '</small></div></div>';
   });
-  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets go to the biggest missing upgrade. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item and necklace, earrings and rings to +10. The starting item level is the official one and updates hourly.</p>';
+  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets are saved for the guard first (3 tickets; tickets already earned count as saved while the guard is missing), then buy the biggest missing piece. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item and necklace, earrings and rings to +10. The starting item level is the official one and updates hourly.</p>';
 }
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
