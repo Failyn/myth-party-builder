@@ -367,6 +367,13 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
 .ilctl label{display:flex;gap:6px;align-items:center}
 .ilctl .pin{width:90px}
 .ilctl select{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.ilinc{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:-2px 0 12px;font-size:.78rem}
+.ilinc .ilincl{color:var(--muted)}
+.ilinc .ilfix{color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:1px 6px}
+.ilinc label{display:flex;gap:5px;align-items:center;cursor:pointer}
+.ilinc label i{font-style:normal;font-family:var(--mono);color:var(--accent-2)}
+.ilinc .pin{width:80px}
+.ilinc .iltot{font-family:var(--mono)}
 .ilpick{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:14px}
 .ilpick .ilpl{font-family:var(--display);font-weight:600;margin:0 2px 0 8px}
 .ilpick .ilpl:first-child{margin-left:0}
@@ -498,7 +505,7 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
     <button class="tabbtn" type="button" data-tab="progress">Progress</button>
     <button class="tabbtn" type="button" data-tab="gear">Equipment</button>
     <button class="tabbtn" type="button" data-tab="runs">Runs</button>
-    <button class="tabbtn" type="button" data-tab="ilplan">IL plan</button>
+    <button class="tabbtn" type="button" data-tab="ilplan">Ilvl plan</button>
   </div>
   <div class="lock"><button type="button" class="chipbtn" id="lockbtn">Unlock editing</button><span id="lockform" hidden><input class="pin wide" id="passin" type="password" autocomplete="off" placeholder="Passcode" aria-label="Group passcode"><button type="button" class="chipbtn" id="passgo">OK</button></span></div>
   <div class="stamp" id="stamp"></div>
@@ -911,7 +918,8 @@ document.addEventListener("change", function(ev){
   if (!unlocked && (ds.amt != null || ds.cap || ds.ilpi)){ askPass(); renderParties(); renderEnergy(); return; }
   if (ev.target.id === "ilt"){ ilp.target = Math.max(1000, Math.min(4000, Math.round(+ev.target.value || 2500))); saveIlp(); renderIlPlan(); return; }
   if (ev.target.id === "ile"){ ilp.ench = ev.target.value; saveIlp(); renderIlPlan(); return; }
-  if (ev.target.id === "ilb"){ ilp.buy = Math.max(0, Math.round(+ev.target.value || 0)); saveIlp(); renderIlPlan(); return; }
+  if (ev.target.id === "ilcu"){ ilp.custom = Math.max(0, Math.round(+ev.target.value || 0)); saveIlp(); renderIlPlan(); return; }
+  if (ds.iinc){ ilp.inc[ds.iinc] = ev.target.checked; saveIlp(); renderIlPlan(); return; }
   if (ds.ilpi){ var pv = ev.target.value === "" ? null : Math.max(0, Math.min(27, Math.round(+ev.target.value))); ilplan.piety = ilplan.piety || {};
     if (pv === null) delete ilplan.piety[ds.ilpi]; else ilplan.piety[ds.ilpi] = {value: pv, at: Date.now()};
     if (db) db.doc("plan/ilplan").set(ilplan).then(function(){}, failWrite); renderIlPlan(); return; }
@@ -1422,9 +1430,13 @@ function renderRuns(){
 var HD = [["SubHand", "Guard", 5.649993], ["Helmet", "Helm", 13.558577], ["Shoulder", "Pauldrons", 13.558577], ["Torso", "Breastplate", 8.474989],
   ["Pants", "Greaves", 11.299335], ["Gloves", "Gloves", 16.949976], ["Boots", "Boots", 13.558577], ["Cape", "Cloak", 16.949976]];
 var HD_TIER = 86, HD_ROLLS = [0.075, 0.075, 0.0375, 0.0375], PIETY_RUN = 2, PIETY_TICKET = 28, GUARD_TICKETS = 3, RUN_ENERGY = 80, SIMS = 1500;
-var ilp = {target: 2500, ench: "10", buy: 1600, sel: null}, ilplan = {piety: {}};
+/* weekly energy on top of the natural refill: Odyle bought in the shop and morphed (Aleks, 2026-11-24) */
+var INCOME = [["buyChar", "Buy 4 Odyle per character", 160], ["buyServer", "Buy 16 Odyle per server", 640], ["morphChar", "Morph 4 Odyle per character", 160], ["morphServer", "Morph 16 Odyle per server", 640]];
+var ilp = {target: 2500, ench: "10", inc: {buyChar: true, buyServer: true, morphChar: true, morphServer: true}, custom: 0, sel: null}, ilplan = {piety: {}};
 try { var ilps = JSON.parse(localStorage.getItem("myth-builder:ilplan") || "null"); if (ilps) for (var k in ilps) ilp[k] = ilps[k]; } catch (e) {}
-if (ilp.ench !== "15") ilp.ench = "10";   /* every Horn Den (86) piece counts as +10 (Aleks, 2026-11-21); +15 is the only other choice */
+if (ilp.ench !== "15") ilp.ench = "10";
+if (!ilp.inc || typeof ilp.inc !== "object") ilp.inc = {buyChar: true, buyServer: true, morphChar: true, morphServer: true};
+function weeklyExtra(){ return INCOME.reduce(function(a, x){ return a + (ilp.inc[x[0]] ? x[2] : 0); }, 0) + (+ilp.custom || 0); }   /* every Horn Den (86) piece counts as +10 (Aleks, 2026-11-21); +15 is the only other choice */
 function saveIlp(){ try { localStorage.setItem("myth-builder:ilplan", JSON.stringify(ilp)); } catch (e) {} }
 function itemIL(tier, grade, en, ex){
   tier = +tier || 0; en = +en || 0; ex = +ex || 0;
@@ -1488,7 +1500,7 @@ function simulate(plans, target){
 }
 function energyNow(c){ var e = nowEnergy(c.name, Date.now()); return (e ? e.value : 0) + extraOf(c.name); }
 function readyBy(need, have){
-  var weekly = 7*8*15 + (+ilp.buy || 0), short = need - have;
+  var weekly = 7*8*15 + weeklyExtra(), short = need - have;
   if (short <= 0) return "covered now";
   var d = new Date(Date.now() + short/weekly*7*864e5);
   return "about " + d.getDate() + " " + MON[d.getMonth()] + " (" + num(short) + " short, " + num(weekly) + "/week)";
@@ -1507,7 +1519,10 @@ function renderIlPlan(){
   chars.forEach(function(c){ if (!groups[c.player]){ groups[c.player] = []; order.push(c.player); } groups[c.player].push(c); });
   var html = '<div class="ilctl"><label>Target item level <input class="pin" type="number" step="50" min="1000" max="4000" id="ilt" value="' + ilp.target + '"></label>'
     + '<label>Enchant <select id="ile"><option value="10"' + (ilp.ench === "10" ? " selected" : "") + '>enchant Horn Den pieces to +10</option><option value="15"' + (ilp.ench === "15" ? " selected" : "") + '>enchant Horn Den pieces to +15</option></select></label>'
-    + '<label>Energy bought per week <input class="pin" type="number" step="40" min="0" max="5000" id="ilb" value="' + ilp.buy + '"></label></div>'
+    + '</div><div class="ilinc"><span class="ilincl">Energy per week</span><span class="ilfix">Refill 840</span>'
+    + INCOME.map(function(x){ return '<label><input type="checkbox" data-iinc="' + x[0] + '"' + (ilp.inc[x[0]] ? " checked" : "") + '> ' + x[1] + ' <i>' + x[2] + '</i></label>'; }).join("")
+    + '<label>Custom (e.g. pass) <input class="pin" type="number" step="50" min="0" max="10000" id="ilcu" value="' + (+ilp.custom || 0) + '"></label>'
+    + '<b class="iltot">= ' + num(7*8*15 + weeklyExtra()) + ' per week</b></div>'
     + '<div class="ilpick">' + order.map(function(pl){ return '<span class="ilpl">' + esc(pl) + '</span>' + groups[pl].map(function(c){ return '<button type="button" class="chipbtn' + (ilp.sel.indexOf(c.name) >= 0 ? " on" : "") + '" data-ilc="' + esc(c.name) + '">' + esc(c.name) + '</button>'; }).join(""); }).join("") + '</div>';
   if (!sel.length){ el.innerHTML = html + '<div class="empty-state">Pick the characters that run Horn Den together.</div>'; return; }
   if (!ready){ el.innerHTML = html + '<div class="empty-state">Loading gear and the run log…</div>'; return; }
@@ -1519,7 +1534,7 @@ function renderIlPlan(){
   html += '<div class="ilsum"><div><span>Reach ' + num(ilp.target) + '</span><b>' + reach.length + ' of ' + plans.length + '</b><small>' + (reach.length ? (gT.med ? gT.med + ' runs together (80%: ' + gT.p80 + ')' : 'already there') : 'none with Horn Den alone') + '</small></div>'
     + '<div><span>Full Horn Den sets, everyone</span><b>' + gF.med + ' runs</b><small>' + num(gF.med*RUN_ENERGY) + ' energy each · 80%: ' + gF.p80 + ' runs</small></div>'
     + '<div><span>Slowest to a full set</span><b>' + esc(worst.p.c.name) + '</b><small>' + ilSim.f[worst.i].med + ' runs alone · ' + worst.p.slots.filter(function(s){ return !s.has; }).length + ' pieces missing</small></div>'
-    + '<div><span>Energy for full sets</span><b class="sm">' + esc(readyBy(gF.med*RUN_ENERGY, low)) + '</b><small>lowest energy in the group (' + num(low) + '), refill + ' + num(ilp.buy) + ' bought/week</small></div></div>';
+    + '<div><span>Energy for full sets</span><b class="sm">' + esc(readyBy(gF.med*RUN_ENERGY, low)) + '</b><small>lowest energy in the group (' + num(low) + ') · ' + num(7*8*15 + weeklyExtra()) + ' energy per week</small></div></div>';
   html += '<div class="ilgrid">';
   plans.forEach(function(p, i){
     var t = ilSim.t[i], f = ilSim.f[i], have = energyNow(p.c), pt = p.piety;
