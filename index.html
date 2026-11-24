@@ -1451,7 +1451,8 @@ var STONE = {Common: 1, Rare: 2, Legend: 3, Unique: 4}, STONE_GOAL = 2, ACC = ["
 var SLOT_NAMES = {MainHand: "Weapon", SubHand: "Guard", Helmet: "Helm", Shoulder: "Pauldrons", Torso: "Breastplate", Pants: "Greaves", Gloves: "Gloves", Boots: "Boots", Cape: "Cloak",
   Necklace: "Necklace", Earring1: "Earring", Earring2: "Earring", Ring1: "Ring", Ring2: "Ring", Bracelet1: "Bracelet", Bracelet2: "Bracelet", Belt: "Belt", Amulet: "Amulet"};
 /* Shugo board Daevanion crystals (per character): 1 point each; on a white tile that is +1 item level.
-   Every fully progressed alt has 366 points on the four main boards before buying any (Aleks, 2026-11-24). */
+   366 points on the four main boards = every Nightmare shop crystal bought, no Shugo yet; 386 = Nightmare + 20 Shugo;
+   below 366 = Nightmare shop crystals still to buy (Aleks, 2026-11-24). Azphel's 36 points come free on every alt. */
 var SHUGO = [[10, 50], [10, 100], [15, 200], [15, 400]], DV_BASE = 366, SHUGO_COUNTED = 20;
 function shugoPlan(c){
   if (c.main || typeof c.dvPts !== "number") return null;
@@ -1462,7 +1463,8 @@ function shugoPlan(c){
     if (i < 2){ counted.n += take; counted.coins += take*st[1]; } else tip.push({n: take, coins: take*st[1], step: i + 1});
   });
   counted.n = Math.min(counted.n, +c.dvWhite || counted.n);
-  return {bought: bought, gain: counted.n, coins: counted.coins, tip: tip, missing: Math.max(0, DV_BASE - c.dvPts)};
+  var night = Math.max(0, DV_BASE - c.dvPts);   /* Nightmare shop crystals not bought yet */
+  return {bought: bought, gain: counted.n + night, shugo: counted.n, coins: counted.coins, tip: tip, missing: night};
 }
 function stonesOf(it){ return ((it && it.d && it.d.magicStoneStat) || []).reduce(function(a, m){ return a + (STONE[m.grade] || 0); }, 0); }
 function stoneGoal(it){ return STONE_GOAL*(+(it && it.d && it.d.magicStoneSlotCount) || 0); }   /* "intermediate" stones: 8 on a 4-slot item */
@@ -1509,9 +1511,9 @@ function todoHtml(p){
     + part(t.acc, "Accessories to +" + ACC_GOAL, function(x){ return SLOT_NAMES[x.slot] + " +" + x.from; })
     + part(t.stones, "Manastones up to " + (STONE_GOAL*4) + " per item", function(x){ return SLOT_NAMES[x.slot] + " " + x.from + "→" + x.to; });
   var sg = t.shugo;
-  if (sg && sg.gain) h += '<li><b>Shugo Daevanion crystals</b> <i>+' + sg.gain + '</i><span>' + sg.gain + ' more from steps 1–2 for ' + num(sg.coins) + ' coins, on white tiles (' + sg.bought + ' bought)</span></li>';
+  if (sg && sg.missing) h += '<li><b>Nightmare shop crystals</b> <i>+' + sg.missing + '</i><span>' + sg.missing + ' still to buy (all alts should have the full 366 points)</span></li>';
+  if (sg && sg.shugo) h += '<li><b>Shugo Daevanion crystals</b> <i>+' + sg.shugo + '</i><span>' + sg.shugo + ' more from steps 1–2 for ' + num(sg.coins) + ' coins, on white tiles (' + sg.bought + ' bought)</span></li>';
   if (sg && sg.tip.length) h += '<li class="ltip"><b>Later</b> <i></i><span>' + sg.tip.map(function(x){ return 'step ' + x.step + ': +' + x.n + ' for ' + num(x.coins) + ' coins'; }).join(" · ") + '</span></li>';
-  if (sg && sg.missing) h += '<li class="ltip"><b>Daevanion</b> <i></i><span>' + sg.missing + ' points below the usual ' + DV_BASE + ' (missing progression?)</span></li>';
   return h ? '<div class="iltodo"><p>To do without energy: <b>+' + p.free + '</b> → ' + num(p.il) + '</p><ul>' + h + '</ul></div>' : '<div class="iltodo"><p class="okc">Manastones, accessories and Horn Den enchants are done.</p></div>';
 }
 /* simulate the group running together until everyone reaches the target (or has every piece) */
@@ -1599,7 +1601,7 @@ function renderIlPlan(){
           : '<b>' + num(ilp.target) + ' after about ' + rr(t.med) + '</b><small>80%: ' + t.p80 + ' runs · ' + num(t.med*RUN_ENERGY) + ' energy · has ' + num(have) + ' → ' + esc(readyBy(t.med*RUN_ENERGY, have)) + '</small>')
       + '<small>Full set: ' + (f.med ? 'about ' + rr(f.med) + ' (80%: ' + f.p80 + ')' : 'done') + ' → about ' + num(p.max) + (p.arcGain ? ' · Arcana to gold later: +' + p.arcGain : '') + '</small></div></div>';
   });
-  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets are saved for the guard first (3 tickets; tickets already earned count as saved while the guard is missing), then buy the biggest missing piece. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item, necklace, earrings and rings to +10, and Shugo Daevanion crystals up to step 2 (20 crystals, +1 item level each on white tiles; crystals bought are worked out from main-board points above the usual 366). The starting item level is the official one and updates hourly.</p>';
+  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets are saved for the guard first (3 tickets; tickets already earned count as saved while the guard is missing), then buy the biggest missing piece. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item, necklace, earrings and rings to +10, and Daevanion crystals: the Nightmare shop ones (366 main-board points) plus Shugo steps 1–2 (20 more, 386), +1 item level each on white tiles. The starting item level is the official one and updates hourly.</p>';
 }
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
