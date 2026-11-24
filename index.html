@@ -399,6 +399,13 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
 .ilres{display:flex;flex-direction:column;gap:2px;font-size:.8rem}.ilres small{color:var(--muted);font-size:.7rem}.ilres small b{color:var(--good)}
 .ilres .okc{color:var(--good)}.ilres .bad{color:var(--bad)}
 .ilnote{margin:12px 0 0;max-width:900px}
+.iltodo{background:var(--surface-2);border-radius:6px;padding:6px 9px;font-size:.74rem}
+.iltodo p{margin:0 0 3px;color:var(--muted)}.iltodo p b{color:var(--good);font-family:var(--mono)}
+.iltodo ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.iltodo li{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:6px;align-items:baseline}
+.iltodo li b{font-weight:600}.iltodo li i{font-style:normal;font-family:var(--mono);color:var(--good)}
+.iltodo li span{color:var(--muted);font-size:.7rem}
+.iltodo .okc{color:var(--good);margin:0}
 @media (max-width:760px){ .ilsum{grid-template-columns:repeat(2,minmax(0,1fr))} .ilsum div:nth-child(3){border-left:none} .ilsum div:nth-child(n+3){border-top:1px solid var(--line)} .ils{grid-template-columns:4.6rem minmax(0,1fr) auto} }
 /* progress */
 .prog{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start}
@@ -1438,10 +1445,13 @@ if (ilp.ench !== "15") ilp.ench = "10";
 if (!ilp.inc || typeof ilp.inc !== "object") ilp.inc = {buyChar: true, buyServer: true, morphChar: true, morphServer: true};
 function weeklyExtra(){ return INCOME.reduce(function(a, x){ return a + (ilp.inc[x[0]] ? x[2] : 0); }, 0) + (+ilp.custom || 0); }   /* every Horn Den (86) piece counts as +10 (Aleks, 2026-11-21); +15 is the only other choice */
 function saveIlp(){ try { localStorage.setItem("myth-builder:ilplan", JSON.stringify(ilp)); } catch (e) {} }
-function itemIL(tier, grade, en, ex){
-  tier = +tier || 0; en = +en || 0; ex = +ex || 0;
-  return tier + 6.5 - (grade === "Legend" ? 1.5 : 0) + (tier >= 86 ? 1.3 : 1.0)*Math.min(en, 10) + 0.7*Math.max(0, Math.min(en, 15) - 10) + 6.8*ex;
-}
+/* exact on 119 of 120 checked items: tier + enchant + 5 per exceed level + manastones (grey 1, green 2, blue 3, gold 4) */
+var STONE = {Common: 1, Rare: 2, Legend: 3, Unique: 4}, STONE_GOAL = 2, ACC = ["Necklace", "Earring1", "Earring2", "Ring1", "Ring2"], ACC_GOAL = 10;
+var SLOT_NAMES = {MainHand: "Weapon", SubHand: "Guard", Helmet: "Helm", Shoulder: "Pauldrons", Torso: "Breastplate", Pants: "Greaves", Gloves: "Gloves", Boots: "Boots", Cape: "Cloak",
+  Necklace: "Necklace", Earring1: "Earring", Earring2: "Earring", Ring1: "Ring", Ring2: "Ring", Bracelet1: "Bracelet", Bracelet2: "Bracelet", Belt: "Belt", Amulet: "Amulet"};
+function stonesOf(it){ return ((it && it.d && it.d.magicStoneStat) || []).reduce(function(a, m){ return a + (STONE[m.grade] || 0); }, 0); }
+function stoneGoal(it){ return STONE_GOAL*(+(it && it.d && it.d.magicStoneSlotCount) || 0); }   /* "intermediate" stones: 8 on a 4-slot item */
+function itemIL(tier, en, ex, stones){ return (+tier || 0) + (+en || 0) + 5*(+ex || 0) + (+stones || 0); }
 function enchGoal(){ return ilp.ench === "15" ? 15 : 10; }
 function newPieceEnch(cur){ return enchGoal() || Math.min(15, (cur && +cur.enchant) || 0); }
 /* Horn Den Normal runs per character from the run log, and piety now (an override counts runs after it was set) */
@@ -1453,18 +1463,36 @@ function pietyOf(name){
 }
 function charPlan(c){
   var cache = gearCache[c._id || c.name], g = cache && cache.g; if (!g) return null;
-  var by = {}; (g.items || []).forEach(function(it){ by[it.slot] = it; });
+  var by = {}, todo = {stones: [], acc: [], hd: []};
+  (g.items || []).forEach(function(it){ by[it.slot] = it; });
+  /* free upgrades first (no energy): manastones up to "intermediate", accessories to +10 */
+  (g.items || []).forEach(function(it){
+    if (/^Arcana|^Rune/.test(it.slot) || !it.d) return;
+    var st = stonesOf(it), goal = stoneGoal(it);
+    if (goal && st < goal) todo.stones.push({slot: it.slot, from: st, to: goal, gain: goal - st});
+    if (ACC.indexOf(it.slot) >= 0 && !+it.exceed && +it.enchant < ACC_GOAL) todo.acc.push({slot: it.slot, from: +it.enchant, to: ACC_GOAL, gain: ACC_GOAL - it.enchant});
+  });
   var slots = HD.map(function(h){
-    var it = by[h[0]], tier = it && it.d ? +it.d.level || 0 : 0, cur = it ? itemIL(tier, it.grade, it.enchant, it.exceed) : 0;
-    var has = tier >= HD_TIER, ne = newPieceEnch(it), gain = has ? 0 : Math.max(0, Math.round(itemIL(HD_TIER, "Unique", ne, 0) - cur));
-    /* Horn Den pieces already worn: enchanting them up to the goal is free item level (enchant cost is left out) */
-    var free = has && enchGoal() && +it.enchant < enchGoal() && !+it.exceed ? Math.max(0, Math.round(itemIL(tier, it.grade, enchGoal(), 0) - cur)) : 0;
+    var it = by[h[0]], tier = it && it.d ? +it.d.level || 0 : 0, st = Math.max(stonesOf(it), stoneGoal(it) || 8);
+    var cur = it ? itemIL(tier, it.enchant, it.exceed, st) : 0, has = tier >= HD_TIER, eg = enchGoal();
+    var gain = has ? 0 : Math.max(0, itemIL(HD_TIER, eg, 0, 8) - cur);   /* a new piece: +10 with intermediate stones */
+    var free = has && !+it.exceed && +it.enchant < eg ? eg - it.enchant : 0;
+    if (free) todo.hd.push({slot: h[0], from: +it.enchant, to: eg, gain: free});
     return {slot: h[0], label: h[1], w: h[2], it: it, cur: cur, has: has, gain: gain, free: free};
   });
   var arc = (g.items || []).filter(function(it){ return /^Arcana/.test(it.slot); }), ARC = {Common: 20, Rare: 40, Legend: 60, Unique: 80};
   var arcGain = arc.reduce(function(a, it){ return a + Math.max(0, 80 - (ARC[it.grade] || 80)); }, 0);
-  var free = slots.reduce(function(a, s){ return a + s.free; }, 0), il = (+c.il || 0) + free;
-  return {c: c, now: +c.il || 0, free: free, il: il, slots: slots, piety: pietyOf(c.name), arcGain: arcGain, max: il + slots.reduce(function(a, s){ return a + s.gain; }, 0)};
+  var sum = function(l){ return l.reduce(function(a, x){ return a + x.gain; }, 0); };
+  var free = sum(todo.stones) + sum(todo.acc) + sum(todo.hd), il = (+c.il || 0) + free;
+  return {c: c, now: +c.il || 0, free: free, todo: todo, il: il, slots: slots, piety: pietyOf(c.name), arcGain: arcGain, max: il + slots.reduce(function(a, s){ return a + s.gain; }, 0)};
+}
+function todoHtml(p){
+  var t = p.todo, part = function(list, title, fmt){ if (!list.length) return ""; var g = list.reduce(function(a, x){ return a + x.gain; }, 0);
+    return '<li><b>' + title + '</b> <i>+' + g + '</i><span>' + list.map(fmt).join(", ") + '</span></li>'; };
+  var h = part(t.hd, "Horn Den pieces to +" + enchGoal(), function(x){ return SLOT_NAMES[x.slot] + " +" + x.from; })
+    + part(t.acc, "Accessories to +" + ACC_GOAL, function(x){ return SLOT_NAMES[x.slot] + " +" + x.from; })
+    + part(t.stones, "Manastones up to " + (STONE_GOAL*4) + " per item", function(x){ return SLOT_NAMES[x.slot] + " " + x.from + "→" + x.to; });
+  return h ? '<div class="iltodo"><p>To do without energy: <b>+' + p.free + '</b> → ' + num(p.il) + '</p><ul>' + h + '</ul></div>' : '<div class="iltodo"><p class="okc">Manastones, accessories and Horn Den enchants are done.</p></div>';
 }
 /* simulate the group running together until everyone reaches the target (or has every piece) */
 function simulate(plans, target){
@@ -1539,19 +1567,19 @@ function renderIlPlan(){
   plans.forEach(function(p, i){
     var t = ilSim.t[i], f = ilSim.f[i], have = energyNow(p.c), pt = p.piety;
     html += '<div class="ilcard"><div class="ilh">' + glyph(p.c.cls, true) + '<b>' + esc(p.c.name) + '</b><span class="ilnow">' + num(p.now) + '<i> → ' + num(ilp.target) + '</i></span></div>'
-      + '<div class="ilrow"><span>Piety</span><b>' + pt.now + ' / ' + PIETY_TICKET + '</b><small>' + Math.ceil((PIETY_TICKET - pt.now)/PIETY_RUN) + ' runs to the next ticket · ' + (pt.manual ? 'set by hand' : pt.runs + ' Normal runs logged') + '</small>'
+      + '<div class="ilrow"><span>Piety</span><b>' + pt.now + ' / ' + PIETY_TICKET + '</b><small>' + Math.ceil((PIETY_TICKET - pt.now)/PIETY_RUN) + ' runs to the next ticket · ' + (pt.tickets ? pt.tickets + (pt.tickets === 1 ? ' ticket' : ' tickets') + ' earned · ' : '') + (pt.manual ? 'set by hand' : pt.runs + ' Normal runs logged') + '</small>'
       + '<input class="pin ilpi" type="number" min="0" max="27" data-ilpi="' + esc(p.c.name) + '" placeholder="set" title="Set the piety you see in game if runs were done without Aleks"></div>'
       + '<div class="ilslots">' + p.slots.map(function(s){
           var n = s.it ? s.it.name.split(" ")[0] : "–";   /* gear family, e.g. Vakron / Nuakum */
-          return '<div class="ils' + (s.has ? " ok" : "") + '"><span>' + s.label + '</span><b>' + esc(n) + (s.it ? ' +' + s.it.enchant + (s.it.exceed ? '+' + s.it.exceed : '') : '') + '</b><i>' + (s.has ? (s.free ? '✓ +' + s.free : '✓') : '+' + s.gain) + '</i></div>'; }).join("") + '</div>'
+          return '<div class="ils' + (s.has ? " ok" : "") + '"><span>' + s.label + '</span><b>' + esc(n) + (s.it ? ' +' + s.it.enchant + (s.it.exceed ? '+' + s.it.exceed : '') : '') + '</b><i>' + (s.has ? '✓' : '+' + s.gain) + '</i></div>'; }).join("") + '</div>'
       + '<div class="ilres">'
-      + (p.free ? '<small>Enchanting the Horn Den pieces you have to +' + enchGoal() + ': <b>+' + p.free + '</b> without energy → ' + num(p.il) + '</small>' : '')
+      + todoHtml(p)
       + (p.il >= ilp.target ? '<b class="okc">' + num(ilp.target) + ' without more runs</b>'
           : p.max < ilp.target ? '<b class="bad">Full Horn Den set only reaches about ' + num(p.max) + '</b>'
           : '<b>' + num(ilp.target) + ' after about ' + rr(t.med) + '</b><small>80%: ' + t.p80 + ' runs · ' + num(t.med*RUN_ENERGY) + ' energy · has ' + num(have) + ' → ' + esc(readyBy(t.med*RUN_ENERGY, have)) + '</small>')
       + '<small>Full set: ' + (f.med ? 'about ' + rr(f.med) + ' (80%: ' + f.p80 + ')' : 'done') + ' → about ' + num(p.max) + (p.arcGain ? ' · Arcana to gold later: +' + p.arcGain : '') + '</small></div></div>';
   });
-  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets go to the biggest missing upgrade. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out, so pieces you already have gain that for free. Item levels per piece are estimated from tier and enchant (about ±2); the starting item level is the official one and updates hourly.</p>';
+  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets go to the biggest missing upgrade. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item and necklace, earrings and rings to +10. The starting item level is the official one and updates hourly.</p>';
 }
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
@@ -1617,8 +1645,13 @@ fetchGear = function(id, ok, bad){  /* gear is stored as '<id>~_' (worn slots) p
     ok([{data: {at: meta.at, skills: meta.skills || [], items: (meta.slots || []).map(function(sl){ return by[sl]; }).filter(Boolean)}}]);
   }).then(null, bad);
 };
-fetchRuns = function(ok, bad){  /* the run log (plan/run~<id>), loaded only for the Runs tab */
-  fetch(SB.url + "/rest/v1/docs?select=data&coll=eq.plan&id=like.run~*", {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok, bad);
+fetchRuns = function(ok, bad){  /* the run log (plan/run~<id>), loaded only when needed; the database returns at most 1000 rows per request */
+  var all = [];
+  (function page(from){
+    fetch(SB.url + "/rest/v1/docs?select=data&coll=eq.plan&id=like.run~*&order=id&limit=1000&offset=" + from, {headers: hdr()})
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(rows){ all = all.concat(rows); if (rows.length === 1000) page(from + 1000); else ok(all); }, bad);
+  })(0);
 };
 fetchHist = function(ok, bad){
   fetch(SB.url + "/rest/v1/docs?select=id,data&coll=eq.cphist", {headers: hdr()}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok, bad);
