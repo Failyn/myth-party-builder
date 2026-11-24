@@ -44,7 +44,24 @@ def read_once(cid):
     info = get_json("https://aion2.plaync.com/api/character/info",
                     {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER})
     il = [s["value"] for s in info["stat"]["statList"] if s.get("type") == "ItemLevel"]
+    boards = (info.get("daevanion") or {}).get("boardList") or []
+    info["profile"]["_dv"] = sum(int(b.get("openNodeCount") or 0) for b in boards)   # open Daevanion nodes, all boards
+    info["profile"]["_dvBoards"] = [b.get("id") for b in boards][:4]                   # the four main boards
     return info["profile"], (il[0] if il else 0)
+
+
+DV_COST = {"Common": 1, "Rare": 2, "Legend": 3, "Unique": 4}   # Daevanion points per tile colour (white/green/blue/orange)
+
+
+def daevanion_points(cid, board_ids):
+    """Points spent on the four main boards (the number the game shows) and closed white tiles left."""
+    pts = white = 0
+    for b in board_ids:
+        nodes = get_json("https://aion2.plaync.com/api/character/daevanion/detail",
+                         {"region": REGION, "lang": "en-US", "characterId": cid, "serverId": SERVER, "boardId": b})["nodeList"]
+        pts += sum(DV_COST.get(n.get("grade"), 0) for n in nodes if n.get("open"))
+        white += sum(1 for n in nodes if not n.get("open") and n.get("grade") == "Common")
+    return pts, white
 
 
 def fetch(entry, prev):
@@ -65,7 +82,16 @@ def fetch(entry, prev):
     doc = {"name": profile["characterName"], "player": entry["player"], "cls": profile["className"],
            "level": profile["characterLevel"], "il": il, "cp": profile["combatPower"] or (prev or {}).get("cp", 0),
            "main": bool(entry.get("main")), "order": entry["order"], "cid": cid,
-           "img": profile.get("profileImage") or (prev or {}).get("img", "")}
+           "img": profile.get("profileImage") or (prev or {}).get("img", ""),
+           "dv": profile.get("_dv") or (prev or {}).get("dv", 0)}
+    # main-board points only change when tiles change, so the board details are read again only then
+    if doc["dv"] and (doc["dv"] != (prev or {}).get("dv") or "dvPts" not in (prev or {})):
+        try:
+            doc["dvPts"], doc["dvWhite"] = daevanion_points(cid, profile.get("_dvBoards") or [])
+        except Exception:
+            pass
+    for k in ("dvPts", "dvWhite"):
+        if k not in doc and k in (prev or {}): doc[k] = prev[k]
     if il < old_il * SMALL_DROP:
         # count only runs where the site keeps giving the same lower number; glitches vary
         same = il > 0 and il == int((prev or {}).get("ilSeen") or -1)

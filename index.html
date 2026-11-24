@@ -406,6 +406,7 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
 .iltodo li b{font-weight:600}.iltodo li i{font-style:normal;font-family:var(--mono);color:var(--good)}
 .iltodo li span{color:var(--muted);font-size:.7rem}
 .iltodo .okc{color:var(--good);margin:0}
+.iltodo li.ltip b{color:var(--muted);font-weight:500}
 @media (max-width:760px){ .ilsum{grid-template-columns:repeat(2,minmax(0,1fr))} .ilsum div:nth-child(3){border-left:none} .ilsum div:nth-child(n+3){border-top:1px solid var(--line)} .ils{grid-template-columns:4.6rem minmax(0,1fr) auto} }
 /* progress */
 .prog{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start}
@@ -1449,6 +1450,20 @@ function saveIlp(){ try { localStorage.setItem("myth-builder:ilplan", JSON.strin
 var STONE = {Common: 1, Rare: 2, Legend: 3, Unique: 4}, STONE_GOAL = 2, ACC = ["Necklace", "Earring1", "Earring2", "Ring1", "Ring2"], ACC_GOAL = 10;
 var SLOT_NAMES = {MainHand: "Weapon", SubHand: "Guard", Helmet: "Helm", Shoulder: "Pauldrons", Torso: "Breastplate", Pants: "Greaves", Gloves: "Gloves", Boots: "Boots", Cape: "Cloak",
   Necklace: "Necklace", Earring1: "Earring", Earring2: "Earring", Ring1: "Ring", Ring2: "Ring", Bracelet1: "Bracelet", Bracelet2: "Bracelet", Belt: "Belt", Amulet: "Amulet"};
+/* Shugo board Daevanion crystals (per character): 1 point each; on a white tile that is +1 item level.
+   Every fully progressed alt has 366 points on the four main boards before buying any (Aleks, 2026-11-24). */
+var SHUGO = [[10, 50], [10, 100], [15, 200], [15, 400]], DV_BASE = 366, SHUGO_COUNTED = 20;
+function shugoPlan(c){
+  if (c.main || typeof c.dvPts !== "number") return null;
+  var bought = Math.max(0, c.dvPts - DV_BASE), left = bought, counted = {n: 0, coins: 0}, tip = [];
+  SHUGO.forEach(function(st, i){
+    var take = Math.max(0, st[0] - left); left = Math.max(0, left - st[0]);
+    if (!take) return;
+    if (i < 2){ counted.n += take; counted.coins += take*st[1]; } else tip.push({n: take, coins: take*st[1], step: i + 1});
+  });
+  counted.n = Math.min(counted.n, +c.dvWhite || counted.n);
+  return {bought: bought, gain: counted.n, coins: counted.coins, tip: tip, missing: Math.max(0, DV_BASE - c.dvPts)};
+}
 function stonesOf(it){ return ((it && it.d && it.d.magicStoneStat) || []).reduce(function(a, m){ return a + (STONE[m.grade] || 0); }, 0); }
 function stoneGoal(it){ return STONE_GOAL*(+(it && it.d && it.d.magicStoneSlotCount) || 0); }   /* "intermediate" stones: 8 on a 4-slot item */
 function itemIL(tier, en, ex, stones){ return (+tier || 0) + (+en || 0) + 5*(+ex || 0) + (+stones || 0); }
@@ -1483,7 +1498,8 @@ function charPlan(c){
   var arc = (g.items || []).filter(function(it){ return /^Arcana/.test(it.slot); }), ARC = {Common: 20, Rare: 40, Legend: 60, Unique: 80};
   var arcGain = arc.reduce(function(a, it){ return a + Math.max(0, 80 - (ARC[it.grade] || 80)); }, 0);
   var sum = function(l){ return l.reduce(function(a, x){ return a + x.gain; }, 0); };
-  var free = sum(todo.stones) + sum(todo.acc) + sum(todo.hd), il = (+c.il || 0) + free;
+  todo.shugo = shugoPlan(c);
+  var free = sum(todo.stones) + sum(todo.acc) + sum(todo.hd) + (todo.shugo ? todo.shugo.gain : 0), il = (+c.il || 0) + free;
   return {c: c, now: +c.il || 0, free: free, todo: todo, il: il, slots: slots, piety: pietyOf(c.name), arcGain: arcGain, max: il + slots.reduce(function(a, s){ return a + s.gain; }, 0)};
 }
 function todoHtml(p){
@@ -1492,6 +1508,10 @@ function todoHtml(p){
   var h = part(t.hd, "Horn Den pieces to +" + enchGoal(), function(x){ return SLOT_NAMES[x.slot] + " +" + x.from; })
     + part(t.acc, "Accessories to +" + ACC_GOAL, function(x){ return SLOT_NAMES[x.slot] + " +" + x.from; })
     + part(t.stones, "Manastones up to " + (STONE_GOAL*4) + " per item", function(x){ return SLOT_NAMES[x.slot] + " " + x.from + "→" + x.to; });
+  var sg = t.shugo;
+  if (sg && sg.gain) h += '<li><b>Shugo Daevanion crystals</b> <i>+' + sg.gain + '</i><span>' + sg.gain + ' more from steps 1–2 for ' + num(sg.coins) + ' coins, on white tiles (' + sg.bought + ' bought)</span></li>';
+  if (sg && sg.tip.length) h += '<li class="ltip"><b>Later</b> <i></i><span>' + sg.tip.map(function(x){ return 'step ' + x.step + ': +' + x.n + ' for ' + num(x.coins) + ' coins'; }).join(" · ") + '</span></li>';
+  if (sg && sg.missing) h += '<li class="ltip"><b>Daevanion</b> <i></i><span>' + sg.missing + ' points below the usual ' + DV_BASE + ' (missing progression?)</span></li>';
   return h ? '<div class="iltodo"><p>To do without energy: <b>+' + p.free + '</b> → ' + num(p.il) + '</p><ul>' + h + '</ul></div>' : '<div class="iltodo"><p class="okc">Manastones, accessories and Horn Den enchants are done.</p></div>';
 }
 /* simulate the group running together until everyone reaches the target (or has every piece) */
@@ -1579,7 +1599,7 @@ function renderIlPlan(){
           : '<b>' + num(ilp.target) + ' after about ' + rr(t.med) + '</b><small>80%: ' + t.p80 + ' runs · ' + num(t.med*RUN_ENERGY) + ' energy · has ' + num(have) + ' → ' + esc(readyBy(t.med*RUN_ENERGY, have)) + '</small>')
       + '<small>Full set: ' + (f.med ? 'about ' + rr(f.med) + ' (80%: ' + f.p80 + ')' : 'done') + ' → about ' + num(p.max) + (p.arcGain ? ' · Arcana to gold later: +' + p.arcGain : '') + '</small></div></div>';
   });
-  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets are saved for the guard first (3 tickets; tickets already earned count as saved while the guard is missing), then buy the biggest missing piece. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item and necklace, earrings and rings to +10. The starting item level is the official one and updates hourly.</p>';
+  el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets are saved for the guard first (3 tickets; tickets already earned count as saved while the guard is missing), then buy the biggest missing piece. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item, necklace, earrings and rings to +10, and Shugo Daevanion crystals up to step 2 (20 crystals, +1 item level each on white tiles; crystals bought are worked out from main-board points above the usual 366). The starting item level is the official one and updates hourly.</p>';
 }
 function setTab(name){
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
