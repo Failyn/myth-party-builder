@@ -1470,14 +1470,14 @@ function dvPts(b){ var p = 0, o = 0, n = 0; (b.t || []).forEach(function(x){ if 
    8/12/16/20 (16 is the big one), a little per level past 20; off-bar actives (stagger skills, Defiance) count 0;
    passives small per level; offensive stats first, MP/Defense/Multi-hit Resist about nothing. */
 var DVO_BP = [[8, 3], [12, 6], [16, 14], [20, 8]], DVO_OVER20 = 1.5, DVO_PASSIVE = 0.5;
-var DVO_STAT = {"Attack Bonus": 1, "Critical Hit": 0.9, "HP": 0.25, "Critical Hit Resist": 0.15, "Defense Bonus": 0.05, "MP": 0,
+var DVO_STAT = {"Attack Bonus": 1, "Critical Hit": 0.9, "HP": 0.4, "Critical Hit Resist": 0.15, "Defense Bonus": 0.05, "MP": 0,
   "Combat Speed": 6, "Damage Boost": 6, "Cooldown Reduction": 5, "Critical Damage Boost": 5, "Multi-hit Chance": 4,
   "Damage Tolerance": 1, "Critical Damage Tolerance": 0.8, "Multi-hit Resist": 0.3};
 var DVO_COST = {w: 1, g: 2, b: 3, o: 4}, DVO_CHANGE = 0.3;  /* effort per tile changed, so tiny reshuffles are not suggested */
 var DVO_DEFIANCE = 4;  /* Defiance: a CC break, worth having at 12 even off the bar, nothing past it (Aleks 2026-11-25) */
 /* passives: worth per level = 0.1 + 1.9 x (share)^2, share = how often players (alts, mains have points for everything) of the class put board tiles into it (opts.passive[name] = 0..1) */
 function dvoSkillVal(kind, eq, lv, name, pshare){
-  if (kind === "Passive"){ var p = pshare == null ? 0.4 : pshare; return (0.1 + 1.9 * p * p) * lv; }
+  if (kind === "Passive"){ var p = pshare == null ? 0.4 : pshare; return (0.3 + 2.0 * p * p) * lv; }
   if (name === "Defiance" && !eq) return lv >= 12 ? DVO_DEFIANCE : 0;
   if (kind !== "Active" || !eq) return 0;
   var v = 0; DVO_BP.forEach(function(b){ if (lv >= b[0]) v += b[1]; });
@@ -1565,8 +1565,10 @@ function dvOptimise(boards, skills, opts){
       var a0 = bestAdds(free); if (a0.total > 0.05) best = {gain: a0.total, rem: [], free: free}; a0.undo();
       var cands = [];
       N.forEach(function(n, i){ if (!open[i] || n.st) return; var cs = cutSet(i), c = costOf(cs); if (c > 16) return; var d = delta(cs, -1); if (d < -6) return; cands.push({cs: cs, c: c, d: d}); });
+      /* always try every cheap-to-lose tile (junk such as MP, Defense, Crit Resist dead ends), plus the 30 most promising others */
       cands.sort(function(x, y){ return (y.d + 0.5 * y.c) - (x.d + 0.5 * x.c); });
-      cands.slice(0, 30).forEach(function(r){
+      cands = cands.filter(function(r, i){ return i < 30 || r.d / r.c >= -1; });
+      cands.forEach(function(r){
         apply(r.cs, false);
         var a = bestAdds(free + r.c), g = r.d + a.total;
         if (g > 0.05 && (!best || g > best.gain)) best = {gain: g, rem: r.cs, free: free + r.c};
