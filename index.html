@@ -335,6 +335,9 @@ table.dvtbl{width:100%;border-collapse:collapse;font-size:.78rem}
 .mtable small{display:block;font-family:var(--mono);font-size:.62rem}.mtable small.pos{color:#5fcf86}.mtable small.neg{color:#e06c6c}
 .mtable td.n{font-family:var(--mono);white-space:nowrap}.mtable .mut{color:var(--muted)}
 .mtable th.bagc{max-width:96px;white-space:normal}
+.mbag{table-layout:fixed;width:100%}.mbag col.cn{width:150px}
+.mbag th.bagc{text-align:right;vertical-align:bottom;max-width:none}
+.mbag td.bagc small{display:block}
 .mine .mh{font-size:.95rem;margin:18px 0 8px;display:flex;align-items:baseline;gap:10px}.mine .mh .when{margin-left:0}
 .mtable .einput.coin.auto{color:var(--muted);font-style:italic}
 .mprog th{text-align:center}.mprog th.grp{border-bottom:1px solid var(--line)}
@@ -2004,7 +2007,7 @@ function renderIlPlan(){
    Daevanion points come from the hourly update. ---- */
 var mine = null, fetchBags = null, bags = {}, bagsT = 0, bagsBusy = false;
 /* bag items shown in My tracker: Questlog item ids, names from Aleks 25 Nov 2026 (930100024, 512000014, 533460004 are uploaded but unnamed) */
-var BAG_COLS = [["930100017", "Nightmare (Phantasmal)"], ["930100003", "Abyss (Oath)"], ["930100023", "Enhance Stones"], ["533460001", "Power Shards"],
+var BAG_COLS = [["930100017", "Nightmare (Phantasmal)"], ["930100003", "Abyss Points"], ["930100023", "Enhance Stones"],
   ["930100011", "Shugo Coins"], ["930100013", "PvP Medals"], ["930100019", "Season Coins"], ["930100024", "Daeva Coins"]];  /* Kinah (930100001) not wanted (Aleks); Daeva Coins = Daeva Pass shop coins */
 var BAG_EXPIRE = {"930100024": 1, "930100019": 1};  /* hourglass items: expire when Season 2 starts (16 Dec 2026, Aleks) */
 var SC_ID = "930100019";
@@ -2070,7 +2073,7 @@ function renderMine(){
   });
   html += '</tbody></table></div><p class="pnote">Stigmas = levelled stigmas, highest first (hover for names), and Daevanion = points on the four main boards: both update hourly. Stigma shards = how many you bought in each shop (hover the Abyss one for the step and the next price).</p>';
   /* 2) currencies and bag, from Questlog */
-  html += '<h3 class="mh">Currencies &amp; bag <span class="when">' + (bagAt ? 'from Questlog · updated ' + when(bagAt) : 'nothing uploaded yet') + '</span></h3><div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th>'
+  html += '<h3 class="mh">Currencies &amp; bag <span class="when">' + (bagAt ? 'from Questlog · updated ' + when(bagAt) : 'nothing uploaded yet') + '</span></h3><div class="etable-wrap"><table class="etable mtable mbag"><colgroup><col class="cn">' + BAG_COLS.map(function(){ return '<col>'; }).join("") + '</colgroup><thead><tr><th>Character</th>'
     + BAG_COLS.map(function(b){ return '<th class="bagc' + (BAG_EXPIRE[b[0]] ? ' exp' : '') + '" title="Questlog item ' + b[0] + (BAG_EXPIRE[b[0]] ? ' · expires when Season 2 starts (16 Dec)' : '') + '">' + (BAG_EXPIRE[b[0]] ? '⌛ ' : '') + esc(b[1]) + (BAG_EXPIRE[b[0]] ? '<br><span class="expn">expires 16 Dec</span>' : '') + '</th>'; }).join("") + '</tr></thead><tbody>';
   var tot = {};
   list.forEach(function(c){
@@ -2080,7 +2083,6 @@ function renderMine(){
       var was = bg.wk && bg.wk[lastWk] ? bg.wk[lastWk][b[0]] : null, d = was != null ? v - was : null;
       return '<td class="n bagc">' + num(v) + (d ? '<small class="' + (d > 0 ? 'pos' : 'neg') + '" title="since the ' + esc(lab(lastWk)) + ' reset">' + (d > 0 ? '+' : '') + num(d) + '</small>' : '') + '</td>'; }).join("") + '</tr>';
   });
-  html += '<tr class="mtot"><td>All</td>' + BAG_COLS.map(function(b){ return '<td class="n bagc">' + (tot[b[0]] != null ? num(tot[b[0]]) : '') + '</td>'; }).join("") + '</tr>';
   html += '</tbody></table></div><p class="pnote">Read from Questlog on Aleks\'s PC every 5 minutes while it runs (counts as of the last time each character was played). The small number is the change since the ' + esc(lab(lastWk)) + ' reset.</p>';
   /* 3) season coins at each reset, read-only: from Questlog (thousands); the 25 Nov values were typed by Aleks before tracking started */
   var scW = []; for (var w = "2026-11-18"; w <= wk; w = new Date(Date.parse(w + "T12:00:00Z") + 7 * 86400e3).toISOString().slice(0, 10)) scW.push(w);
