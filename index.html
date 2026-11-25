@@ -1472,7 +1472,7 @@ function dvPts(b){ var p = 0, o = 0, n = 0; (b.t || []).forEach(function(x){ if 
 var DVO_BP = [[8, 3], [12, 6], [16, 14], [20, 8]], DVO_OVER20 = 1.5, DVO_PASSIVE = 0.5;
 var DVO_STAT = {"Attack Bonus": 1, "Critical Hit": 0.9, "HP": 0.4, "Critical Hit Resist": 0.15, "Defense Bonus": 0.05, "MP": 0,
   "Combat Speed": 6, "Damage Boost": 6, "Cooldown Reduction": 5, "Critical Damage Boost": 5, "Multi-hit Chance": 4,
-  "Damage Tolerance": 1, "Critical Damage Tolerance": 0.8, "Multi-hit Resist": 0.3};
+  "Damage Tolerance": 5, "Critical Damage Tolerance": 0.2, "Multi-hit Resist": 0.1};  /* Aleks: Damage Tolerance is one of the best defensive tiles; Crit Damage Tolerance and Multi-hit Resist don't matter in PvE */
 var DVO_COST = {w: 1, g: 2, b: 3, o: 4}, DVO_CHANGE = 0.3;  /* effort per tile changed, so tiny reshuffles are not suggested */
 var DVO_DEFIANCE = 4;  /* Defiance: a CC break, worth having at 12 even off the bar, nothing past it (Aleks 2026-11-25) */
 /* passives: worth per level = 0.1 + 1.9 x (share)^2, share = how often players (alts, mains have points for everything) of the class put board tiles into it (opts.passive[name] = 0..1) */
