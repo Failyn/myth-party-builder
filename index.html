@@ -334,7 +334,11 @@ table.dvtbl{width:100%;border-collapse:collapse;font-size:.78rem}
 .mtable th.cur,.mtable td.cur{background:color-mix(in srgb,var(--accent-2) 7%,transparent)}
 .mtable small{display:block;font-family:var(--mono);font-size:.62rem}.mtable small.pos{color:#5fcf86}.mtable small.neg{color:#e06c6c}
 .mtable td.n{font-family:var(--mono);white-space:nowrap}.mtable .mut{color:var(--muted)}
-.mtable th.bagc{max-width:96px;white-space:normal}.mtable td.bagc{text-align:right}
+.mtable th.bagc{max-width:96px;white-space:normal}
+.mine .mh{font-size:.95rem;margin:18px 0 8px;display:flex;align-items:baseline;gap:10px}.mine .mh .when{margin-left:0}
+.mtable .einput.coin.auto{color:var(--muted);font-style:italic}
+.mtable th.exp{color:#e6b04a}.mtable .expn{font-size:.56rem;color:#e06c6c;text-transform:none;letter-spacing:0}
+.mtable tr.mtot td{font-weight:600;border-top:1px solid var(--line)}.mtable td.bagc{text-align:right}
 .mname{display:inline-flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap}
 .dvb{display:inline-flex;gap:3px;margin-left:6px;vertical-align:1px}
 .dvb i{font-style:normal;font-family:var(--mono);font-size:.58rem;font-weight:600;border-radius:4px;padding:0 4px;line-height:1.5}
@@ -1985,8 +1989,11 @@ function renderIlPlan(){
    coins[k] = season coins held at the reset that ends week k (week k starts Wednesday k, 07:00 UTC). Stigma levels and
    Daevanion points come from the hourly update. ---- */
 var mine = null, fetchBags = null, bags = {}, bagsT = 0, bagsBusy = false;
-/* bag items shown in My tracker (Questlog item ids; names matched from Aleks's bag screenshot 25 Nov 2026, Oath Coins unconfirmed) */
-var BAG_COLS = [["930100017", "Phantasmal Fragments"], ["930100023", "Oath Coins"], ["533460001", "Enhance Stones"]];
+/* bag items shown in My tracker: Questlog item ids, names from Aleks 25 Nov 2026 (930100024, 512000014, 533460004 are uploaded but unnamed) */
+var BAG_COLS = [["930100001", "Kinah"], ["930100019", "Season Coins"], ["930100017", "Nightmare (Phantasmal)"], ["930100003", "Abyss (Oath)"],
+  ["930100023", "Enhance Stones"], ["533460001", "Power Shards"], ["930100011", "Shugo Coins"], ["930100013", "PvP Medals"], ["930100024", "15K coin (name?)"]];
+var BAG_EXPIRE = {"930100024": 1};  /* hourglass items: expire when Season 2 starts (16 Dec 2026, Aleks) */
+var SC_ID = "930100019";
 function loadBags(){
   if (bagsBusy || !fetchBags || Date.now() - bagsT < 2*60000) return;
   bagsBusy = true;
@@ -2020,23 +2027,45 @@ function renderMine(){
   loadBags();
   var weeks = []; for (var i = 3; i >= 0; i--) weeks.push(new Date(Date.parse(wk + "T12:00:00Z") - i * 7 * 86400e3).toISOString().slice(0, 10));
   var lab = function(w){ return new Date(Date.parse(w + "T12:00:00Z") + 7 * 86400e3).toLocaleDateString("en-GB", {day: "numeric", month: "short"}); };
-  var html = '<div class="mine"><div class="sheet-h"><h2>My tracker</h2><span class="when">Only shown with the passcode' + (mine && mine.at ? ' · saved ' + new Date(mine.at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : ' · not saved yet: your list is filled in, the first change saves it') + '</span></div>'
-    + '<div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th><th>Shugo tiles</th><th>Nightmare</th><th>Stigmas</th><th>Daevanion</th>' + BAG_COLS.map(function(b){ return '<th class="bagc" title="Questlog item ' + b[0] + '">' + esc(b[1]) + '</th>'; }).join("")
-    + weeks.map(function(w){ return '<th class="' + (w === wk ? 'cur' : '') + '">Coins at reset<br>' + lab(w) + (w === wk ? ' (next)' : '') + '</th>'; }).join("") + '<th>Note</th></tr></thead><tbody>';
+  var when = function(t){ return new Date(t).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}); };
+  var name = function(c){ return '<td><span class="mname">' + glyph(c.cls, true) + esc(c.name) + '</span></td>'; };
+  var bagAt = 0; for (var bk in bags) bagAt = Math.max(bagAt, bags[bk].at || 0);
+  var html = '<div class="mine"><div class="sheet-h"><h2>My tracker</h2><span class="when">Only shown with the passcode' + (mine && mine.at ? ' · saved ' + when(mine.at) : ' · not saved yet: your list is filled in, the first change saves it') + '</span></div>';
+  /* 1) progress */
+  html += '<h3 class="mh">Progress</h3><div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th><th>Shugo tiles</th><th>Nightmare</th><th>Stigmas</th><th>Daevanion</th><th>Note</th></tr></thead><tbody>';
   list.forEach(function(c){
-    var r = m.rows[c.name] || {}, st = mineStig(c), co = r.coins || {};
+    var r = m.rows[c.name] || {}, st = mineStig(c);
     var stig = st === null ? '<span class="mut">…</span>' : st.length ? '<span title="' + esc(st.map(function(k){ return k[0] + " " + k[2]; }).join(", ")) + '">' + st.map(function(k){ return k[2]; }).join("-") + '</span>' : '<span class="mut">–</span>';
-    var inp = function(f, v, w){ return '<input class="einput min" type="number" inputmode="numeric" min="0" max="99" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|" + f) + '" aria-label="' + esc(c.name + " " + f) + '">'; };
-    html += '<tr><td><span class="mname">' + glyph(c.cls, true) + esc(c.name) + '</span></td><td>' + inp("shugo", r.shugo) + '</td><td>' + inp("nm", r.nm) + '</td><td class="n">' + stig + '</td>'
-      + '<td class="n">' + (c.dvPts ? c.dvPts + ' pts' : '–') + '</td>'
-      + BAG_COLS.map(function(b){ var bg = bags[c.name], v = bg && bg.c ? bg.c[b[0]] : null; if (v == null) return '<td class="n bagc"><span class="mut">–</span></td>';
-          var was = bg.wk && bg.wk[lastWk] ? bg.wk[lastWk][b[0]] : null, d = was != null ? v - was : null;
-          return '<td class="n bagc">' + num(v) + (d ? '<small class="' + (d > 0 ? 'pos' : 'neg') + '" title="since the ' + esc(lab(lastWk)) + ' reset">' + (d > 0 ? '+' : '') + num(d) + ' this week</small>' : '') + '</td>'; }).join("")
-      + weeks.map(function(w, i){ var v = co[w], prev = i ? co[weeks[i - 1]] : null, d = v != null && prev != null ? Math.round((v - prev) * 10) / 10 : null;
-          return '<td class="' + (w === wk ? 'cur' : '') + '"><input class="einput min coin" type="text" inputmode="decimal" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|coins|" + w) + '" aria-label="' + esc(c.name + " coins at reset " + lab(w)) + '">' + (d != null ? '<small class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + d + '</small>' : '') + '</td>'; }).join("")
+    var inp = function(f, v){ return '<input class="einput min" type="number" inputmode="numeric" min="0" max="99" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|" + f) + '" aria-label="' + esc(c.name + " " + f) + '">'; };
+    html += '<tr>' + name(c) + '<td>' + inp("shugo", r.shugo) + '</td><td>' + inp("nm", r.nm) + '</td><td class="n">' + stig + '</td><td class="n">' + (c.dvPts ? c.dvPts + ' pts' : '–') + '</td>'
       + '<td><input class="einput mnote" type="text" maxlength="120" value="' + esc(r.note || '') + '" data-mine="' + esc(c.name + "|note") + '" aria-label="' + esc(c.name + " note") + '"></td></tr>';
   });
-  html += '</tbody></table></div><p class="pnote">Stigmas = equipped stigma levels, highest first (hover for names); Daevanion = points on the four main boards. Both update hourly. Phantasmal Fragments, Oath Coins and Enhance Stones come from Questlog on Aleks\'s PC (every 5 minutes while it runs) with the change since the last reset; ' + (function(){ var t = 0; for (var k in bags) t = Math.max(t, bags[k].at || 0); return t ? 'last update ' + new Date(t).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) + '. ' : 'nothing uploaded yet. '; })() + 'Coins are season coins (SC) held at each weekly reset (Wednesday 08:00 CET); the small number is the change from the reset before. Data is saved in the group database, which is readable by anyone who has the site address; only the tab is hidden.</p></div>';
+  html += '</tbody></table></div><p class="pnote">Stigmas = equipped stigma levels, highest first (hover for names); Daevanion = points on the four main boards. Both update hourly.</p>';
+  /* 2) currencies and bag, from Questlog */
+  html += '<h3 class="mh">Currencies &amp; bag <span class="when">' + (bagAt ? 'from Questlog · updated ' + when(bagAt) : 'nothing uploaded yet') + '</span></h3><div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th>'
+    + BAG_COLS.map(function(b){ return '<th class="bagc' + (BAG_EXPIRE[b[0]] ? ' exp' : '') + '" title="Questlog item ' + b[0] + (BAG_EXPIRE[b[0]] ? ' · expires when Season 2 starts (16 Dec)' : '') + '">' + (BAG_EXPIRE[b[0]] ? '⌛ ' : '') + esc(b[1]) + (BAG_EXPIRE[b[0]] ? '<br><span class="expn">expires 16 Dec</span>' : '') + '</th>'; }).join("") + '</tr></thead><tbody>';
+  var tot = {};
+  list.forEach(function(c){
+    var bg = bags[c.name];
+    html += '<tr>' + name(c) + BAG_COLS.map(function(b){ var v = bg && bg.c ? bg.c[b[0]] : null; if (v == null) return '<td class="n bagc"><span class="mut">–</span></td>';
+      tot[b[0]] = (tot[b[0]] || 0) + v;
+      var was = bg.wk && bg.wk[lastWk] ? bg.wk[lastWk][b[0]] : null, d = was != null ? v - was : null;
+      return '<td class="n bagc">' + num(v) + (d ? '<small class="' + (d > 0 ? 'pos' : 'neg') + '" title="since the ' + esc(lab(lastWk)) + ' reset">' + (d > 0 ? '+' : '') + num(d) + '</small>' : '') + '</td>'; }).join("") + '</tr>';
+  });
+  html += '<tr class="mtot"><td>All</td>' + BAG_COLS.map(function(b){ return '<td class="n bagc">' + (tot[b[0]] != null ? num(tot[b[0]]) : '') + '</td>'; }).join("") + '</tr>';
+  html += '</tbody></table></div><p class="pnote">Read from Questlog on Aleks\'s PC every 5 minutes while it runs (counts as of the last time each character was played). The small number is the change since the ' + esc(lab(lastWk)) + ' reset.</p>';
+  /* 3) season coins at each reset: from Questlog (thousands), or typed in (a typed value wins) */
+  html += '<h3 class="mh">Season coins at each reset <span class="when">thousands (K)</span></h3><div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th>'
+    + weeks.map(function(w){ return '<th class="' + (w === wk ? 'cur' : '') + '">' + lab(w) + (w === wk ? ' (next, so far)' : '') + '</th>'; }).join("") + '</tr></thead><tbody>';
+  list.forEach(function(c){
+    var r = m.rows[c.name] || {}, co = r.coins || {}, bg = bags[c.name];
+    var eff = function(w){ if (co[w] != null) return {v: co[w], auto: false}; var x = bg && bg.wk && bg.wk[w] && bg.wk[w][SC_ID]; return x != null ? {v: Math.round(x / 100) / 10, auto: true} : null; };
+    html += '<tr>' + name(c) + weeks.map(function(w, i){ var e = eff(w), pe = i ? eff(weeks[i - 1]) : null, d = e && pe ? Math.round((e.v - pe.v) * 10) / 10 : null;
+      return '<td class="' + (w === wk ? 'cur' : '') + '"><input class="einput min coin' + (e && e.auto ? ' auto' : '') + '" type="text" inputmode="decimal" value="' + (e ? e.v : '') + '" title="' + (e && e.auto ? 'from Questlog; type to override' : 'typed in') + '" data-mine="' + esc(c.name + "|coins|" + w) + '" aria-label="' + esc(c.name + " season coins at reset " + lab(w)) + '">'
+        + (d != null ? '<small class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + d + '</small>' : '') + '</td>'; }).join("") + '</tr>';
+  });
+  html += '</tbody></table></div><p class="pnote">Season coins held at each weekly reset (Wednesday 08:00 CET), in thousands. Grey italic numbers come from Questlog (the last count seen that week); type a number to override it, clear it to go back. The small number is the change from the reset before.</p>'
+    + '<p class="pnote">Data is saved in the group database, which is readable by anyone who has the site address; only the tab is hidden.</p></div>';
   el.innerHTML = html;
 }
 function setTab(name){
