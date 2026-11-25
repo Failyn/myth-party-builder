@@ -2079,17 +2079,18 @@ function renderMine(){
   });
   html += '<tr class="mtot"><td>All</td>' + BAG_COLS.map(function(b){ return '<td class="n bagc">' + (tot[b[0]] != null ? num(tot[b[0]]) : '') + '</td>'; }).join("") + '</tr>';
   html += '</tbody></table></div><p class="pnote">Read from Questlog on Aleks\'s PC every 5 minutes while it runs (counts as of the last time each character was played). The small number is the change since the ' + esc(lab(lastWk)) + ' reset.</p>';
-  /* 3) season coins at each reset: from Questlog (thousands), or typed in (a typed value wins) */
+  /* 3) season coins at each reset, read-only: from Questlog (thousands); the 25 Nov values were typed by Aleks before tracking started */
+  var scW = []; for (var w = "2026-11-18"; w <= wk; w = new Date(Date.parse(w + "T12:00:00Z") + 7 * 86400e3).toISOString().slice(0, 10)) scW.push(w);
+  scW = scW.slice(-6);
   html += '<h3 class="mh">Season coins at each reset <span class="when">thousands (K)</span></h3><div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th>'
-    + weeks.map(function(w){ return '<th class="' + (w === wk ? 'cur' : '') + '">' + lab(w) + (w === wk ? ' (next, so far)' : '') + '</th>'; }).join("") + '</tr></thead><tbody>';
+    + scW.map(function(w){ return '<th class="' + (w === wk ? 'cur' : '') + '">' + lab(w) + (w === wk ? ' (so far)' : '') + '</th>'; }).join("") + '</tr></thead><tbody>';
   list.forEach(function(c){
-    var r = m.rows[c.name] || {}, co = r.coins || {}, bg = bags[c.name];
-    var eff = function(w){ if (co[w] != null) return {v: co[w], auto: false}; var x = bg && bg.wk && bg.wk[w] && bg.wk[w][SC_ID]; return x != null ? {v: Math.round(x / 100) / 10, auto: true} : null; };
-    html += '<tr>' + name(c) + weeks.map(function(w, i){ var e = eff(w), pe = i ? eff(weeks[i - 1]) : null, d = e && pe ? Math.round((e.v - pe.v) * 10) / 10 : null;
-      return '<td class="' + (w === wk ? 'cur' : '') + '"><input class="einput min coin' + (e && e.auto ? ' auto' : '') + '" type="text" inputmode="decimal" value="' + (e ? e.v : '') + '" title="' + (e && e.auto ? 'from Questlog; type to override' : 'typed in') + '" data-mine="' + esc(c.name + "|coins|" + w) + '" aria-label="' + esc(c.name + " season coins at reset " + lab(w)) + '">'
-        + (d != null ? '<small class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + d + '</small>' : '') + '</td>'; }).join("") + '</tr>';
+    var co = (m.rows[c.name] || {}).coins || {}, bg = bags[c.name];
+    var eff = function(w){ var x = bg && bg.wk && bg.wk[w] && bg.wk[w][SC_ID]; if (x != null) return Math.round(x / 100) / 10; return co[w] != null ? co[w] : null; };
+    html += '<tr>' + name(c) + scW.map(function(w, i){ var v = eff(w), pv = i ? eff(scW[i - 1]) : null, d = v != null && pv != null ? Math.round((v - pv) * 10) / 10 : null;
+      return '<td class="n ' + (w === wk ? 'cur' : '') + '">' + (v == null ? '<span class="mut">–</span>' : v) + (d != null ? '<small class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + d + '</small>' : '') + '</td>'; }).join("") + '</tr>';
   });
-  html += '</tbody></table></div><p class="pnote">Season coins held at each weekly reset (Wednesday 08:00 CET), in thousands. Grey italic numbers come from Questlog (the last count seen that week); type a number to override it, clear it to go back. The small number is the change from the reset before.</p>'
+  html += '</tbody></table></div><p class="pnote">Season coins held at each weekly reset (Wednesday 08:00 CET), in thousands, from Questlog (the last count seen that week). The 25 Nov column is what you noted before tracking started. The small number is the change from the reset before.</p>'
     + '<p class="pnote">Data is saved in the group database, which is readable by anyone who has the site address; only the tab is hidden.</p></div>';
   el.innerHTML = html;
 }
