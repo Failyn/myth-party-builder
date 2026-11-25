@@ -322,6 +322,12 @@ table.dvtbl{width:100%;border-collapse:collapse;font-size:.78rem}
 .dvtbl .dots i.on{background:#4fa3ff;border-color:#4fa3ff}
 .dvtbl .bp{font-family:var(--mono);font-size:.72rem}.bp.ok{color:#e6b04a}.bp.waste{color:#e06c6c}.bp.mut{color:var(--muted)}
 .dvtbl tr.off td{opacity:.6}
+.dvplan{margin-bottom:14px;padding:10px;border:1px solid color-mix(in srgb,#5fe08a 30%,var(--line));border-radius:10px;background:rgba(95,224,138,.04)}
+.dvplan h4{align-items:center}
+.dvtog{background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);font:inherit;font-size:.6rem;padding:2px 6px;cursor:pointer;text-transform:none;letter-spacing:0}
+.dvsum{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:var(--mono);font-size:.7rem;margin-bottom:8px;color:var(--muted)}
+.dvsum .u{color:#ff7a7a}.dvsum .p{color:#5fe08a}
+.dvch td{padding:2px 4px}
 @media (max-width:860px){ .dvmain,.dvall{grid-template-columns:minmax(0,1fr)} .dvtabs{grid-template-columns:repeat(2,minmax(0,1fr))} }
 .arcs .arc-h{font-size:.64rem}
 .arow{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px}
@@ -905,6 +911,7 @@ document.addEventListener("click", function(ev){
   if (d.gi){ gearClick(d.gi); return; }
   if (d.gmode){ gearMode = d.gmode; gearOpen = null; try { localStorage.setItem("myth-builder:gmode", gearMode); } catch (e) {} renderGear(); return; }
   if (d.dvb != null){ dvBoard = +d.dvb; renderGear(); return; }
+  if (d.dvplan){ dvShowPlan = !dvShowPlan; renderGear(); return; }
   if (d.gclose){ gearOpen = null; renderGear(); return; }
   if (d.pc){ progSel = d.pc; renderProgress(); var pc = document.querySelector(".pchart"); if (pc && pc.getBoundingClientRect().top > innerHeight) pc.scrollIntoView({behavior: "smooth", block: "start"}); return; }
   if (d.pm){ progM = d.pm; try { localStorage.setItem("myth-builder:metric", progM); } catch (e) {} renderProgress(); return; }
@@ -1390,10 +1397,10 @@ function dvStats(tiles){
   if (!order.length) return '<div class="dvinfo">No stat tiles opened.</div>';
   return '<div class="dvst">' + order.map(function(k){ var v = tot[k]; return '<span class="' + dvClass(k) + '">' + esc(k) + '</span><span>+' + (Math.round(v[0]*10)/10) + (v[1] ? '%' : '') + '</span>'; }).join("") + '</div>';
 }
-function dvSvg(b, icons){
+function dvSvg(b, icons, mark){
   var t = b.t || [], cs = 32, r0 = 99, r1 = 0, c0 = 99, c1 = 0, at = {};
   t.forEach(function(n, i){ r0 = Math.min(r0, n[0]); r1 = Math.max(r1, n[0]); c0 = Math.min(c0, n[1]); c1 = Math.max(c1, n[1]); at[n[0] + "," + n[1]] = n; });
-  var X = function(c){ return (c - c0 + .5) * cs; }, Y = function(r){ return (r - r0 + .5) * cs; };
+  var k0 = dvNodes.length, X = function(c){ return (c - c0 + .5) * cs; }, Y = function(r){ return (r - r0 + .5) * cs; };
   var w = (c1 - c0 + 1) * cs, h = (r1 - r0 + 1) * cs, lines = "", nodes = "";
   t.forEach(function(n){ [[0, 1], [1, 0]].forEach(function(d){ var m = at[(n[0] + d[0]) + "," + (n[1] + d[1])]; if (!m) return;
     var lit = n[4] && m[4];
@@ -1412,24 +1419,183 @@ function dvSvg(b, icons){
       if (n[2] === "w") g += '<circle cx="' + x + '" cy="' + y + '" r="' + rr + '" fill="' + (op ? col : '#151a24') + '" stroke="' + col + '" stroke-width="1.4"' + (op ? '' : ' stroke-opacity=".5"') + '/>';
       else g += '<path d="M' + x + ' ' + (y - rr) + 'L' + (x + rr) + ' ' + y + 'L' + x + ' ' + (y + rr) + 'L' + (x - rr) + ' ' + y + 'Z" fill="' + (op ? col : '#151a24') + '" stroke="' + col + '" stroke-width="1.6"' + (op ? '' : ' stroke-opacity=".55"') + '/>';
     }
-    nodes += g + '<title>' + esc(n[5] || "Start") + '</title></g>';
+    var mk = mark && mark[k - k0];
+    if (mk === "u") g += '<circle cx="' + x + '" cy="' + y + '" r="15" fill="none" stroke="#ff5a5a" stroke-width="2.6"/><path d="M' + (x + 7) + ' ' + (y - 13) + 'l6 6M' + (x + 13) + ' ' + (y - 13) + 'l-6 6" stroke="#ff5a5a" stroke-width="2.2"/>';
+    else if (mk === "p") g += '<circle cx="' + x + '" cy="' + y + '" r="15" fill="none" stroke="#5fe08a" stroke-width="2.6" stroke-dasharray="4 3"/>';
+    nodes += g + '<title>' + esc((n[5] || "Start") + (mk === "u" ? " (suggested: unspec)" : mk === "p" ? " (suggested: pick)" : "")) + '</title></g>';
   });
   return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(b.n || "Board") + '"><defs><filter id="dvgray"><feColorMatrix type="saturate" values="0"/></filter></defs>' + lines + nodes + '</svg>';
 }
 function dvPts(b){ var p = 0, o = 0, n = 0; (b.t || []).forEach(function(x){ if (x[3] === "x") return; n++; if (x[4]){ o++; p += DV_COST[x[2]] || 0; } }); return {pts: p, open: o, total: n}; }
+/* DVOPT-START: Daevanion path optimiser. Same points, every board stays connected to its Start tile.
+   Value units: 1 = one white Attack Bonus +3 tile. Aleks's rules (2026-11-25): equipped actives count only at exactly
+   8/12/16/20 (16 is the big one), a little per level past 20; off-bar actives (stagger skills, Defiance) count 0;
+   passives small per level; offensive stats first, MP/Defense/Multi-hit Resist about nothing. */
+var DVO_BP = [[8, 3], [12, 6], [16, 14], [20, 8]], DVO_OVER20 = 1.5, DVO_PASSIVE = 0.5;
+var DVO_STAT = {"Attack Bonus": 1, "Critical Hit": 0.9, "HP": 0.25, "Critical Hit Resist": 0.15, "Defense Bonus": 0.05, "MP": 0,
+  "Combat Speed": 6, "Damage Boost": 6, "Cooldown Reduction": 5, "Critical Damage Boost": 5, "Multi-hit Chance": 4,
+  "Damage Tolerance": 1, "Critical Damage Tolerance": 0.8, "Multi-hit Resist": 0.3};
+var DVO_COST = {w: 1, g: 2, b: 3, o: 4}, DVO_CHANGE = 0.3;  /* effort per tile changed, so tiny reshuffles are not suggested */
+function dvoSkillVal(kind, eq, lv){
+  if (kind === "Passive") return DVO_PASSIVE * lv;
+  if (kind !== "Active" || !eq) return 0;
+  var v = 0; DVO_BP.forEach(function(b){ if (lv >= b[0]) v += b[1]; });
+  return v + (lv > 20 ? (lv - 20) * DVO_OVER20 : 0);
+}
+function dvoParse(desc){ return String(desc || "").split("; ").map(function(e){ var m = /^(.*?) \+([\d.]+)(%?)$/.exec(e); return m ? [m[1], +m[2]] : null; }).filter(Boolean); }
+/* boards: [{n, t:[[r,c,g,type,open,desc]]}], skills: [[name, icon, level, kind, eq]] -> plan */
+function dvOptimise(boards, skills){
+  var N = [], start = [];
+  boards.forEach(function(b, bi){
+    var at = {};
+    (b.t || []).forEach(function(t){ var i = N.length; at[t[0] + "," + t[1]] = i;
+      var sk = t[3] === "k" ? (dvoParse(t[5])[0] || [""])[0] : null, sv = 0;
+      if (t[3] === "s") dvoParse(t[5]).forEach(function(x){ var u = DVO_STAT[x[0]]; sv += u == null ? 0 : u; });
+      N.push({b: bi, r: t[0], c: t[1], cost: t[3] === "x" ? 0 : (DVO_COST[t[2]] || 1), sk: sk, sv: sv, st: t[3] === "x", open0: !!t[4] || t[3] === "x", adj: []});
+      if (t[3] === "x") start[bi] = i; });
+    N.forEach(function(n, i){ if (n.b !== bi) return; [[0, 1], [1, 0], [0, -1], [-1, 0]].forEach(function(d){ var j = at[(n.r + d[0]) + "," + (n.c + d[1])]; if (j != null) n.adj.push(j); }); });
+  });
+  var S = {}; (skills || []).forEach(function(k){ S[k[0]] = {lv: +k[2] || 0, kind: k[3], eq: k[4] !== 0}; });
+  var open = N.map(function(n){ return n.open0; }), cnt = {}, cnt0 = {};
+  N.forEach(function(n){ if (n.sk && n.open0) cnt0[n.sk] = (cnt0[n.sk] || 0) + 1; });
+  var other = {}; Object.keys(S).forEach(function(s){ other[s] = S[s].lv - (cnt0[s] || 0); cnt[s] = cnt0[s] || 0; });
+  N.forEach(function(n){ if (n.sk && cnt[n.sk] == null){ cnt[n.sk] = cnt0[n.sk] || 0; } });
+  function sval(s, k){ var x = S[s]; return x ? dvoSkillVal(x.kind, x.eq, other[s] + k) : 0; }
+  /* value change of opening (+1) or closing (-1) a set of nodes */
+  function delta(set, sign){
+    var d = 0, ch = {};
+    set.forEach(function(i){ var n = N[i]; d += sign * n.sv + ((sign > 0) === n.open0 ? DVO_CHANGE : -DVO_CHANGE); if (n.sk) ch[n.sk] = (ch[n.sk] || 0) + sign; });
+    for (var s in ch) d += sval(s, cnt[s] + ch[s]) - sval(s, cnt[s]);
+    return d;
+  }
+  function apply(set, v){ set.forEach(function(i){ if (open[i] === v) return; open[i] = v; var n = N[i]; if (n.sk) cnt[n.sk] += v ? 1 : -1; }); }
+  function costOf(set){ var c = 0; set.forEach(function(i){ c += N[i].cost; }); return c; }
+  /* closing node i also closes whatever only connects to Start through it */
+  function cutSet(i){
+    var b = N[i].b, seen = {}, q = [start[b]]; seen[start[b]] = 1;
+    while (q.length){ var x = q.pop(); N[x].adj.forEach(function(y){ if (y !== i && open[y] && !seen[y]){ seen[y] = 1; q.push(y); } }); }
+    var out = [i]; N.forEach(function(n, j){ if (j !== i && n.b === b && open[j] && !seen[j]) out.push(j); });
+    return out;
+  }
+  /* cheapest path (closed nodes) from the open area to every closed node */
+  function paths(limit){  /* tile costs are 1-4, so a bucket queue capped at the budget is enough */
+    var n = N.length, dist = new Array(n), prev = new Array(n), B = [];
+    for (var i = 0; i < n; i++){ dist[i] = Infinity; prev[i] = -1; }
+    for (i = 0; i < n; i++){ if (!open[i]) continue; var a = N[i].adj; for (var k = 0; k < a.length; k++){ var j = a[k]; if (!open[j] && N[j].cost < dist[j] && N[j].cost <= limit){ dist[j] = N[j].cost; (B[dist[j]] = B[dist[j]] || []).push(j); } } }
+    for (var d = 0; d <= limit; d++){ var q = B[d]; if (!q) continue;
+      for (var qi = 0; qi < q.length; qi++){ var x = q[qi]; if (dist[x] !== d) continue; var ax = N[x].adj;
+        for (k = 0; k < ax.length; k++){ var y = ax[k]; if (open[y]) continue; var nd = d + N[y].cost; if (nd <= limit && nd < dist[y]){ dist[y] = nd; prev[y] = x; (B[nd] = B[nd] || []).push(y); } } } }
+    return function(t){ if (dist[t] === Infinity) return null; var p = []; for (var x = t; x !== -1; x = prev[x]) p.push(x); return p; };
+  }
+  /* best additions within a budget: single paths, or several paths to the same skill to reach its next breakpoint */
+  function bestAdds(budget){
+    var total = 0, added = [], guard = 0;
+    while (budget > 0 && guard++ < 12){
+      var get = paths(budget), best = null;
+      N.forEach(function(n, t){ if (open[t]) return; var p = get(t); if (!p) return; var c = costOf(p); if (c > budget) return;
+        var d = delta(p, 1); if (d > 0.01 && (!best || d / c > best.d / best.c)) best = {p: p, d: d, c: c}; });
+      /* multi-tile moves toward a skill breakpoint (one tile alone may be worth nothing) */
+      Object.keys(cnt).forEach(function(s){
+        if (!S[s] || S[s].kind !== "Active" || !S[s].eq) return;
+        var taken = [], c = 0, before = cnt[s], d0 = sval(s, before), sv = 0;
+        for (var m = 0; m < 4; m++){
+          var g2 = paths(budget - c), pick = null;
+          N.forEach(function(n, t){ if (open[t] || n.sk !== s) return; var p = g2(t); if (!p) return; var pc = costOf(p); if (!pick || pc < pick.c) pick = {p: p, c: pc}; });
+          if (!pick || c + pick.c > budget) break;
+          apply(pick.p, true); taken.push(pick.p); c += pick.c;
+          pick.p.forEach(function(i){ sv += N[i].sv + (N[i].open0 ? DVO_CHANGE : -DVO_CHANGE); });
+          var d = sval(s, cnt[s]) - d0 + sv;
+          /* other skills picked up on the way */
+          if (d > 0.01 && (!best || d / c > best.d / best.c)) best = {p: [].concat.apply([], taken), d: d, c: c, multi: true};
+        }
+        for (var k = taken.length - 1; k >= 0; k--) apply(taken[k], false);
+      });
+      if (!best) break;
+      if (best.multi) best.d = delta(best.p, 1);
+      apply(best.p, true); added.push(best.p); total += best.d; budget -= best.c;
+    }
+    return {total: total, added: added, left: budget, undo: function(){ for (var k = added.length - 1; k >= 0; k--) apply(added[k], false); }};
+  }
+  var free = 0, steps = 0;
+  /* points not used now (none unless a board was not filled) start at 0: same budget as today */
+  while (steps++ < 40){
+    var best = null;
+    var a0 = bestAdds(free); if (a0.total > 0.05) best = {gain: a0.total, rem: [], free: free}; a0.undo();
+    var cands = [];
+    N.forEach(function(n, i){ if (!open[i] || n.st) return; var cs = cutSet(i), c = costOf(cs); if (c > 16) return; var d = delta(cs, -1); if (d < -6) return; cands.push({cs: cs, c: c, d: d}); });
+    cands.sort(function(x, y){ return (y.d + 0.5 * y.c) - (x.d + 0.5 * x.c); });
+    cands.slice(0, 25).forEach(function(r){
+      apply(r.cs, false);
+      var a = bestAdds(free + r.c), g = r.d + a.total;
+      /* never just re-open what was closed */
+      if (g > 0.05 && (!best || g > best.gain)) best = {gain: g, rem: r.cs, free: free + r.c};
+      a.undo(); apply(r.cs, true);
+    });
+    if (!best) break;
+    apply(best.rem, false); var fin = bestAdds(best.free); free = fin.left;
+  }
+  /* the result: tiles to unspec, tiles to pick, skill level changes, value gained */
+  var unspec = [], pick = [], v0 = 0, v1 = 0;
+  N.forEach(function(n, i){ if (n.st) return; if (n.open0 && !open[i]) unspec.push(i); if (!n.open0 && open[i]) pick.push(i); });
+  var changes = [];
+  Object.keys(cnt).forEach(function(s){ v0 += sval(s, cnt0[s] || 0); v1 += sval(s, cnt[s]); if ((cnt0[s] || 0) !== cnt[s] && S[s]) changes.push({s: s, from: S[s].lv, to: other[s] + cnt[s], kind: S[s].kind, eq: S[s].eq}); });
+  N.forEach(function(n, i){ if (n.open0) v0 += n.sv; if (open[i]) v1 += n.sv; });
+  return {nodes: N, unspec: unspec, pick: pick, changes: changes, gain: v1 - v0, free: free, tiles: pick.length - unspec.length};
+}
+/* DVOPT-END */
+var dvPlanCache = {}, dvShowPlan = true;
+function dvPlan(c, g, boards){
+  var key = (c._id || c.name) + "|" + boards.map(function(b){ return b.at; }).join(",") + "|" + (g.at || "");
+  if (!dvPlanCache[key]){ try { dvPlanCache[key] = dvOptimise(boards, g.skills || []); } catch (e) { dvPlanCache[key] = {err: String(e)}; } }
+  var r = dvPlanCache[key]; if (r.err || !r.nodes) return null;
+  if (!r.mark){  /* per board: tile index -> "u" (unspec) or "p" (pick) */
+    r.mark = boards.map(function(){ return {}; }); var off = [], o = 0; boards.forEach(function(b, i){ off[i] = o; o += (b.t || []).length; }); r.off = function(b){ return off[b]; };
+    r.unspec.forEach(function(i){ var n = r.nodes[i]; r.mark[n.b][i - off[n.b]] = "u"; });
+    r.pick.forEach(function(i){ var n = r.nodes[i]; r.mark[n.b][i - off[n.b]] = "p"; });
+    r.pts = function(list){ var p = 0; list.forEach(function(i){ p += r.nodes[i].cost; }); return p; };
+  }
+  return r;
+}
+function dvPlanBlock(r, boards, icons){
+  if (!r) return '';
+  var tf = function(list){ var t = []; list.forEach(function(i){ var n = r.nodes[i]; t.push(boards[n.b].t[i - r.off(n.b)]); }); return t; };
+  if (!r.unspec.length) return '<div class="dvplan"><h4><span>Suggested changes</span></h4><div class="dvinfo">Nothing worth changing: the boards already hit the breakpoints the points allow.</div></div>';
+  var lost = {}, got = {};
+  var sum = function(list, into){ list.forEach(function(i){ var n = r.nodes[i], t = boards[n.b].t[i - r.off(n.b)]; if (t[3] === "s") dvParse(t[5]).forEach(function(x){ into[x[0]] = (into[x[0]] || 0) + x[1]; }); }); };
+  sum(r.unspec, lost); sum(r.pick, got);
+  var stats = {}; Object.keys(lost).concat(Object.keys(got)).forEach(function(k){ stats[k] = (got[k] || 0) - (lost[k] || 0); });
+  var sk = r.changes.slice().sort(function(a, b){ var ka = a.kind === "Active" && a.eq ? 0 : 1, kb = b.kind === "Active" && b.eq ? 0 : 1; return ka - kb || (b.to - b.from) - (a.to - a.from); });
+  var tier = function(lv){ var t = 0; DV_BP.forEach(function(x){ if (lv >= x) t = x; }); return t; };
+  var h = '<div class="dvplan"><h4><span>Suggested changes</span><button type="button" class="dvtog" data-dvplan="1">' + (dvShowPlan ? 'Hide on board' : 'Show on board') + '</button></h4>'
+    + '<div class="dvsum"><span class="u">Unspec ' + r.unspec.length + ' tiles · ' + r.pts(r.unspec) + ' pts</span><span class="p">Pick ' + r.pick.length + ' tiles · ' + r.pts(r.pick) + ' pts</span>'
+    + '<span>' + (r.tiles >= 0 ? '+' : '') + r.tiles + ' item level</span>' + (r.free ? '<span>' + r.free + ' pt' + (r.free === 1 ? '' : 's') + ' left over</span>' : '') + '</div>';
+  h += '<table class="dvtbl dvch"><tbody>' + sk.map(function(x){
+    var act = x.kind === "Active" && x.eq, note = "", cls = "mut";
+    if (act){ var a = tier(x.from), b = tier(x.to); if (b > a){ note = "reaches " + b; cls = "ok"; } else if (b < a){ note = "drops to " + b; cls = "waste"; } else note = x.to === b ? "on " + b + ", no waste" : "same tier (" + b + ")"; }
+    else if (x.kind === "Active") note = "off bar, not used";
+    else note = "passive";
+    return '<tr><td><span class="si">' + (icons[x.s] ? '<img alt="" src="' + esc(icons[x.s]) + '">' : '') + esc(x.s) + '</span></td><td class="n">' + x.from + ' → <b>' + x.to + '</b></td><td><span class="bp ' + cls + '">' + note + '</span></td></tr>';
+  }).join("") + '</tbody></table>';
+  var sk2 = Object.keys(stats).filter(function(k){ return Math.abs(stats[k]) > 0.001; }).sort(function(a, b){ var ra = {off: 0, def: 1, bad: 2}; return ra[dvClass(a)] - ra[dvClass(b)] || stats[b] - stats[a]; });
+  if (sk2.length) h += '<div class="dvst" style="margin-top:8px">' + sk2.map(function(k){ var v = Math.round(stats[k] * 10) / 10, pct = /Speed|Boost|Reduction|Tolerance|Chance|Multi-hit Resist/.test(k); return '<span class="' + dvClass(k) + '">' + esc(k) + '</span><span>' + (v > 0 ? '+' : '') + v + (pct ? '%' : '') + '</span>'; }).join("") + '</div>';
+  h += '<div class="dvinfo">Red rings = unspec, green rings = pick (some green tiles are only the path to a better tile). Same points as now; every board stays connected to Start. Change them in game yourself.</div></div>';
+  return h;
+}
 function dvView(c, g){
   var boards = (g.boards || []).slice(0, 4);
   if (!boards.length) return '<div class="empty-state">No Daevanion boards saved for ' + esc(c.name) + ' yet. They are added by the hourly update.</div>';
   if (dvBoard >= boards.length) dvBoard = 0;
   var icons = {}, skill = {}; (g.skills || []).forEach(function(k){ icons[k[0]] = k[1]; skill[k[0]] = k; });
   dvNodes = [];
+  var plan = dvPlan(c, g, boards);
   var all = 0, html = '<div class="dvtabs">';
   boards.forEach(function(b, i){ var s = dvPts(b); all += s.pts;
-    html += '<button type="button" class="dvtab' + (i === dvBoard ? ' on' : '') + '" data-dvb="' + i + '"><div><b>' + esc(b.n || ("Board " + (i + 1))) + '</b><small>' + s.pts + ' pts · ' + s.open + '/' + s.total + ' tiles</small></div></button>'; });
+    var mu = 0, mp = 0; if (plan) for (var q in plan.mark[i]){ if (plan.mark[i][q] === "u") mu++; else mp++; }
+    html += '<button type="button" class="dvtab' + (i === dvBoard ? ' on' : '') + '" data-dvb="' + i + '"><div><b>' + esc(b.n || ("Board " + (i + 1))) + '</b><small>' + s.pts + ' pts · ' + s.open + '/' + s.total + ' tiles' + (mu + mp ? ' · <span style="color:#ff7a7a">−' + mu + '</span> <span style="color:#5fe08a">+' + mp + '</span>' : '') + '</small></div></button>'; });
   html += '</div>';
   var b = boards[dvBoard], st = dvPts(b), sk = [];
   (b.t || []).forEach(function(n){ if (n[3] === "k" && n[4]) sk.push(n); });
-  html += '<div class="dvmain"><div><div class="dvboard">' + dvSvg(b, icons) + '</div><div class="dvinfo" id="dvinfo">Hover a tile to see what it gives.</div></div><div class="dvside">'
+  html += '<div class="dvmain"><div><div class="dvboard">' + dvSvg(b, icons, plan && dvShowPlan ? plan.mark[dvBoard] : null) + '</div><div class="dvinfo" id="dvinfo">Hover a tile to see what it gives.</div></div><div class="dvside">' + dvPlanBlock(plan, boards, icons)
     + '<div class="blk"><h4><span>' + esc(b.n || "") + '</span><span>' + st.pts + ' pts</span></h4><div class="dvinfo" style="margin:0">' + st.open + ' of ' + st.total + ' tiles open · all four boards ' + all + ' pts' + (c.dvPts ? ' (game: ' + c.dvPts + ')' : '') + '</div></div>'
     + '<div class="blk"><h4><span>Skill tiles on this board</span><span>' + sk.length + '</span></h4><div class="dvsk">' + (sk.length ? sk.map(function(n){ var nm = (dvParse(n[5])[0] || [n[5]])[0]; return '<span>' + (icons[nm] ? '<img alt="" src="' + esc(icons[nm]) + '">' : '') + esc(nm) + '</span>'; }).join("") : '<span>none</span>') + '</div></div>'
     + '<div class="blk"><h4><span>Stats on this board</span></h4>' + dvStats(b.t || []) + '</div></div></div>';
@@ -1440,7 +1606,8 @@ function dvView(c, g){
   (g.skills || []).forEach(function(k){ if ((k[3] === "Active" || k[3] === "Passive") && names.indexOf(k[0]) < 0) names.push(k[0]); });
   var rows = names.map(function(nm){ var k = skill[nm] || [nm, "", 0, "", 1]; return {nm: nm, ic: k[1], lv: +k[2] || 0, kind: k[3] || "?", eq: k[4] !== 0, b: fromB[nm] || [0, 0]}; });
   var kr = {Active: 0, Passive: 1}; rows.sort(function(a, b){ return (kr[a.kind] != null ? kr[a.kind] : 2) - (kr[b.kind] != null ? kr[b.kind] : 2) || b.lv - a.lv; });
-  html += '<div class="dvall"><div><h4><span>Skills · all four boards</span><span>breakpoints 8 · 12 · 16 · 20</span></h4><div class="dvtw"><table class="dvtbl"><thead><tr><th>Skill</th><th>Type</th><th style="text-align:right">Level</th><th>From boards</th><th>Breakpoint</th></tr></thead><tbody>';
+  html += '<div class="dvall"><div><h4><span>Skills · all four boards</span><span>breakpoints 8 · 12 · 16 · 20</span></h4><div class="dvtw"><table class="dvtbl"><thead><tr><th>Skill</th><th>Type</th><th style="text-align:right">Level</th><th>From boards</th><th>Breakpoint</th><th style="text-align:right">Suggested</th></tr></thead><tbody>';
+  var sug = {}; if (plan) plan.changes.forEach(function(x){ sug[x.s] = x.to; });
   rows.forEach(function(r){
     var bp = "", cls = "mut";
     if (r.kind === "Active"){
@@ -1451,7 +1618,7 @@ function dvView(c, g){
       else { bp = (reached ? "+" + (r.lv - reached) + " over " + reached : "below 8") + (nxt ? " · " + (nxt - r.lv) + "→" + nxt : ""); cls = reached ? "waste" : "mut"; }
     }
     var dots = ""; for (var i = 0; i < Math.max(4, r.b[1]); i++) dots += '<i class="' + (i < r.b[0] ? 'on' : '') + '"></i>';
-    html += '<tr class="' + (r.kind === "Active" && !r.eq ? 'off' : '') + '"><td><span class="si">' + (r.ic ? '<img alt="" src="' + esc(r.ic) + '">' : '') + esc(r.nm) + '</span></td><td>' + esc(r.kind) + (r.kind === "Active" && !r.eq ? ' <span class="bp mut">off bar</span>' : '') + '</td><td class="n">' + (r.lv || "–") + '</td><td class="dots">' + dots + ' <span class="bp mut">' + r.b[0] + '/' + r.b[1] + '</span></td><td><span class="bp ' + cls + '">' + bp + '</span></td></tr>';
+    html += '<tr class="' + (r.kind === "Active" && !r.eq ? 'off' : '') + '"><td><span class="si">' + (r.ic ? '<img alt="" src="' + esc(r.ic) + '">' : '') + esc(r.nm) + '</span></td><td>' + esc(r.kind) + (r.kind === "Active" && !r.eq ? ' <span class="bp mut">off bar</span>' : '') + '</td><td class="n">' + (r.lv || "–") + '</td><td class="dots">' + dots + ' <span class="bp mut">' + r.b[0] + '/' + r.b[1] + '</span></td><td><span class="bp ' + cls + '">' + bp + '</span></td><td class="n">' + (sug[r.nm] != null ? '<span class="bp ' + (sug[r.nm] > r.lv ? 'ok' : 'waste') + '">' + sug[r.nm] + '</span>' : '') + '</td></tr>';
   });
   html += '</tbody></table></div></div><div><h4><span>Stats · all four boards</span></h4>' + dvStats(allT) + '<div class="dvinfo">Gold = offensive, blue = defensive, red = usually avoided (MP, Defense, Multi-hit Resist).</div></div></div>';
   return html;
