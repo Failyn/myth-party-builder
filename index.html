@@ -328,6 +328,13 @@ table.dvtbl{width:100%;border-collapse:collapse;font-size:.78rem}
 .dvsum{display:flex;flex-wrap:wrap;gap:4px 12px;font-family:var(--mono);font-size:.7rem;margin-bottom:8px;color:var(--muted)}
 .dvsum .u{color:#ff7a7a}.dvsum .p{color:#5fe08a}
 .dvch td{padding:2px 4px}
+.mine .sheet-h{margin-bottom:12px}
+.mtable td{vertical-align:middle}
+.mtable .einput.min{width:64px}.mtable .einput.coin{width:72px}.mtable .einput.mnote{width:160px}
+.mtable th.cur,.mtable td.cur{background:color-mix(in srgb,var(--accent-2) 7%,transparent)}
+.mtable small{display:block;font-family:var(--mono);font-size:.62rem}.mtable small.pos{color:#5fcf86}.mtable small.neg{color:#e06c6c}
+.mtable td.n{font-family:var(--mono);white-space:nowrap}.mtable .mut{color:var(--muted)}
+.mname{display:inline-flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap}
 .dvb{display:inline-flex;gap:3px;margin-left:6px;vertical-align:1px}
 .dvb i{font-style:normal;font-family:var(--mono);font-size:.58rem;font-weight:600;border-radius:4px;padding:0 4px;line-height:1.5}
 .dvb .up{color:#e6b04a;background:rgba(230,176,74,.14)}.dvb .sw{color:var(--muted);background:var(--surface-2)}
@@ -559,6 +566,7 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
     <button class="tabbtn" type="button" data-tab="gear">Equipment</button>
     <button class="tabbtn" type="button" data-tab="runs">Runs</button>
     <button class="tabbtn" type="button" data-tab="ilplan">Ilvl plan</button>
+    <button class="tabbtn" type="button" data-tab="mine" id="tab-mine" hidden>My tracker</button>
   </div>
   <div class="lock"><button type="button" class="chipbtn" id="lockbtn">Unlock editing</button><span id="lockform" hidden><input class="pin wide" id="passin" type="password" autocomplete="off" placeholder="Passcode" aria-label="Group passcode"><button type="button" class="chipbtn" id="passgo">OK</button></span></div>
   <div class="stamp" id="stamp"></div>
@@ -582,6 +590,7 @@ button.acard:hover,button.acard.on{border-color:var(--g);box-shadow:inset 0 0 0 
   </div>
 
   <div id="panel-ilplan" hidden><div id="ilplan"><div class="empty-state">Loading…</div></div></div>
+  <div id="panel-mine" hidden><div id="mine"><div class="empty-state">Loading…</div></div></div>
 
   <div id="panel-runs" hidden><div id="runs"><div class="empty-state">Loading the run log…</div></div></div>
 
@@ -979,6 +988,7 @@ document.addEventListener("change", function(ev){
   if (ds.ilpi){ var pv = ev.target.value === "" ? null : Math.max(0, Math.min(27, Math.round(+ev.target.value))); ilplan.piety = ilplan.piety || {};
     if (pv === null) delete ilplan.piety[ds.ilpi]; else ilplan.piety[ds.ilpi] = {value: pv, at: Date.now()};
     if (db) db.doc("plan/ilplan").set(ilplan).then(function(){}, failWrite); renderIlPlan(); return; }
+  if (ds.mine){ mineSet(ds.mine, ev.target.value); return; }
   if (ds.x){ saveExtra(ds.x, parseFloat(ev.target.value) || 0); return; }
   if (ds.amt != null){ var pa = parties[+ds.amt]; if (pa){ pa.amount = Math.max(0, Math.min(2000, Math.round(parseFloat(ev.target.value) || 0))); savePlan(); } return; }
   var n = ds.cap; if (!n) return;
@@ -1289,7 +1299,7 @@ function gcol(g){ return GRADE[g] || "var(--muted)"; }
 function loadGear(c){
   var k = c._id || c.name; if (!fetchGear || gearBusy[k] || (gearCache[k] && Date.now() - gearCache[k].t < 10*60000)) return;
   gearBusy[k] = true;
-  fetchGear(k, function(rows){ gearBusy[k] = false; gearCache[k] = {t: Date.now(), g: rows && rows[0] ? rows[0].data : null}; if (gearSel === c.name) renderGear(); renderIlPlan(); },
+  fetchGear(k, function(rows){ gearBusy[k] = false; gearCache[k] = {t: Date.now(), g: rows && rows[0] ? rows[0].data : null}; if (gearSel === c.name) renderGear(); renderIlPlan(); renderMine(); },
     function(){ gearBusy[k] = false; notice("Could not load the equipment. Try again in a moment.", true); });
 }
 function ench(it){ return '<span class="gench">+' + (it.enchant || 0) + (it.exceed ? '<span class="x">+' + it.exceed + '</span>' : '') + '</span>'; }
@@ -1970,10 +1980,59 @@ function renderIlPlan(){
   });
   el.innerHTML = html + '</div><p class="pnote ilnote">Estimates from ' + SIMS + ' simulated weeks of runs: +2 piety per run, a ticket every 28 (a piece of choice; the guard takes 3), and 4 drop rolls per run (2 × 7.5% claims, 2 × 3.75% minibosses) on the Horn Den table. Tickets are saved for the guard first (3 tickets; tickets already earned count as saved while the guard is missing), then buy the biggest missing piece. Every Horn Den piece counts as enchanted to +10 (or +15 if chosen); enchant cost is left out. Item level per piece = tier + enchant + 5 per exceed + manastones (grey 1, green 2, blue 3, gold 4); new Horn Den pieces count as +10 with 8 in manastones. Without energy, manastones are counted up to 8 per item, necklace, earrings and rings to +10, and Daevanion crystals: the Nightmare shop ones (366 main-board points) plus Shugo steps 1–2 (20 more, 386), +1 item level each on white tiles. The starting item level is the official one and updates hourly.</p>';
 }
+/* ---- My tracker (Aleks only: shown with the passcode). plan/mine {rows: {Name: {shugo, nm, note, coins: {weekKey: value}}}}.
+   coins[k] = season coins held at the reset that ends week k (week k starts Wednesday k, 07:00 UTC). Stigma levels and
+   Daevanion points come from the hourly update. ---- */
+var mine = null;
+var MINE_SEED = {rows: {  /* Aleks's list, 25 Nov 2026 (coins = before the 25 Nov reset) */
+  "Alpha": {shugo: 20, nm: 30, coins: {"2026-11-18": 12.1}}, "Beta": {shugo: 17, nm: 29, coins: {"2026-11-18": 35.8}},
+  "Eos": {shugo: 20, nm: 28, coins: {"2026-11-18": 42.1}}, "Lunа": {shugo: 20, nm: 27, coins: {"2026-11-18": 19.9}},
+  "Аi": {shugo: 20, nm: 21, coins: {"2026-11-18": 10.3}, note: "11 SC"}}};
+function mineData(){ return mine || JSON.parse(JSON.stringify(MINE_SEED)); }
+function mineSet(key, raw){
+  if (!unlocked){ askPass(); return; }
+  var k = key.split("|"), name = k[0], f = k[1], m = mineData(), r = m.rows[name] = m.rows[name] || {};
+  if (f === "note") r.note = String(raw || "").slice(0, 120);
+  else if (f === "coins"){ r.coins = r.coins || {}; var v = String(raw).trim() === "" ? null : Math.round(parseFloat(String(raw).replace(",", ".")) * 10) / 10; if (v === null || isNaN(v)) delete r.coins[k[2]]; else r.coins[k[2]] = v; }
+  else { var n = String(raw).trim() === "" ? null : Math.max(0, Math.min(99, Math.round(+raw))); if (n === null || isNaN(n)) delete r[f]; else r[f] = n; }
+  m.at = Date.now(); mine = m;
+  if (db) db.doc("plan/mine").set(m).then(function(){}, failWrite);
+  renderMine();
+}
+function mineStig(c){  /* equipped stigma levels, highest first, from the hourly gear read */
+  var cache = gearCache[c._id || c.name]; if (!cache) { loadGear(c); return null; }
+  var g = cache.g; if (!g) return [];
+  return (g.skills || []).filter(function(k){ return k[3] === "Stigma" && +k[2] > 0; }).sort(function(a, b){ return b[2] - a[2]; });
+}
+function renderMine(){
+  var el = $("mine"); if (!el || $("panel-mine").hidden) return;
+  if (!unlocked){ el.innerHTML = '<div class="empty-state">Unlock editing to see your tracker.</div>'; return; }
+  var list = myChars(); if (!list.length){ el.innerHTML = '<div class="empty-state">Loading the roster…</div>'; return; }
+  var m = mineData(), wk = weekKey(Date.now());
+  var weeks = []; for (var i = 3; i >= 0; i--) weeks.push(new Date(Date.parse(wk + "T12:00:00Z") - i * 7 * 86400e3).toISOString().slice(0, 10));
+  var lab = function(w){ return new Date(Date.parse(w + "T12:00:00Z") + 7 * 86400e3).toLocaleDateString("en-GB", {day: "numeric", month: "short"}); };
+  var html = '<div class="mine"><div class="sheet-h"><h2>My tracker</h2><span class="when">Only shown with the passcode' + (mine && mine.at ? ' · saved ' + new Date(mine.at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : ' · not saved yet: your list is filled in, the first change saves it') + '</span></div>'
+    + '<div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th><th>Shugo tiles</th><th>Nightmare</th><th>Stigmas</th><th>Daevanion</th>'
+    + weeks.map(function(w){ return '<th class="' + (w === wk ? 'cur' : '') + '">Coins at reset<br>' + lab(w) + (w === wk ? ' (next)' : '') + '</th>'; }).join("") + '<th>Note</th></tr></thead><tbody>';
+  list.forEach(function(c){
+    var r = m.rows[c.name] || {}, st = mineStig(c), co = r.coins || {};
+    var stig = st === null ? '<span class="mut">…</span>' : st.length ? '<span title="' + esc(st.map(function(k){ return k[0] + " " + k[2]; }).join(", ")) + '">' + st.map(function(k){ return k[2]; }).join("-") + '</span>' : '<span class="mut">–</span>';
+    var inp = function(f, v, w){ return '<input class="einput min" type="number" inputmode="numeric" min="0" max="99" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|" + f) + '" aria-label="' + esc(c.name + " " + f) + '">'; };
+    html += '<tr><td><span class="mname">' + glyph(c.cls, true) + esc(c.name) + '</span></td><td>' + inp("shugo", r.shugo) + '</td><td>' + inp("nm", r.nm) + '</td><td class="n">' + stig + '</td>'
+      + '<td class="n">' + (c.dvPts ? c.dvPts + ' pts' : '–') + '</td>'
+      + weeks.map(function(w, i){ var v = co[w], prev = i ? co[weeks[i - 1]] : null, d = v != null && prev != null ? Math.round((v - prev) * 10) / 10 : null;
+          return '<td class="' + (w === wk ? 'cur' : '') + '"><input class="einput min coin" type="text" inputmode="decimal" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|coins|" + w) + '" aria-label="' + esc(c.name + " coins at reset " + lab(w)) + '">' + (d != null ? '<small class="' + (d >= 0 ? 'pos' : 'neg') + '">' + (d >= 0 ? '+' : '') + d + '</small>' : '') + '</td>'; }).join("")
+      + '<td><input class="einput mnote" type="text" maxlength="120" value="' + esc(r.note || '') + '" data-mine="' + esc(c.name + "|note") + '" aria-label="' + esc(c.name + " note") + '"></td></tr>';
+  });
+  html += '</tbody></table></div><p class="pnote">Stigmas = equipped stigma levels, highest first (hover for names); Daevanion = points on the four main boards. Both update hourly. Coins are season coins (SC) held at each weekly reset (Wednesday 08:00 CET); the small number is the change from the reset before. Data is saved in the group database, which is readable by anyone who has the site address; only the tab is hidden.</p></div>';
+  el.innerHTML = html;
+}
 function setTab(name){
+  if (name === "mine" && !unlocked) name = "builder";
   Array.prototype.forEach.call(document.querySelectorAll(".tabbtn"), function(b){ b.classList.toggle("active", b.dataset.tab === name); });
-  ["builder", "energy", "planner", "progress", "gear", "runs", "ilplan"].forEach(function(n){ $("panel-" + n).hidden = n !== name; });
+  ["builder", "energy", "planner", "progress", "gear", "runs", "ilplan", "mine"].forEach(function(n){ $("panel-" + n).hidden = n !== name; });
   if (name === "ilplan") renderIlPlan();
+  if (name === "mine") renderMine();
   if (name === "runs") loadRuns();
   if (name === "progress") loadHist();
   if (name === "gear") renderGear();
@@ -1994,6 +2053,9 @@ function setLock(ok){
   unlocked = ok; var b = $("lockbtn");
   b.textContent = ok ? "Editing unlocked" : "Unlock editing"; b.classList.toggle("on", ok); $("lockform").hidden = true;
   if (!typing()) renderEnergy();
+  var tm = $("tab-mine"); if (tm) tm.hidden = !ok;   /* "My tracker" is only shown with the passcode */
+  if (ok){ try { if (localStorage.getItem("myth-builder:tab") === "mine") setTab("mine"); } catch (e) {} renderMine(); }
+  else if ($("panel-mine") && !$("panel-mine").hidden) setTab("builder");
 }
 function askPass(){ $("lockform").hidden = false; $("passin").focus(); notice("Enter the group passcode to make changes. Viewing needs no passcode."); }
 function checkPass(p, quiet){
@@ -2074,6 +2136,10 @@ function start(){
     var w = s.exists ? s.data() : null;
     if (w) weekc = {key: String(w.key || ""), conquest: +w.conquest || 0, trans: +w.trans || 0};
     if (!typing()) renderPlanner();
+  });
+  db.doc("plan/mine").onSnapshot(function(s){
+    var d = s.exists ? s.data() : null; mine = d && typeof d === "object" && d.rows ? d : null;
+    if (!typing()) renderMine();
   });
   db.doc("plan/ilplan").onSnapshot(function(s){
     var d = s.exists ? s.data() : null; ilplan = d && typeof d === "object" ? d : {piety: {}};
