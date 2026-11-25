@@ -341,7 +341,8 @@ table.dvtbl{width:100%;border-collapse:collapse;font-size:.78rem}
 .mprog .gs{border-left:1px solid var(--line)}
 .mprog td.sg{text-align:center;min-width:30px}
 .mprog .ofx{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}.mprog .ofx i{font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--muted)}
-.mprog .einput.min{width:54px}
+.mprog .einput.min{width:52px;-moz-appearance:textfield;appearance:textfield;text-align:right;padding-right:6px}
+.mprog .einput.min::-webkit-inner-spin-button,.mprog .einput.min::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .mtable th.exp{color:#e6b04a}.mtable .expn{font-size:.56rem;color:#e06c6c;text-transform:none;letter-spacing:0}
 .mtable tr.mtot td{font-weight:600;border-top:1px solid var(--line)}.mtable td.bagc{text-align:right}
 .mname{display:inline-flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap}
@@ -2045,6 +2046,8 @@ function renderMine(){
   var el = $("mine"); if (!el || $("panel-mine").hidden) return;
   if (!unlocked){ el.innerHTML = '<div class="empty-state">Unlock editing to see your tracker.</div>'; return; }
   var list = myChars(); if (!list.length){ el.innerHTML = '<div class="empty-state">Loading the roster…</div>'; return; }
+  if (mine && unlocked && db){ var mv = false; for (var rn in mine.rows){ var rr = mine.rows[rn]; if (rr.nm != null){ if (rr.ssNm == null) rr.ssNm = Math.min(50, rr.nm); delete rr.nm; mv = true; } }
+    if (mv){ mine.at = Date.now(); db.doc("plan/mine").set(mine).then(function(){}, failWrite); } }  /* one-off: "Nightmare" numbers were Nightmare shop stigma shards (Aleks 25 Nov) */
   var m = mineData(), wk = weekKey(Date.now()), lastWk = new Date(Date.parse(wk + "T12:00:00Z") - 7 * 86400e3).toISOString().slice(0, 10);
   loadBags();
   var weeks = []; for (var i = 3; i >= 0; i--) weeks.push(new Date(Date.parse(wk + "T12:00:00Z") - i * 7 * 86400e3).toISOString().slice(0, 10));
@@ -2055,14 +2058,14 @@ function renderMine(){
   var html = '<div class="mine"><div class="sheet-h"><h2>My tracker</h2><span class="when">Only shown with the passcode' + (mine && mine.at ? ' · saved ' + when(mine.at) : ' · not saved yet: your list is filled in, the first change saves it') + '</span></div>';
   /* 1) progress: stigmas, stigma shards bought per shop, Daevanion tiles */
   html += '<h3 class="mh">Progress</h3><div class="etable-wrap"><table class="etable mtable mprog"><thead>'
-    + '<tr><th rowspan="2">Character</th><th colspan="5" class="grp">Stigmas</th><th colspan="3" class="grp">Stigma shards</th><th colspan="2" class="grp">Daevanion tiles</th><th rowspan="2">Daevanion</th><th rowspan="2">Note</th></tr>'
-    + '<tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th class="gs">Shugo</th><th>Abyss</th><th>Nightmare</th><th class="gs">Shugo</th><th>Nightmare</th></tr></thead><tbody>';
+    + '<tr><th rowspan="2">Character</th><th colspan="5" class="grp">Stigmas</th><th colspan="3" class="grp">Stigma shards</th><th class="grp">Daevanion tiles</th><th rowspan="2">Daevanion</th><th rowspan="2">Note</th></tr>'
+    + '<tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th class="gs">Shugo</th><th>Abyss</th><th>Nightmare</th><th class="gs">Shugo</th></tr></thead><tbody>';
   list.forEach(function(c){
     var r = m.rows[c.name] || {}, st = mineStig(c);
     var stc = ''; for (var k = 0; k < 5; k++){ var sk = st && st[k]; stc += '<td class="n sg' + (k === 0 ? ' gs' : '') + '"' + (sk ? ' title="' + esc(sk[0]) + '"' : '') + '>' + (st === null ? '<span class="mut">…</span>' : sk ? sk[2] : '<span class="mut">–</span>') + '</td>'; }
     var inp = function(f, v, max, cls){ return '<td class="' + (cls || '') + '"><span class="ofx"><input class="einput min" type="number" inputmode="numeric" min="0" max="' + max + '" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|" + f) + '" aria-label="' + esc(c.name + " " + f) + '"' + (f === "ss" && v != null ? ' title="' + esc(ssTip(v, bags[c.name] && bags[c.name].c ? bags[c.name].c[ABYSS_ID] : null)) + '"' : '') + '>' + (max < 99 || max > 99 ? '<i>/' + max + '</i>' : '') + '</span></td>'; };
     html += '<tr>' + name(c) + stc + inp("ssShugo", r.ssShugo, 50, "gs") + inp("ss", r.ss, SS_STEPS.length * SS_PER) + inp("ssNm", r.ssNm, 50)
-      + inp("shugo", r.shugo, 99, "gs") + inp("nm", r.nm, 99) + '<td class="n">' + (c.dvPts ? c.dvPts + ' pts' : '–') + '</td>'
+      + inp("shugo", r.shugo, 99, "gs") + '<td class="n">' + (c.dvPts ? c.dvPts + ' pts' : '–') + '</td>'
       + '<td><input class="einput mnote" type="text" maxlength="120" value="' + esc(r.note || '') + '" data-mine="' + esc(c.name + "|note") + '" aria-label="' + esc(c.name + " note") + '"></td></tr>';
   });
   html += '</tbody></table></div><p class="pnote">Stigmas = levelled stigmas, highest first (hover for names), and Daevanion = points on the four main boards: both update hourly. Stigma shards = how many you bought in each shop (hover the Abyss one for the step and the next price).</p>';
