@@ -51,6 +51,7 @@ def read_once(cid):
     return info["profile"], (il[0] if il else 0)
 
 
+BOARD_REFRESH_H = 6   # hours between full Daevanion board re-reads
 DV_COST = {"Common": 1, "Rare": 2, "Legend": 3, "Unique": 4}   # Daevanion points per tile colour (white/green/blue/orange)
 
 
@@ -291,8 +292,11 @@ def main():
     rows, failed, gear_rows = [], [], []
     for e in roster:  # gear_rows also collects the Daevanion boards
         try:
-            has_boards = any(gid.startswith(e["id"] + "~dv") for gid in gear_raw)
-            doc, samples = fetch(e, previous.get(e["id"]), need_boards=not has_boards)
+            # boards are re-read when the open tile count changes, and every BOARD_REFRESH_H hours anyway
+            # (unspec one tile + pick another keeps the count the same)
+            b_at = [gd.get("at") or "" for gid, gd in gear_raw.items() if gid.startswith(e["id"] + "~dv")]
+            stale = not b_at or min(b_at) < (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=BOARD_REFRESH_H)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            doc, samples = fetch(e, previous.get(e["id"]), need_boards=stale)
             doc["readAtIso"] = now
             for bid, bd in (doc.pop("_boards", None) or {}).items():   # Daevanion boards are saved beside the gear, one record each
                 bd = dict(bd, name=doc["name"], at=now)
@@ -351,8 +355,29 @@ def main():
             share.setdefault(k, v)
         if share:
             gear_rows.append({"coll": "gear", "id": "zz_dvshare", "data": {"at": now, "cls": share}, "updated_at": now})
+        # suggestions for every character (same optimiser as the page), so the site can flag new ones
+        metas = {gid.split("~")[0]: gd for gid, gd in gear_raw.items() if gid.endswith("~_")}
+        metas.update({r["id"].split("~")[0]: r["data"] for r in gear_rows if r["id"].endswith("~_")})
+        chars_in = {}
+        for e in roster:
+            bl = sorted([(int(gid.split("~dv")[1]), bd) for gid, bd in boards.items() if gid.startswith(e["id"] + "~dv")], key=lambda x: x[0])
+            if bl and e["id"] in metas:
+                chars_in[e["id"]] = {"cls": (info.get(e["id"]) or {}).get("cls"), "skills": metas[e["id"]].get("skills", []), "boards": [bd for _, bd in bl][:4]}
+        import subprocess
+        res = subprocess.run(["node", os.path.join(HERE, "dvplan.js")], input=json.dumps({"share": share, "chars": chars_in}),
+                             capture_output=True, text=True, timeout=120)
+        if res.returncode == 0:
+            plans = json.loads(res.stdout)
+            old = (gear_raw.get("zz_dvplan") or {}).get("chars") or {}
+            for rid, pl in plans.items():   # remember when each suggestion last changed
+                pl["since"] = old.get(rid, {}).get("since") if old.get(rid, {}).get("sig") == pl.get("sig") else now
+            if json.dumps(plans, sort_keys=True) != json.dumps(old, sort_keys=True):
+                gear_rows.append({"coll": "gear", "id": "zz_dvplan", "data": {"at": now, "chars": plans}, "updated_at": now})
+            print("board suggestions: %d characters, %d with a breakpoint to gain" % (len(plans), sum(1 for p in plans.values() if p.get("up"))))
+        else:
+            print("board suggestions failed: %s" % res.stderr[:300])
     except Exception as ex:
-        print("board share failed: %s" % ex)
+        print("board share/suggestions failed: %s" % ex)
     n_gear = post_rows(url, head, gear_rows, "gear")
     # remove characters that are no longer in roster.json
     keep = ",".join('"%s"' % e["id"] for e in roster)
