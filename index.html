@@ -1424,7 +1424,7 @@ function renderGear(){
 var DV_COST = {w: 1, g: 2, b: 3, o: 4}, DV_GNAME = {w: "White", g: "Green", b: "Blue", o: "Orange"}, DV_GCOL = {w: "#c3c8d0", g: "#5fcf86", b: "#4fa3ff", o: "#e6b04a"};
 var DV_BP = [8, 12, 16, 20];  /* active skills only matter at these levels (Aleks) */
 var DV_OFF = /^(Attack Bonus|Critical Hit|Multi-hit Chance|Cooldown Reduction|Combat Speed|Damage Boost|Critical Damage Boost)$/;
-var DV_BAD = /^(MP|Defense Bonus|Multi-hit Resist)$/;  /* avoided (Aleks): MP, defense, multi-hit resist; HP and the resists are skippable defence */
+var DV_BAD = /^(MP|Critical Hit Resist|Multi-hit Resist|Critical Damage Tolerance)$/;  /* no use in PvE (Aleks 25 Nov): MP, Crit Hit Resist, Multi-hit Resist, Crit Damage Tolerance; Defense, HP and Damage Tolerance count */
 var dvNodes = [];
 function dvClass(stat){ return DV_OFF.test(stat) ? "off" : DV_BAD.test(stat) ? "bad" : "def"; }
 function dvParse(desc){  /* "Attack Bonus +27" or "Cooldown Reduction +3%" -> [name, value, isPercent] */
@@ -1475,7 +1475,7 @@ function dvPts(b){ var p = 0, o = 0, n = 0; (b.t || []).forEach(function(x){ if 
    8/12/16/20 (16 is the big one), a little per level past 20; off-bar actives (stagger skills, Defiance) count 0;
    passives small per level; offensive stats first, MP/Defense/Multi-hit Resist about nothing. */
 var DVO_BP = [[8, 3], [12, 6], [16, 14], [20, 8]], DVO_OVER20 = 1.5, DVO_PASSIVE = 0.5;
-var DVO_STAT = {"Attack Bonus": 1, "Critical Hit": 0.9, "HP": 0.4, "Critical Hit Resist": 0.15, "Defense Bonus": 0.05, "MP": 0,
+var DVO_STAT = {"Attack Bonus": 1, "Critical Hit": 0.9, "HP": 0.4, "Defense Bonus": 0.35, "Critical Hit Resist": 0.05, "MP": 0,  /* Aleks: Defense works in PvE, Crit Hit Resist does not */
   "Combat Speed": 6, "Damage Boost": 6, "Cooldown Reduction": 5, "Critical Damage Boost": 5, "Multi-hit Chance": 4,
   "Damage Tolerance": 5, "Critical Damage Tolerance": 0.2, "Multi-hit Resist": 0.1};  /* Aleks: Damage Tolerance is one of the best defensive tiles; Crit Damage Tolerance and Multi-hit Resist don't matter in PvE */
 var DVO_COST = {w: 1, g: 2, b: 3, o: 4}, DVO_CHANGE = 0.3;  /* effort per tile changed, so tiny reshuffles are not suggested */
@@ -1715,7 +1715,7 @@ function dvView(c, g){
     var dots = ""; for (var i = 0; i < Math.max(4, r.b[1]); i++) dots += '<i class="' + (i < r.b[0] ? 'on' : '') + '"></i>';
     html += '<tr class="' + (r.kind === "Active" && !r.eq ? 'off' : '') + '"><td><span class="si">' + (r.ic ? '<img alt="" src="' + esc(r.ic) + '">' : '') + esc(r.nm) + '</span></td><td>' + esc(r.kind) + (r.kind === "Active" && !r.eq ? ' <span class="bp mut">off bar</span>' : '') + '</td><td class="n">' + (r.lv || "–") + '</td><td class="dots">' + dots + ' <span class="bp mut">' + r.b[0] + '/' + r.b[1] + '</span></td><td><span class="bp ' + cls + '">' + bp + '</span></td><td class="n">' + (sug[r.nm] != null ? '<span class="bp ' + (sug[r.nm] > r.lv ? 'ok' : 'waste') + '">' + sug[r.nm] + '</span>' : '') + '</td></tr>';
   });
-  html += '</tbody></table></div></div><div><h4><span>Stats · all four boards</span></h4>' + dvStats(allT) + '<div class="dvinfo">Gold = offensive, blue = defensive, red = usually avoided (MP, Defense, Multi-hit Resist).</div></div></div>';
+  html += '</tbody></table></div></div><div><h4><span>Stats · all four boards</span></h4>' + dvStats(allT) + '<div class="dvinfo">Gold = offensive, blue = defensive, red = no use in PvE (MP, Crit Hit Resist, Multi-hit Resist, Crit Damage Tolerance).</div></div></div>';
   return html;
 }
 function dvHover(el){
