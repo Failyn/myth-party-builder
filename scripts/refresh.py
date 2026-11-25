@@ -298,6 +298,11 @@ def main():
             stale = not b_at or min(b_at) < (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=BOARD_REFRESH_H)).strftime("%Y-%m-%dT%H:%M:%SZ")
             doc, samples = fetch(e, previous.get(e["id"]), need_boards=stale)
             doc["readAtIso"] = now
+            # most Daevanion points ever spent: points never go down, so dvMax - dvPts = points not assigned right now
+            dv_seed = getattr(main, "dv_seed", None)
+            if dv_seed is None:
+                sp = os.path.join(HERE, "..", "dv_seed.json"); dv_seed = main.dv_seed = json.load(open(sp)) if os.path.exists(sp) else {}
+            doc["dvMax"] = max(int((previous.get(e["id"]) or {}).get("dvMax") or 0), int(dv_seed.get(e["id"]) or 0), int(doc.get("dvPts") or 0))
             for bid, bd in (doc.pop("_boards", None) or {}).items():   # Daevanion boards are saved beside the gear, one record each
                 bd = dict(bd, name=doc["name"], at=now)
                 gear_rows.append({"coll": "gear", "id": "%s~dv%s" % (e["id"], bid), "data": bd, "updated_at": now})
@@ -362,7 +367,9 @@ def main():
         for e in roster:
             bl = sorted([(int(gid.split("~dv")[1]), bd) for gid, bd in boards.items() if gid.startswith(e["id"] + "~dv")], key=lambda x: x[0])
             if bl and e["id"] in metas:
-                chars_in[e["id"]] = {"cls": (info.get(e["id"]) or {}).get("cls"), "skills": metas[e["id"]].get("skills", []), "boards": [bd for _, bd in bl][:4]}
+                spent = sum({"w": 1, "g": 2, "b": 3, "o": 4}.get(t[2], 0) for _, bd in bl[:4] for t in bd.get("t", []) if t[4] and t[3] != "x")
+                dvmax = int((info.get(e["id"]) or {}).get("dvMax") or 0)
+                chars_in[e["id"]] = {"cls": (info.get(e["id"]) or {}).get("cls"), "skills": metas[e["id"]].get("skills", []), "boards": [bd for _, bd in bl][:4], "free": max(0, dvmax - spent)}
         import subprocess
         res = subprocess.run(["node", os.path.join(HERE, "dvplan.js")], input=json.dumps({"share": share, "chars": chars_in}),
                              capture_output=True, text=True, timeout=120)

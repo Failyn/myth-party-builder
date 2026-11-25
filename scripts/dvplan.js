@@ -15,13 +15,13 @@ for (const [rid, c] of Object.entries(input.chars || {})) {
   try {
     const ps = {}, sh = (input.share || {})[c.cls] || {};
     for (const k in sh) if (sh[k][1]) ps[k] = sh[k][0] / sh[k][1];
-    const r = dvOptimise(c.boards, c.skills || [], {passive: ps});
+    const r = dvOptimise(c.boards, c.skills || [], {passive: ps, free: c.free || 0});
     const up = r.changes.filter(x => x.kind === "Active" && x.eq && tier(x.to) > tier(x.from)).map(x => [x.s, x.from, x.to]);
     /* signature: which tiles change, so the page can tell when a suggestion is new */
     const key = n => n.b + ":" + n.r + ":" + n.c;
     const sig = r.unspec.map(i => "-" + key(r.nodes[i])).concat(r.pick.map(i => "+" + key(r.nodes[i]))).sort().join(",");
     let h = 0; for (let i = 0; i < sig.length; i++) h = (h * 31 + sig.charCodeAt(i)) | 0;
-    out[rid] = {up, u: r.unspec.length, p: r.pick.length, gain: Math.round(r.gain * 10) / 10, items: r.tiles, sig: r.unspec.length ? (h >>> 0).toString(36) : ""};
+    out[rid] = {up, free: c.free || 0, u: r.unspec.length, p: r.pick.length, gain: Math.round(r.gain * 10) / 10, items: r.tiles, sig: r.unspec.length ? (h >>> 0).toString(36) : ""};
   } catch (e) { out[rid] = {err: String(e)}; }
 }
 process.stdout.write(JSON.stringify(out));
