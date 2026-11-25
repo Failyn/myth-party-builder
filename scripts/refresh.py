@@ -332,6 +332,24 @@ def main():
     char_rows = [r for r in rows if r["coll"] != "cphist"]
     n_chars = post_rows(url, head, char_rows, "characters")   # the stats first, on their own
     n_hist = post_rows(url, head, hist_rows, "CP history")
+    # how often the alts of each class put board tiles into each skill (the page weighs passives by it); mains have points for everything
+    try:
+        boards = {gid: gd for gid, gd in gear_raw.items() if re.search(r"~dv\d+$", gid)}
+        boards.update({r["id"]: r["data"] for r in gear_rows if re.search(r"~dv\d+$", r["id"])})
+        info = dict((k, v) for k, v in previous.items())
+        info.update({r["id"]: r["data"] for r in rows if r["coll"] == "chars"})
+        share = {}
+        for gid, bd in boards.items():
+            ch = info.get(gid.split("~")[0]) or {}
+            if not ch.get("cls") or ch.get("main"): continue
+            for t in bd.get("t", []):
+                if t[3] != "k": continue
+                sk = re.sub(r" \+\d+$", "", t[5])
+                o = share.setdefault(ch["cls"], {}).setdefault(sk, [0, 0]); o[0] += t[4]; o[1] += 1
+        if share:
+            gear_rows.append({"coll": "gear", "id": "zz_dvshare", "data": {"at": now, "cls": share}, "updated_at": now})
+    except Exception as ex:
+        print("board share failed: %s" % ex)
     n_gear = post_rows(url, head, gear_rows, "gear")
     # remove characters that are no longer in roster.json
     keep = ",".join('"%s"' % e["id"] for e in roster)
