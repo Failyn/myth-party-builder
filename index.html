@@ -337,7 +337,11 @@ table.dvtbl{width:100%;border-collapse:collapse;font-size:.78rem}
 .mtable th.bagc{max-width:96px;white-space:normal}
 .mine .mh{font-size:.95rem;margin:18px 0 8px;display:flex;align-items:baseline;gap:10px}.mine .mh .when{margin-left:0}
 .mtable .einput.coin.auto{color:var(--muted);font-style:italic}
-.mtable td.ssc small{white-space:nowrap}.mtable td.ssc small.mut{color:var(--muted)}
+.mprog th{text-align:center}.mprog th.grp{border-bottom:1px solid var(--line)}
+.mprog .gs{border-left:1px solid var(--line)}
+.mprog td.sg{text-align:center;min-width:30px}
+.mprog .ofx{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}.mprog .ofx i{font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.mprog .einput.min{width:54px}
 .mtable th.exp{color:#e6b04a}.mtable .expn{font-size:.56rem;color:#e06c6c;text-transform:none;letter-spacing:0}
 .mtable tr.mtot td{font-weight:600;border-top:1px solid var(--line)}.mtable td.bagc{text-align:right}
 .mname{display:inline-flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap}
@@ -2005,6 +2009,7 @@ var BAG_EXPIRE = {"930100024": 1};  /* hourglass items: expire when Season 2 sta
 var SC_ID = "930100019";
 /* Abyss shop Stigma Shards: 4 steps of 50 per character, 10,000 / 15,000 / 20,000 / 25,000 Abyss each (Aleks's screenshot 25 Nov 2026) */
 var SS_STEPS = [10000, 15000, 20000, 25000], SS_PER = 50, ABYSS_ID = "930100003";
+function ssTip(n, abyss){ var x = ssInfo(n, abyss); return x.done ? x.txt : "step " + x.step + " · " + x.inStep + "/" + SS_PER + " · next " + x.price.toLocaleString("en-GB") + " Abyss" + (abyss != null ? (x.can ? " · can buy " + x.can + " now" : " · need " + (x.price - abyss).toLocaleString("en-GB") + " more") : ""); }
 function ssInfo(n, abyss){
   n = +n || 0; var max = SS_STEPS.length * SS_PER; if (n >= max) return {done: true, txt: "all " + max + " bought"};
   var st = Math.floor(n / SS_PER), inStep = n - st * SS_PER, price = SS_STEPS[st], can = 0;
@@ -2026,7 +2031,7 @@ function mineSet(key, raw){
   var k = key.split("|"), name = k[0], f = k[1], m = mineData(), r = m.rows[name] = m.rows[name] || {};
   if (f === "note") r.note = String(raw || "").slice(0, 120);
   else if (f === "coins"){ r.coins = r.coins || {}; var v = String(raw).trim() === "" ? null : Math.round(parseFloat(String(raw).replace(",", ".")) * 10) / 10; if (v === null || isNaN(v)) delete r.coins[k[2]]; else r.coins[k[2]] = v; }
-  else { var n = String(raw).trim() === "" ? null : Math.max(0, Math.min(f === "ss" ? SS_STEPS.length * SS_PER : 99, Math.round(+raw))); if (n === null || isNaN(n)) delete r[f]; else r[f] = n; }
+  else { var n = String(raw).trim() === "" ? null : Math.max(0, Math.min(f === "ss" ? SS_STEPS.length * SS_PER : f === "ssShugo" || f === "ssNm" ? 50 : 99, Math.round(+raw)));  /* ss = Abyss shop shards (/200), ssShugo / ssNm = Shugo / Nightmare shop shards (/50) */ if (n === null || isNaN(n)) delete r[f]; else r[f] = n; }
   m.at = Date.now(); mine = m;
   if (db) db.doc("plan/mine").set(m).then(function(){}, failWrite);
   renderMine();
@@ -2048,19 +2053,19 @@ function renderMine(){
   var name = function(c){ return '<td><span class="mname">' + glyph(c.cls, true) + esc(c.name) + '</span></td>'; };
   var bagAt = 0; for (var bk in bags) bagAt = Math.max(bagAt, bags[bk].at || 0);
   var html = '<div class="mine"><div class="sheet-h"><h2>My tracker</h2><span class="when">Only shown with the passcode' + (mine && mine.at ? ' · saved ' + when(mine.at) : ' · not saved yet: your list is filled in, the first change saves it') + '</span></div>';
-  /* 1) progress */
-  html += '<h3 class="mh">Progress</h3><div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th><th>Shugo tiles</th><th>Nightmare</th><th>Stigmas</th><th>Stigma shards<br><span class="expn" style="color:var(--muted)">bought from the Abyss shop</span></th><th>Daevanion</th><th>Note</th></tr></thead><tbody>';
+  /* 1) progress: stigmas, stigma shards bought per shop, Daevanion tiles */
+  html += '<h3 class="mh">Progress</h3><div class="etable-wrap"><table class="etable mtable mprog"><thead>'
+    + '<tr><th rowspan="2">Character</th><th colspan="5" class="grp">Stigmas</th><th colspan="3" class="grp">Stigma shards</th><th colspan="2" class="grp">Daevanion tiles</th><th rowspan="2">Daevanion</th><th rowspan="2">Note</th></tr>'
+    + '<tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th class="gs">Shugo</th><th>Abyss</th><th>Nightmare</th><th class="gs">Shugo</th><th>Nightmare</th></tr></thead><tbody>';
   list.forEach(function(c){
     var r = m.rows[c.name] || {}, st = mineStig(c);
-    var stig = st === null ? '<span class="mut">…</span>' : st.length ? '<span title="' + esc(st.map(function(k){ return k[0] + " " + k[2]; }).join(", ")) + '">' + st.map(function(k){ return k[2]; }).join("-") + '</span>' : '<span class="mut">–</span>';
-    var bgA = bags[c.name] && bags[c.name].c ? bags[c.name].c[ABYSS_ID] : null, si = ssInfo(r.ss, bgA);
-    var ssCell = '<td class="ssc">' + '<input class="einput min" type="number" inputmode="numeric" min="0" max="200" value="' + (r.ss == null ? '' : r.ss) + '" data-mine="' + esc(c.name + "|ss") + '" aria-label="' + esc(c.name + " stigma shards bought") + '">'
-      + (r.ss == null ? '' : si.done ? '<small class="pos">' + si.txt + '</small>' : '<small>step ' + si.step + ' · ' + si.inStep + '/' + SS_PER + ' · next ' + num(si.price) + '</small>' + (bgA != null ? '<small class="' + (si.can ? 'pos' : 'mut') + '">' + (si.can ? 'can buy ' + si.can + ' now' : 'need ' + num(si.price - bgA) + ' more Abyss') + '</small>' : '')) + '</td>';
-    var inp = function(f, v){ return '<input class="einput min" type="number" inputmode="numeric" min="0" max="99" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|" + f) + '" aria-label="' + esc(c.name + " " + f) + '">'; };
-    html += '<tr>' + name(c) + '<td>' + inp("shugo", r.shugo) + '</td><td>' + inp("nm", r.nm) + '</td><td class="n">' + stig + '</td>' + ssCell + '<td class="n">' + (c.dvPts ? c.dvPts + ' pts' : '–') + '</td>'
+    var stc = ''; for (var k = 0; k < 5; k++){ var sk = st && st[k]; stc += '<td class="n sg' + (k === 0 ? ' gs' : '') + '"' + (sk ? ' title="' + esc(sk[0]) + '"' : '') + '>' + (st === null ? '<span class="mut">…</span>' : sk ? sk[2] : '<span class="mut">–</span>') + '</td>'; }
+    var inp = function(f, v, max, cls){ return '<td class="' + (cls || '') + '"><span class="ofx"><input class="einput min" type="number" inputmode="numeric" min="0" max="' + max + '" value="' + (v == null ? '' : v) + '" data-mine="' + esc(c.name + "|" + f) + '" aria-label="' + esc(c.name + " " + f) + '"' + (f === "ss" && v != null ? ' title="' + esc(ssTip(v, bags[c.name] && bags[c.name].c ? bags[c.name].c[ABYSS_ID] : null)) + '"' : '') + '>' + (max < 99 || max > 99 ? '<i>/' + max + '</i>' : '') + '</span></td>'; };
+    html += '<tr>' + name(c) + stc + inp("ssShugo", r.ssShugo, 50, "gs") + inp("ss", r.ss, SS_STEPS.length * SS_PER) + inp("ssNm", r.ssNm, 50)
+      + inp("shugo", r.shugo, 99, "gs") + inp("nm", r.nm, 99) + '<td class="n">' + (c.dvPts ? c.dvPts + ' pts' : '–') + '</td>'
       + '<td><input class="einput mnote" type="text" maxlength="120" value="' + esc(r.note || '') + '" data-mine="' + esc(c.name + "|note") + '" aria-label="' + esc(c.name + " note") + '"></td></tr>';
   });
-  html += '</tbody></table></div><p class="pnote">Stigmas = equipped stigma levels, highest first (hover for names); Daevanion = points on the four main boards. Both update hourly. Stigma shards: how many you bought from the Abyss shop (4 steps of 50: 10,000 / 15,000 / 20,000 / 25,000 Abyss each); "can buy" uses the character\'s current Abyss from Questlog.</p>';
+  html += '</tbody></table></div><p class="pnote">Stigmas = levelled stigmas, highest first (hover for names), and Daevanion = points on the four main boards: both update hourly. Stigma shards = how many you bought in each shop (hover the Abyss one for the step and the next price).</p>';
   /* 2) currencies and bag, from Questlog */
   html += '<h3 class="mh">Currencies &amp; bag <span class="when">' + (bagAt ? 'from Questlog · updated ' + when(bagAt) : 'nothing uploaded yet') + '</span></h3><div class="etable-wrap"><table class="etable mtable"><thead><tr><th>Character</th>'
     + BAG_COLS.map(function(b){ return '<th class="bagc' + (BAG_EXPIRE[b[0]] ? ' exp' : '') + '" title="Questlog item ' + b[0] + (BAG_EXPIRE[b[0]] ? ' · expires when Season 2 starts (16 Dec)' : '') + '">' + (BAG_EXPIRE[b[0]] ? '⌛ ' : '') + esc(b[1]) + (BAG_EXPIRE[b[0]] ? '<br><span class="expn">expires 16 Dec</span>' : '') + '</th>'; }).join("") + '</tr></thead><tbody>';
