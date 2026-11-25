@@ -1735,7 +1735,7 @@ function arcanaStrip(g){
   return '<div class="arcs"><div class="arc-h"><span>Arcana</span><span>' + n + ' / ' + ARC_TYPES.length + '</span></div><div class="arow">' + tiles + '</div></div>';
 }
 function skillsBlock(g){
-  var sk = g.skills || [], act = sk.filter(function(k){ return k[3] === "Active" && k[4] !== 0; }), stg = sk.filter(function(k){ return k[3] === "Stigma"; });
+  var sk = g.skills || [], act = sk.filter(function(k){ return k[3] === "Active" && k[4] !== 0; }), stg = sk.filter(function(k){ return k[3] === "Stigma" && +k[2] > 0; }).sort(function(a, b){ return b[2] - a[2]; }).slice(0, 5);  /* the 5 stigma slots: levelled ones, highest first (Aleks) */
   if (!act.length && !stg.length) return '';
   var icons = function(list){ return '<div class="skg">' + list.map(function(k){ return '<span class="sk" title="' + esc(k[0]) + ' · Lv ' + esc(k[2]) + '">' + (k[1] ? '<img alt="' + esc(k[0]) + '" src="' + esc(k[1]) + '" loading="lazy">' : '') + '<b>' + esc(k[2]) + '</b></span>'; }).join("") + '</div>'; };
   return '<div class="skb">' + (act.length ? '<div class="arc-h"><span>Skills</span><span>' + act.length + '</span></div>' + icons(act) : '')
@@ -2017,7 +2017,7 @@ function mineSet(key, raw){
 function mineStig(c){  /* equipped stigma levels, highest first, from the hourly gear read */
   var cache = gearCache[c._id || c.name]; if (!cache) { loadGear(c); return null; }
   var g = cache.g; if (!g) return [];
-  return (g.skills || []).filter(function(k){ return k[3] === "Stigma" && +k[2] > 0; }).sort(function(a, b){ return b[2] - a[2]; });
+  return (g.skills || []).filter(function(k){ return k[3] === "Stigma" && +k[2] > 0; }).sort(function(a, b){ return b[2] - a[2]; }).slice(0, 5);
 }
 function renderMine(){
   var el = $("mine"); if (!el || $("panel-mine").hidden) return;
