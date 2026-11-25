@@ -338,14 +338,17 @@ def main():
         boards.update({r["id"]: r["data"] for r in gear_rows if re.search(r"~dv\d+$", r["id"])})
         info = dict((k, v) for k, v in previous.items())
         info.update({r["id"]: r["data"] for r in rows if r["coll"] == "chars"})
-        share = {}
+        share, mains = {}, {}
         for gid, bd in boards.items():
             ch = info.get(gid.split("~")[0]) or {}
-            if not ch.get("cls") or ch.get("main"): continue
+            if not ch.get("cls"): continue
+            into = mains if ch.get("main") else share   # a class with no alts (Templar today) uses its main's choices
             for t in bd.get("t", []):
                 if t[3] != "k": continue
                 sk = re.sub(r" \+\d+$", "", t[5])
-                o = share.setdefault(ch["cls"], {}).setdefault(sk, [0, 0]); o[0] += t[4]; o[1] += 1
+                o = into.setdefault(ch["cls"], {}).setdefault(sk, [0, 0]); o[0] += t[4]; o[1] += 1
+        for k, v in mains.items():
+            share.setdefault(k, v)
         if share:
             gear_rows.append({"coll": "gear", "id": "zz_dvshare", "data": {"at": now, "cls": share}, "updated_at": now})
     except Exception as ex:
